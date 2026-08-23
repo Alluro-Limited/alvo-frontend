@@ -1,0 +1,8 @@
+@import "@alvo/design-tokens/styles";
+@import "tailwindcss" important;
+
+@plugin "tailwindcss-animate";
+
+/* Scan the package itself and all apps from the workspace root. */
+@source "./**/*.{ts,tsx}";
+@source "../../../apps/**/*.{ts,tsx}";
