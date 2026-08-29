@@ -13,6 +13,7 @@
   :root {
     --background: #010d0f;
     --foreground: hsl(0 0% 98%);
+    --surface: #0a1a1c;
     --border: hsl(0 0% 14.9%);
   }
 }
@@ -53,6 +54,9 @@
   --color-primary-700: #044c53;
   --color-primary-800: #023337;
   --color-primary-850: #022629;
+  --color-primary-900: #01181a;
+  --color-primary-950: #000c0d;
+  --color-primary-1000: #000000;
 
   /* Secondary sky scale from Priveace design system */
   --color-secondary-0: #ffffff;
@@ -67,6 +71,9 @@
   --color-secondary-700: #08638c;
   --color-secondary-800: #06425d;
   --color-secondary-850: #043246;
+  --color-secondary-900: #022233;
+  --color-secondary-950: #01111a;
+  --color-secondary-1000: #000000;
 
   /* Success green scale from Priveace design system */
   --color-success-0: #f3fefa;
@@ -81,6 +88,9 @@
   --color-success-700: #0a6f4d;
   --color-success-800: #064a34;
   --color-success-850: #053827;
+  --color-success-900: #031c13;
+  --color-success-950: #010e0a;
+  --color-success-1000: #000000;
 
   /* Accent violet scale from Priveace design system */
   --color-accent-0: #ffffff;
@@ -95,6 +105,9 @@
   --color-accent-700: #5938a4;
   --color-accent-800: #40267a;
   --color-accent-850: #341d66;
+  --color-accent-900: #1a0f33;
+  --color-accent-950: #0d0719;
+  --color-accent-1000: #000000;
 
   /* Warning orange scale from Priveace design system */
   --color-warning-0: #ffffff;
@@ -109,6 +122,9 @@
   --color-warning-700: #9e4120;
   --color-warning-800: #6d2d15;
   --color-warning-850: #552210;
+  --color-warning-900: #2b1108;
+  --color-warning-950: #160905;
+  --color-warning-1000: #000000;
 
   /* Danger red scale from Priveace design system */
   --color-danger-0: #ffffff;
@@ -123,6 +139,9 @@
   --color-danger-700: #972639;
   --color-danger-800: #681a27;
   --color-danger-850: #51141e;
+  --color-danger-900: #280a0f;
+  --color-danger-950: #140508;
+  --color-danger-1000: #000000;
 
   /* Status colors from Priveace design system */
   --color-status-success: #40b869;
@@ -136,6 +155,7 @@
   --color-status-fail-dark: #940803;
   --color-status-delayed: #f97316;
   --color-status-delayed-subtle: #fff7ed;
+  --color-status-delayed-dark: #c2410c;
 
   /* Neutral gray scale from Priveace design system */
   --color-neutral-0: #ffffff;

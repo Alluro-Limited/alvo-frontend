@@ -17,7 +17,7 @@ const buttonVariants = cva(
         loading: "bg-teal-500 text-button-loading-foreground border-[1.5px] border-primary-500/30",
       },
       size: {
-        default: "h-[50px] gap-2 px-5 py-3.5 text-base tracking-[0.02em]",
+        default: "h-[50px] gap-2 px-5 py-3.5 text-[18px] tracking-[0.02em]",
       },
     },
     defaultVariants: {
