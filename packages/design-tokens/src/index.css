@@ -22,7 +22,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
-  --color-primary: #067f8a;
+  --color-primary: #00a996;
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: #0ea5e9;
   --color-secondary-foreground: hsl(0 0% 9%);
@@ -36,26 +36,25 @@
   --color-danger-foreground: hsl(0 0% 98%);
   --color-neutral: #e5e5e5;
   --color-neutral-foreground: hsl(0 0% 9%);
-  --color-teal: #00a996;
-  --color-teal-foreground: hsl(0 0% 98%);
+
   --color-border: var(--border);
   --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
 
-  /* Primary teal scale from Priveace design system */
-  --color-primary-0: #bcf7fc;
-  --color-primary-50: #aaebf1;
-  --color-primary-100: #98dfe5;
-  --color-primary-150: #85d3da;
-  --color-primary-200: #73c7ce;
-  --color-primary-300: #4fafb8;
-  --color-primary-400: #2a97a1;
-  --color-primary-500: #067f8a;
-  --color-primary-600: #05666e;
-  --color-primary-700: #044c53;
-  --color-primary-800: #023337;
-  --color-primary-850: #022629;
-  --color-primary-900: #01181a;
-  --color-primary-950: #000c0d;
+  /* Primary scale from Priveace design system */
+  --color-primary-0: #d2fffa;
+  --color-primary-50: #bdf6f0;
+  --color-primary-100: #a8eee6;
+  --color-primary-150: #93e5dc;
+  --color-primary-200: #7eddd2;
+  --color-primary-300: #54cbbe;
+  --color-primary-400: #2abaaa;
+  --color-primary-500: #00a996;
+  --color-primary-600: #009778;
+  --color-primary-700: #00655a;
+  --color-primary-800: #00443c;
+  --color-primary-850: #00332d;
+  --color-primary-900: #00221e;
+  --color-primary-950: #00110f;
   --color-primary-1000: #000000;
 
   /* Secondary sky scale from Priveace design system */
@@ -173,23 +172,6 @@
   --color-neutral-900: #6f6f6f;
   --color-neutral-950: #606060;
   --color-neutral-1000: #515151;
-
-  /* Teal scale from Priveace design system */
-  --color-teal-0: #d2fffa;
-  --color-teal-50: #bdf6f0;
-  --color-teal-100: #a8eee6;
-  --color-teal-150: #93e5dc;
-  --color-teal-200: #7eddd2;
-  --color-teal-300: #54cbbe;
-  --color-teal-400: #2abaaa;
-  --color-teal-500: #00a996;
-  --color-teal-600: #009778;
-  --color-teal-700: #00655a;
-  --color-teal-800: #00443c;
-  --color-teal-850: #00332d;
-  --color-teal-900: #00221e;
-  --color-teal-950: #00110f;
-  --color-teal-1000: #000000;
 
   /* Grey tokens from Priveace design system */
   --color-grey-300: #e4e7ec;

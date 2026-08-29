@@ -16,7 +16,7 @@ const pinInputContainer = cva("group/pin inline-flex items-center", {
 });
 
 const slotClass =
-  "size-12 rounded-full border border-transparent bg-transparent p-0 text-center text-5xl leading-none text-teal-800 outline-none transition-colors transition-shadow placeholder-shown:bg-grey-300 placeholder-shown:text-transparent focus:placeholder-shown:bg-teal-500 focus:ring-2 focus:ring-teal-500/50 data-[mask]:text-teal-500 data-[invalid]:bg-status-fail data-[invalid]:text-transparent data-[invalid]:placeholder-shown:bg-status-fail";
+  "size-12 rounded-full border border-transparent bg-transparent p-0 text-center text-5xl leading-none text-primary-800 outline-none transition-colors transition-shadow placeholder-shown:bg-grey-300 placeholder-shown:text-transparent focus:placeholder-shown:bg-primary-500 focus:ring-2 focus:ring-primary-500/50 data-[mask]:text-primary-500 data-[invalid]:bg-status-fail data-[invalid]:text-transparent data-[invalid]:placeholder-shown:bg-status-fail";
 
 type PinInputProps = Omit<React.ComponentProps<typeof OTPField.Root>, "children" | "className" | "length"> & {
   length?: 4 | 6;

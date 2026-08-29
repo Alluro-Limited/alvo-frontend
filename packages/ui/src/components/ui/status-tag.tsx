@@ -11,7 +11,7 @@ const statusTagVariants = cva(
         fail: "border-status-fail-dark bg-status-fail-subtle text-status-fail-dark",
         pending: "border-status-warning-dark bg-status-warning-subtle text-status-warning-dark",
         delayed: "border-status-delayed-dark bg-status-delayed-subtle text-status-delayed-dark",
-        pickup: "border-teal-600 bg-teal-100/30 text-teal-600",
+        pickup: "border-primary-600 bg-primary-100/30 text-primary-600",
         booked: "border-secondary-500 bg-secondary-50 text-secondary-500",
         default: "border-neutral-500 bg-neutral-50 text-grey-600",
       },

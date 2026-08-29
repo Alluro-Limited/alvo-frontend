@@ -5,16 +5,16 @@ import type {ReactNode} from "react";
 import {cn} from "cnfast";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-teal-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-teal-500 text-teal-foreground hover:bg-teal-600",
-        outline: "border border-teal-500 bg-transparent text-teal-500 hover:bg-teal-50",
-        transparent: "bg-transparent text-teal-900 hover:bg-teal-50",
+        default: "bg-primary-500 text-primary-foreground hover:bg-primary-600",
+        outline: "border border-primary-500 bg-transparent text-primary-500 hover:bg-primary-50",
+        transparent: "bg-transparent text-primary-900 hover:bg-primary-50",
         destructive: "bg-button-danger text-button-danger-foreground hover:bg-button-danger/80",
         disabled: "bg-button-disabled text-button-disabled-foreground",
-        loading: "bg-teal-500 text-button-loading-foreground border-[1.5px] border-primary-500/30",
+        loading: "bg-primary-500 text-button-loading-foreground border-[1.5px] border-primary-500/30",
       },
       size: {
         default: "h-[50px] gap-2 px-5 py-3.5 text-[18px] tracking-[0.02em]",
