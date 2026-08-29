@@ -1,42 +1,20 @@
-# EXAMPLE USAGE:
-#
-#   Refer for explanation to following link:
-#   https://lefthook.dev/configuration/
-#
-# pre-push:
-#   jobs:
-#     - name: packages audit
-#       tags:
-#         - frontend
-#         - security
-#       run: yarn audit
-#
-#     - name: gems audit
-#       tags:
-#         - backend
-#         - security
-#       run: bundle audit
-#
-# pre-commit:
-#   parallel: true
-#   jobs:
-#     - run: yarn eslint {staged_files}
-#       glob: "*.{js,ts,jsx,tsx}"
-#
-#     - name: rubocop
-#       glob: "*.rb"
-#       exclude:
-#         - config/application.rb
-#         - config/routes.rb
-#       run: bundle exec rubocop --force-exclusion -- {all_files}
-#
-#     - name: govet
-#       files: git ls-files -m
-#       glob: "*.go"
-#       run: go vet -- {files}
-#
-#     - script: "hello.js"
-#       runner: node
-#
-#     - script: "hello.go"
-#       runner: go run
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx}"
+      run: bun lint {staged_files}
+      stage_fixed: true
+    format:
+      glob: "*.{ts,tsx,json,md}"
+      run: bun format {staged_files}
+      stage_fixed: true
+    test:
+      glob: "*.{ts,tsx}"
+      run: bunx vitest related {staged_files} --run --reporter=verbose --bail=1
+    test-ct:
+      glob: "**/*.ct.tsx"
+      run: bunx playwright test -c playwright-ct.config.ts {staged_files}
+    react-doctor:
+      glob: "*.{tsx}"
+      run: bun react-doctor --scope changed < /dev/null

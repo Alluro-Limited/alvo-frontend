@@ -1,0 +1,44 @@
+{
+  "$schema": "node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "react-perf", "typescript", "jsx-a11y"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "jsx-a11y/prefer-tag-over-role": "off",
+    "react/exhaustive-deps": "off",
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-restricted-types": [
+      "error",
+      {"types": {"unknown": "Use explicit domain types or UntrustedValue/UntrustedRecord at untrusted boundaries."}}
+    ],
+    "eslint/complexity": ["error", {"max": 10}],
+    "eslint/max-lines-per-function": ["error", {"max": 50, "skipComments": true}],
+    "eslint/max-lines": ["error", {"max": 250, "skipBlankLines": true, "skipComments": true}],
+    "eslint/max-params": ["error", 3],
+    "eslint/max-depth": ["error", 3],
+    "eslint/max-statements": ["error", 25],
+    "eslint/max-classes-per-file": ["error", 1],
+    "oxc/branches-sharing-code": "warn"
+  },
+  "ignorePatterns": [
+    "*.html",
+    "docker",
+    "public",
+    "__tests__",
+    "*.test.ts",
+    "*.test.tsx",
+    "*.spec.ts",
+    "*.spec.tsx",
+    "*.ct.tsx",
+    "*.gen.ts",
+    "*.d.ts",
+    "dist",
+    "node_modules",
+    "apps/*/dist",
+    "apps/*/node_modules",
+    "packages/*/dist",
+    "packages/*/node_modules"
+  ]
+}
