@@ -1,18 +1,40 @@
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(0 0% 3.9%);
-  --primary: hsl(0 0% 9%);
   --primary-foreground: hsl(0 0% 98%);
   --border: hsl(0 0% 89.8%);
   --radius: 0.5rem;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: hsl(0 0% 3.9%);
+    --foreground: hsl(0 0% 98%);
+    --border: hsl(0 0% 14.9%);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
+  --color-primary: #067f8a;
   --color-primary-foreground: var(--primary-foreground);
   --color-border: var(--border);
+
+  /* Primary teal scale from Priveace design system */
+  --color-primary-0: #bcf7fc;
+  --color-primary-50: #aaebf1;
+  --color-primary-100: #98dfe5;
+  --color-primary-150: #85d3da;
+  --color-primary-200: #73c7ce;
+  --color-primary-300: #4fafb8;
+  --color-primary-400: #2a97a1;
+  --color-primary-500: #067f8a;
+  --color-primary-600: #05666e;
+  --color-primary-700: #044c53;
+  --color-primary-800: #023337;
+  --color-primary-850: #022629;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
