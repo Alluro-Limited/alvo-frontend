@@ -1,14 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap");
+
 :root {
-  --background: hsl(0 0% 100%);
+  --background: #ffffff;
   --foreground: hsl(0 0% 3.9%);
   --primary-foreground: hsl(0 0% 98%);
+  --surface: #f5fcfe;
   --border: hsl(0 0% 89.8%);
   --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: hsl(0 0% 3.9%);
+    --background: #010d0f;
     --foreground: hsl(0 0% 98%);
     --border: hsl(0 0% 14.9%);
   }
@@ -17,9 +20,25 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
   --color-primary: #067f8a;
   --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: #0ea5e9;
+  --color-secondary-foreground: hsl(0 0% 9%);
+  --color-success: #10b981;
+  --color-success-foreground: hsl(0 0% 9%);
+  --color-accent: #8b5cf6;
+  --color-accent-foreground: hsl(0 0% 98%);
+  --color-warning: #ff6b35;
+  --color-warning-foreground: hsl(0 0% 9%);
+  --color-danger: #f43f5e;
+  --color-danger-foreground: hsl(0 0% 98%);
+  --color-neutral: #e5e5e5;
+  --color-neutral-foreground: hsl(0 0% 9%);
+  --color-teal: #00a996;
+  --color-teal-foreground: hsl(0 0% 98%);
   --color-border: var(--border);
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
 
   /* Primary teal scale from Priveace design system */
   --color-primary-0: #bcf7fc;
@@ -35,7 +54,139 @@
   --color-primary-800: #023337;
   --color-primary-850: #022629;
 
+  /* Secondary sky scale from Priveace design system */
+  --color-secondary-0: #ffffff;
+  --color-secondary-50: #e7f6fd;
+  --color-secondary-100: #cfedfb;
+  --color-secondary-150: #b7e4f8;
+  --color-secondary-200: #9fdbf6;
+  --color-secondary-300: #6ec9f2;
+  --color-secondary-400: #3eb7ed;
+  --color-secondary-500: #0ea5e9;
+  --color-secondary-600: #0b84ba;
+  --color-secondary-700: #08638c;
+  --color-secondary-800: #06425d;
+  --color-secondary-850: #043246;
+
+  /* Success green scale from Priveace design system */
+  --color-success-0: #f3fefa;
+  --color-success-50: #dcf7ee;
+  --color-success-100: #c6f0e2;
+  --color-success-150: #afe9d6;
+  --color-success-200: #98e2ca;
+  --color-success-300: #6bd5b1;
+  --color-success-400: #3dc799;
+  --color-success-500: #10b981;
+  --color-success-600: #0d9467;
+  --color-success-700: #0a6f4d;
+  --color-success-800: #064a34;
+  --color-success-850: #053827;
+
+  /* Accent violet scale from Priveace design system */
+  --color-accent-0: #ffffff;
+  --color-accent-50: #f3effe;
+  --color-accent-100: #e8defd;
+  --color-accent-150: #dccefc;
+  --color-accent-200: #d1befb;
+  --color-accent-300: #b99dfa;
+  --color-accent-400: #a27df8;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #724acd;
+  --color-accent-700: #5938a4;
+  --color-accent-800: #40267a;
+  --color-accent-850: #341d66;
+
+  /* Warning orange scale from Priveace design system */
+  --color-warning-0: #ffffff;
+  --color-warning-50: #fff0eb;
+  --color-warning-100: #ffe1d7;
+  --color-warning-150: #ffd3c2;
+  --color-warning-200: #ffc4ae;
+  --color-warning-300: #ffa686;
+  --color-warning-400: #ff895d;
+  --color-warning-500: #ff6b35;
+  --color-warning-600: #ce562a;
+  --color-warning-700: #9e4120;
+  --color-warning-800: #6d2d15;
+  --color-warning-850: #552210;
+
+  /* Danger red scale from Priveace design system */
+  --color-danger-0: #ffffff;
+  --color-danger-50: #feecef;
+  --color-danger-100: #fdd9df;
+  --color-danger-150: #fcc5cf;
+  --color-danger-200: #fbb2bf;
+  --color-danger-300: #f88c9e;
+  --color-danger-400: #f6657e;
+  --color-danger-500: #f43f5e;
+  --color-danger-600: #c5334c;
+  --color-danger-700: #972639;
+  --color-danger-800: #681a27;
+  --color-danger-850: #51141e;
+
+  /* Status colors from Priveace design system */
+  --color-status-success: #40b869;
+  --color-status-success-subtle: #e7f6ec;
+  --color-status-success-dark: #0e7b33;
+  --color-status-warning: #f5b546;
+  --color-status-warning-subtle: #fef6e7;
+  --color-status-warning-dark: #c57d00;
+  --color-status-fail: #dd524d;
+  --color-status-fail-subtle: #fbeae9;
+  --color-status-fail-dark: #940803;
+  --color-status-delayed: #f97316;
+  --color-status-delayed-subtle: #fff7ed;
+
+  /* Neutral gray scale from Priveace design system */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #fcfcfc;
+  --color-neutral-100: #fafafa;
+  --color-neutral-150: #f7f7f7;
+  --color-neutral-200: #f5f5f5;
+  --color-neutral-300: #efefef;
+  --color-neutral-400: #eaeaea;
+  --color-neutral-500: #e5e5e5;
+  --color-neutral-600: #c7c7c7;
+  --color-neutral-700: #aaaaaa;
+  --color-neutral-800: #8c8c8c;
+  --color-neutral-850: #7d7d7d;
+  --color-neutral-900: #6f6f6f;
+  --color-neutral-950: #606060;
+  --color-neutral-1000: #515151;
+
+  /* Teal scale from Priveace design system */
+  --color-teal-0: #d2fffa;
+  --color-teal-50: #bdf6f0;
+  --color-teal-100: #a8eee6;
+  --color-teal-150: #93e5dc;
+  --color-teal-200: #7eddd2;
+  --color-teal-300: #54cbbe;
+  --color-teal-400: #2abaaa;
+  --color-teal-500: #00a996;
+  --color-teal-600: #009778;
+  --color-teal-700: #00655a;
+  --color-teal-800: #00443c;
+  --color-teal-850: #00332d;
+  --color-teal-900: #00221e;
+  --color-teal-950: #00110f;
+  --color-teal-1000: #000000;
+
+  /* Grey tokens from Priveace design system */
+  --color-grey-300: #e4e7ec;
+  --color-grey-600: #6a6e74;
+
+  /* Button tokens from Priveace design system */
+  --color-button-danger: #dd524d;
+  --color-button-danger-foreground: #fbeae9;
+  --color-button-disabled: #d0d5dd;
+  --color-button-disabled-foreground: #f0f2f5;
+  --color-button-loading-foreground: #f2faff;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+}
+
+html {
+  font-family: var(--font-sans);
 }
