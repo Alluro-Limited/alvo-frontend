@@ -1,12 +1,14 @@
 {
   "name": "@alvo/website",
-  "private": true,
   "version": "0.0.1",
+  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite build && vite preview",
+    "dev": "fumadocs-mdx && bun run copy:blog-assets && vite",
+    "build": "fumadocs-mdx && bun run copy:blog-assets && vite build",
+    "preview": "bun run build && vite preview",
+    "copy:blog-assets": "bun scripts/copy-blog-assets.ts",
+    "generate": "fumadocs-mdx",
     "lint": "oxlint --max-warnings=0 --no-error-on-unmatched-pattern",
     "format": "oxfmt"
   },
@@ -15,8 +17,13 @@
     "@alvo/ui": "workspace:*",
     "@tanstack/react-router": "^1.170.29",
     "@tanstack/react-start": "^1.168.46",
+    "fumadocs-core": "^16.15.9",
+    "fumadocs-mdx": "^15.4.0",
+    "lucide-react": "^1.37.0",
+    "motion": "^13.1.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

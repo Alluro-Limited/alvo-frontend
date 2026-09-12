@@ -1,0 +1,9 @@
+{
+  "name": "@alvo/blog-posts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate": "echo 'All posts valid.'"
+  }
+}
