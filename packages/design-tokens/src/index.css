@@ -174,8 +174,14 @@
   --color-neutral-1000: #515151;
 
   /* Grey tokens from Priveace design system */
+  --color-grey-100: #f7f9fc;
+  --color-grey-200: #f0f2f5;
   --color-grey-300: #e4e7ec;
+  --color-grey-500: #98a2b3;
   --color-grey-600: #6a6e74;
+
+  /* Warm surface from Priveace design system */
+  --color-cream: #fffcf7;
 
   /* Button tokens from Priveace design system */
   --color-button-danger: #dd524d;

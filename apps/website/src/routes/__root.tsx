@@ -5,11 +5,7 @@ import appCss from "../index.css?url";
 
 export const Route = createRootRoute({
   head: () => ({
-    meta: [
-      {charSet: "utf-8"},
-      {name: "viewport", content: "width=device-width, initial-scale=1.0"},
-      {title: "Alvo"},
-    ],
+    meta: [{charSet: "utf-8"}, {name: "viewport", content: "width=device-width, initial-scale=1.0"}, {title: "Alvo"}],
     links: [{rel: "stylesheet", href: appCss}],
   }),
   shellComponent: RootDocument,

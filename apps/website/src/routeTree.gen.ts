@@ -10,33 +10,176 @@
 
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as AboutRouteImport } from "./routes/about"
+import { Route as BlogRouteImport } from "./routes/blog"
+import { Route as BusinessRouteImport } from "./routes/business"
+import { Route as ContactRouteImport } from "./routes/contact"
+import { Route as CouriersRouteImport } from "./routes/couriers"
+import { Route as HelpRouteImport } from "./routes/help"
+import { Route as PartnersRouteImport } from "./routes/partners"
+import { Route as SmartLockersRouteImport } from "./routes/smart-lockers"
+import { Route as TrackingRouteImport } from "./routes/tracking"
+import { Route as BlogIndexRouteImport } from "./routes/blog/index"
+import { Route as BlogSlugRouteImport } from "./routes/blog/$slug"
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: "/about",
+  path: "/about",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: "/blog",
+  path: "/blog",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessRoute = BusinessRouteImport.update({
+  id: "/business",
+  path: "/business",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: "/contact",
+  path: "/contact",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CouriersRoute = CouriersRouteImport.update({
+  id: "/couriers",
+  path: "/couriers",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: "/help",
+  path: "/help",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: "/partners",
+  path: "/partners",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmartLockersRoute = SmartLockersRouteImport.update({
+  id: "/smart-lockers",
+  path: "/smart-lockers",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackingRoute = TrackingRouteImport.update({
+  id: "/tracking",
+  path: "/tracking",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => BlogRoute,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: "/$slug",
+  path: "/$slug",
+  getParentRoute: () => BlogRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
+  "/about": typeof AboutRoute
+  "/blog": typeof BlogRouteWithChildren
+  "/business": typeof BusinessRoute
+  "/contact": typeof ContactRoute
+  "/couriers": typeof CouriersRoute
+  "/help": typeof HelpRoute
+  "/partners": typeof PartnersRoute
+  "/smart-lockers": typeof SmartLockersRoute
+  "/tracking": typeof TrackingRoute
+  "/blog/$slug": typeof BlogSlugRoute
+  "/blog/": typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
+  "/about": typeof AboutRoute
+  "/business": typeof BusinessRoute
+  "/contact": typeof ContactRoute
+  "/couriers": typeof CouriersRoute
+  "/help": typeof HelpRoute
+  "/partners": typeof PartnersRoute
+  "/smart-lockers": typeof SmartLockersRoute
+  "/tracking": typeof TrackingRoute
+  "/blog/$slug": typeof BlogSlugRoute
+  "/blog": typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
+  "/about": typeof AboutRoute
+  "/blog": typeof BlogRouteWithChildren
+  "/business": typeof BusinessRoute
+  "/contact": typeof ContactRoute
+  "/couriers": typeof CouriersRoute
+  "/help": typeof HelpRoute
+  "/partners": typeof PartnersRoute
+  "/smart-lockers": typeof SmartLockersRoute
+  "/tracking": typeof TrackingRoute
+  "/blog/$slug": typeof BlogSlugRoute
+  "/blog/": typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/"
+  fullPaths:
+    | "/"
+    | "/about"
+    | "/blog"
+    | "/business"
+    | "/contact"
+    | "/couriers"
+    | "/help"
+    | "/partners"
+    | "/smart-lockers"
+    | "/tracking"
+    | "/blog/$slug"
+    | "/blog/"
   fileRoutesByTo: FileRoutesByTo
-  to: "/"
-  id: "__root__" | "/"
+  to:
+    | "/"
+    | "/about"
+    | "/business"
+    | "/contact"
+    | "/couriers"
+    | "/help"
+    | "/partners"
+    | "/smart-lockers"
+    | "/tracking"
+    | "/blog/$slug"
+    | "/blog"
+  id:
+    | "__root__"
+    | "/"
+    | "/about"
+    | "/blog"
+    | "/business"
+    | "/contact"
+    | "/couriers"
+    | "/help"
+    | "/partners"
+    | "/smart-lockers"
+    | "/tracking"
+    | "/blog/$slug"
+    | "/blog/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  BlogRoute: typeof BlogRouteWithChildren
+  BusinessRoute: typeof BusinessRoute
+  ContactRoute: typeof ContactRoute
+  CouriersRoute: typeof CouriersRoute
+  HelpRoute: typeof HelpRoute
+  PartnersRoute: typeof PartnersRoute
+  SmartLockersRoute: typeof SmartLockersRoute
+  TrackingRoute: typeof TrackingRoute
 }
 
 declare module "@tanstack/react-router" {
@@ -48,11 +191,109 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/about": {
+      id: "/about"
+      path: "/about"
+      fullPath: "/about"
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/blog": {
+      id: "/blog"
+      path: "/blog"
+      fullPath: "/blog"
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/business": {
+      id: "/business"
+      path: "/business"
+      fullPath: "/business"
+      preLoaderRoute: typeof BusinessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/contact": {
+      id: "/contact"
+      path: "/contact"
+      fullPath: "/contact"
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/couriers": {
+      id: "/couriers"
+      path: "/couriers"
+      fullPath: "/couriers"
+      preLoaderRoute: typeof CouriersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/help": {
+      id: "/help"
+      path: "/help"
+      fullPath: "/help"
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/partners": {
+      id: "/partners"
+      path: "/partners"
+      fullPath: "/partners"
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/smart-lockers": {
+      id: "/smart-lockers"
+      path: "/smart-lockers"
+      fullPath: "/smart-lockers"
+      preLoaderRoute: typeof SmartLockersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/tracking": {
+      id: "/tracking"
+      path: "/tracking"
+      fullPath: "/tracking"
+      preLoaderRoute: typeof TrackingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/blog/": {
+      id: "/blog/"
+      path: "/"
+      fullPath: "/blog/"
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof BlogRoute
+    }
+    "/blog/$slug": {
+      id: "/blog/$slug"
+      path: "/$slug"
+      fullPath: "/blog/$slug"
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof BlogRoute
+    }
   }
 }
 
+interface BlogRouteChildren {
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+}
+
+const BlogRouteChildren: BlogRouteChildren = {
+  BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
+}
+
+const BlogRouteWithChildren = BlogRoute._addFileChildren(BlogRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  BlogRoute: BlogRouteWithChildren,
+  BusinessRoute: BusinessRoute,
+  ContactRoute: ContactRoute,
+  CouriersRoute: CouriersRoute,
+  HelpRoute: HelpRoute,
+  PartnersRoute: PartnersRoute,
+  SmartLockersRoute: SmartLockersRoute,
+  TrackingRoute: TrackingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

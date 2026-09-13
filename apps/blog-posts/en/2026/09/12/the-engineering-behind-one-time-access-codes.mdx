@@ -1,0 +1,25 @@
+---
+title: "The engineering behind one-time access codes"
+author: "Alvo Team"
+date: "2026-09-12"
+category: "Engineering"
+featured: false
+excerpt: "One-time codes are the small detail that makes private delivery work. Here is how Alvo generates, delivers, and invalidates them."
+image: ""
+---
+
+A one-time access code is not a password. It is a short-lived key that exists only long enough to connect a courier, a locker, and a recipient.
+
+## Generated once, used once
+
+When a parcel enters the Alvo system, a code is created and tied to that parcel only. It is delivered to the recipient through a channel they already trust. It cannot be guessed, replayed, or reused.
+
+## Time and state matters
+
+Every code has an expiry window. After the parcel is collected, the code is invalidated. The state of the parcel, the code, and the locker stay in sync.
+
+## What the courier sees
+
+The courier gets the destination and the code, not the recipient's name or number. The app validates the code, the locker confirms the handover, and the system records the event.
+
+One-time codes let us replace identity with intent. That is the engineering that keeps the whole network private.
