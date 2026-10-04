@@ -66,11 +66,11 @@ alvo/
   vite.config.ts            # Vite+ fmt, lint, staged, and test projects
   .vite-hooks/pre-commit    # runs `vp staged`
   apps/
-    website/                → alvo.com
-    admin/                  → admin.alvo.com
-    business/               → business.alvo.com
-    courier-pwa/            → courier.alvo.com
-    user-pwa/               → user.alvo.com
+    website/                → allurro.com
+    admin/                  → admin.allurro.com
+    business/               → business.allurro.com
+    courier-pwa/            → courier.allurro.com
+    user-pwa/               → user.allurro.com
   packages/
     design-tokens/          # CSS variables + theme TS types
     ui/                     # shared primitives (no app logic)
@@ -373,13 +373,13 @@ All runtime env variables must be prefixed with `VITE_` so Vite exposes them.
 
 All five apps deploy from this one repository to **Vercel**. Each app is its own Vercel project, linked to the same Git repo, with its **Root Directory** set to its app folder.
 
-| App             | Domain              | Root Directory     | Build command          | Output directory |
-| --------------- | ------------------- | ------------------ | ---------------------- | ---------------- |
-| **Website**     | `alvo.com`          | `apps/website`     | `bun run build:vercel` | `dist/client`    |
-| **Admin**       | `admin.alvo.com`    | `apps/admin`       | `bun run build`        | `dist/client`    |
-| **Business**    | `business.alvo.com` | `apps/business`    | `bun run build`        | `dist/client`    |
-| **Courier PWA** | `courier.alvo.com`  | `apps/courier-pwa` | `bun run build`        | `dist/client`    |
-| **User PWA**    | `user.alvo.com`     | `apps/user-pwa`    | `bun run build`        | `dist/client`    |
+| App             | Domain                 | Root Directory     | Build command          | Output directory |
+| --------------- | ---------------------- | ------------------ | ---------------------- | ---------------- |
+| **Website**     | `allurro.com`          | `apps/website`     | `bun run build:vercel` | `dist/client`    |
+| **Admin**       | `admin.allurro.com`    | `apps/admin`       | `bun run build`        | `dist/client`    |
+| **Business**    | `business.allurro.com` | `apps/business`    | `bun run build`        | `dist/client`    |
+| **Courier PWA** | `courier.allurro.com`  | `apps/courier-pwa` | `bun run build`        | `dist/client`    |
+| **User PWA**    | `user.allurro.com`     | `apps/user-pwa`    | `bun run build`        | `dist/client`    |
 
 - Every app has its own `apps/<name>/vercel.json` with its build command, output directory, SPA rewrite (`/(.*)` → `/index.html`) and headers.
 - Enable **Include files outside the root directory in the Build Step** so `bun install` resolves the workspace and `packages/*`.
@@ -389,16 +389,16 @@ All five apps deploy from this one repository to **Vercel**. Each app is its own
 
 ### Domains (Namecheap DNS)
 
-The apex `alvo.com` is already pointed at the website project. Each subdomain is a separate DNS record, so adding apps does not affect the website.
+The apex `allurro.com` is already pointed at the website project. Each subdomain is a separate DNS record, so adding apps does not affect the website.
 
-1. In the app's Vercel project, open **Settings → Domains** and add its subdomain (for example `admin.alvo.com`).
+1. In the app's Vercel project, open **Settings → Domains** and add its subdomain (for example `admin.allurro.com`).
 2. Copy the CNAME target Vercel shows for that domain.
 3. In Namecheap **Advanced DNS**, add a `CNAME` record: host `admin`, value the Vercel target.
 4. Wait for Vercel to verify the domain; it issues the TLS certificate automatically.
 
 ### Cross-subdomain concerns
 
-- Sessions shared between subdomains need backend cookies scoped to `.alvo.com`.
+- Sessions shared between subdomains need backend cookies scoped to `.allurro.com`.
 - Add every app origin to the backend CORS allowlist.
 - Use Vercel Pro: the Hobby plan is for non-commercial use only.
 
