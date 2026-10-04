@@ -15,7 +15,7 @@ export default defineConfig({
     bracketSpacing: false,
     bracketSameLine: false,
     endOfLine: "lf",
-    ignorePatterns: ["*.gen.ts"],
+    ignorePatterns: ["*.gen.ts", "**/src/paraglide/**", "**/coverage/**"],
   },
   lint: {
     plugins: ["react", "react-perf", "typescript", "jsx-a11y"],
@@ -53,6 +53,8 @@ export default defineConfig({
       "*.ct.tsx",
       "*.gen.ts",
       "*.d.ts",
+      "**/src/paraglide/**",
+      "**/coverage/**",
       "dist",
       "node_modules",
       "apps/*/dist",
