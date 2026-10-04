@@ -1,11 +1,11 @@
 import {Input} from "@alvo/ui";
 import {cn} from "cnfast";
 import {m} from "@/paraglide/messages";
-import {AuthAlert} from "./auth-alert";
-import {FormField} from "./form-field";
-import {PasswordInput} from "./password-input";
+import {AuthAlert} from "@/components/auth/auth-alert";
+import {FormField} from "@/components/auth/form-field";
+import {PasswordInput} from "@/components/auth/password-input";
 import {SignInActions} from "./sign-in-actions";
-import {signInInputClassName} from "./sign-in-input-styles";
+import {authInputClassName} from "@/components/auth/auth-input-styles";
 import {useSignInForm} from "./use-sign-in-form";
 
 export function SignInForm() {
@@ -16,7 +16,7 @@ export function SignInForm() {
       {alert && <AuthAlert tone={alert.tone}>{alert.message}</AuthAlert>}
 
       <div className="flex flex-col gap-6">
-        <FormField label={m["sign_in.email_label"]()} error={fieldErrors.email}>
+        <FormField label={m["auth.email_label"]()} error={fieldErrors.email}>
           {(control) => (
             <Input
               {...control}
@@ -26,7 +26,7 @@ export function SignInForm() {
               placeholder={m["sign_in.email_placeholder"]()}
               value={values.email}
               onChange={(event) => setField("email", event.target.value)}
-              className={cn(signInInputClassName, "text-sm")}
+              className={cn(authInputClassName, "text-sm")}
             />
           )}
         </FormField>
@@ -39,7 +39,7 @@ export function SignInForm() {
               placeholder={m["sign_in.password_placeholder"]()}
               value={values.password}
               onChange={(event) => setField("password", event.target.value)}
-              className={signInInputClassName}
+              className={authInputClassName}
             />
           )}
         </FormField>

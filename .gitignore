@@ -14,3 +14,6 @@ dist-ssr
 # Paraglide (generated from messages/*.json)
 apps/*/src/paraglide
 coverage
+
+# TanStack Router/Start scratch files
+.tanstack/

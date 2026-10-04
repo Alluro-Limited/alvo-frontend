@@ -1,7 +1,8 @@
 import {createFileRoute} from "@tanstack/react-router";
-import {NotFoundPage} from "@/pages/not-found";
+import {ForgotPasswordPage} from "@/pages/forgot-password";
+import {m} from "@/paraglide/messages";
 
-// Placeholder so the sign-in link resolves; the forgot-password flow replaces it once its designs land.
 export const Route = createFileRoute("/forgot-password")({
-  component: NotFoundPage,
+  head: () => ({meta: [{title: m["forgot_password.meta_title"]()}]}),
+  component: ForgotPasswordPage,
 });

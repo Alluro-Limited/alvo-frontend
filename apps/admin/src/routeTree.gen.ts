@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from "./routes/index"
 import { Route as SplatRouteImport } from "./routes/$"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
 import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
+import { Route as ResetPasswordRouteImport } from "./routes/reset-password"
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
@@ -34,18 +35,25 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: "/forgot-password",
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: "/reset-password",
+  path: "/reset-password",
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
   "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
+  "/reset-password": typeof ResetPasswordRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
   "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
+  "/reset-password": typeof ResetPasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   "/$": typeof SplatRoute
   "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
+  "/reset-password": typeof ResetPasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/" | "/$" | "/dashboard" | "/forgot-password"
+  fullPaths: "/" | "/$" | "/dashboard" | "/forgot-password" | "/reset-password"
   fileRoutesByTo: FileRoutesByTo
-  to: "/" | "/$" | "/dashboard" | "/forgot-password"
-  id: "__root__" | "/" | "/$" | "/dashboard" | "/forgot-password"
+  to: "/" | "/$" | "/dashboard" | "/forgot-password" | "/reset-password"
+  id:
+    | "__root__"
+    | "/"
+    | "/$"
+    | "/dashboard"
+    | "/forgot-password"
+    | "/reset-password"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +82,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module "@tanstack/react-router" {
@@ -99,6 +115,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/reset-password": {
+      id: "/reset-password"
+      path: "/reset-password"
+      fullPath: "/reset-password"
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

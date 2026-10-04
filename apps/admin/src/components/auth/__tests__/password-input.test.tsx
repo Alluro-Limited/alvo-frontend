@@ -9,10 +9,10 @@ describe("PasswordInput", () => {
 
     expect(input.getAttribute("type")).toBe("password");
 
-    fireEvent.click(screen.getByRole("button", {name: "sign_in.show_password"}));
+    fireEvent.click(screen.getByRole("button", {name: "auth.show_password"}));
     expect(input.getAttribute("type")).toBe("text");
 
-    fireEvent.click(screen.getByRole("button", {name: "sign_in.hide_password"}));
+    fireEvent.click(screen.getByRole("button", {name: "auth.hide_password"}));
     expect(input.getAttribute("type")).toBe("password");
   });
 
@@ -24,7 +24,7 @@ describe("PasswordInput", () => {
       </form>
     );
 
-    fireEvent.click(screen.getByRole("button", {name: "sign_in.show_password"}));
+    fireEvent.click(screen.getByRole("button", {name: "auth.show_password"}));
 
     expect(submitted).toBe(false);
   });

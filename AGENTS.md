@@ -63,6 +63,7 @@ Each app uses the same `src/` layout: `routes/`, `pages/`, `components/`, `servi
 ## Data
 
 - All HTTP calls live in `src/services/**`.
+- No backend yet: each service has an HTTP implementation and a mock in `src/services/mocks/` (throwing real ky `HTTPError`s). The mock is used while `VITE_API_URL` is empty.
 - Handle errors by code, not message text.
 - Keep loading, empty, error, and success states explicit.
 

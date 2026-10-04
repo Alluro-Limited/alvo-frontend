@@ -1,9 +1,9 @@
-import {apiClient} from "@/services/api-client";
-import type {SignInCredentials} from "@/types/auth-types";
+import type {AuthService} from "@/types/auth-types";
+import {httpAuthService} from "./http-auth-service";
+import {mockAuthService} from "./mocks/mock-auth-service";
 
-/** The backend sets the session as an httpOnly cookie, so a successful sign-in has no body to keep. */
-export const authService = {
-  signIn: async (credentials: SignInCredentials): Promise<void> => {
-    await apiClient.post("auth/login", {json: credentials});
-  },
-};
+/**
+ * There is no backend yet: without `VITE_API_URL`, auth is served by the local mock
+ * (see `MOCK_AUTH` for the inputs that reach each state). Setting the URL switches to HTTP.
+ */
+export const authService: AuthService = import.meta.env.VITE_API_URL ? httpAuthService : mockAuthService;

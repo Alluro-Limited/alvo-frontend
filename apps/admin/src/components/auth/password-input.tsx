@@ -16,7 +16,7 @@ export function PasswordInput({className, ...props}: PasswordInputProps) {
       <button
         type="button"
         onClick={() => setIsVisible((visible) => !visible)}
-        aria-label={isVisible ? m["sign_in.hide_password"]() : m["sign_in.show_password"]()}
+        aria-label={isVisible ? m["auth.hide_password"]() : m["auth.show_password"]()}
         className="absolute top-1/2 right-4 flex size-[22px] -translate-y-1/2 items-center justify-center rounded text-grey-500 outline-none transition-colors hover:text-grey-600 focus-visible:ring-2 focus-visible:ring-primary-500/50"
       >
         <Icon className="size-[22px]" strokeWidth={1.5} aria-hidden="true" />

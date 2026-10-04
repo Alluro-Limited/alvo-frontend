@@ -1,10 +1,9 @@
-import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
-import {createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider} from "@tanstack/react-router";
-import {act, fireEvent, render, screen, waitFor} from "@testing-library/react";
+import {act, fireEvent, screen, waitFor} from "@testing-library/react";
 import {afterEach, beforeEach, describe, expect, it, vi} from "vite-plus/test";
 import {authService} from "@/services/auth-service";
 import {SIGN_IN_REDIRECT_DELAY_MS} from "@/components/sign-in/use-sign-in-form";
 import {createHttpError} from "@/test/http-error";
+import {renderRoute} from "@/test/render-route";
 import {SignInPage} from "../sign-in";
 
 vi.mock("@/lib/work-email-domains", () => ({workEmailDomains: ["alvo.com"]}));
@@ -12,24 +11,9 @@ vi.mock("@/services/auth-service", () => ({authService: {signIn: vi.fn()}}));
 
 const signIn = vi.mocked(authService.signIn);
 
-function renderSignIn() {
-  const rootRoute = createRootRoute();
-  const routeTree = rootRoute.addChildren([
-    createRoute({getParentRoute: () => rootRoute, path: "/", component: SignInPage}),
-    createRoute({getParentRoute: () => rootRoute, path: "/dashboard", component: () => <p>dashboard</p>}),
-    createRoute({getParentRoute: () => rootRoute, path: "/forgot-password", component: () => <p>forgot</p>}),
-  ]);
-  const router = createRouter({routeTree, history: createMemoryHistory({initialEntries: ["/"]})});
-  const queryClient = new QueryClient({defaultOptions: {mutations: {retry: false}}});
-  render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-  return router;
-}
+const renderSignIn = () => renderRoute(SignInPage, "/");
 
-const emailInput = () => screen.getByLabelText("sign_in.email_label");
+const emailInput = () => screen.getByLabelText("auth.email_label");
 const passwordInput = () => screen.getByLabelText("sign_in.password_label");
 const submit = () => fireEvent.click(screen.getByRole("button", {name: "sign_in.submit"}));
 
@@ -75,11 +59,11 @@ describe("SignInPage", () => {
     fillCredentials("ada@gmail.com");
 
     submit();
-    expect(screen.getByText("sign_in.errors.email_not_work")).toBeTruthy();
+    expect(screen.getByText("auth.errors.email_not_work")).toBeTruthy();
     expect(signIn).not.toHaveBeenCalled();
 
     fireEvent.change(emailInput(), {target: {value: "ada@alvo.com"}});
-    expect(screen.queryByText("sign_in.errors.email_not_work")).toBeNull();
+    expect(screen.queryByText("auth.errors.email_not_work")).toBeNull();
     expect(emailInput().getAttribute("aria-invalid")).toBeNull();
   });
 
@@ -116,7 +100,7 @@ describe("SignInPage", () => {
 
   it.each([
     ["wrong credentials", createHttpError(401), "sign_in.errors.invalid_credentials"],
-    ["an outage", createHttpError(503), "sign_in.errors.service_unavailable"],
+    ["an outage", createHttpError(503), "auth.errors.service_unavailable"],
     ["a backend message", createHttpError(403, {message: "Account suspended."}), "Account suspended."],
   ])("shows an error alert for %s and clears it when the user edits a field", async (_case, error, message) => {
     signIn.mockRejectedValue(error);

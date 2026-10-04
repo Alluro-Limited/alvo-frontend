@@ -1,7 +1,7 @@
 import type {ReactNode} from "react";
-import backgroundUrl from "@/assets/sign-in-background.jpg";
+import backgroundUrl from "@/assets/auth-background.jpg";
 
-interface SignInLayoutProps {
+interface AuthLayoutProps {
   children: ReactNode;
 }
 
@@ -9,7 +9,7 @@ interface SignInLayoutProps {
  * Full-screen auth backdrop: the fluid texture is scaled and offset to match the Figma crop
  * (3840×2160 inside a 1440×1024 frame), with the brand teal hard-light blended over it.
  */
-export function SignInLayout({children}: SignInLayoutProps) {
+export function AuthLayout({children}: AuthLayoutProps) {
   return (
     <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-neutral-100 px-4 py-10">
       <img

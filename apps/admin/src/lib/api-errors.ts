@@ -8,6 +8,7 @@ export const API_ERROR_CODES = {
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   CONFLICT: 409,
+  GONE: 410,
   RATE_LIMIT: 429,
 } as const;
 

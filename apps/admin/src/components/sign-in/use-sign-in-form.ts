@@ -4,6 +4,7 @@ import * as v from "valibot";
 import {useSignInMutation} from "@/queries/use-sign-in-mutation";
 import {workEmailDomains} from "@/lib/work-email-domains";
 import type {SignInCredentials} from "@/types/auth-types";
+import type {AuthAlertState} from "@/components/auth/auth-alert";
 import {m} from "@/paraglide/messages";
 import {createSignInSchema} from "./sign-in-schema";
 import {getSignInErrorMessage} from "./sign-in-errors";
@@ -13,7 +14,6 @@ export const SIGN_IN_REDIRECT_DELAY_MS = 1200;
 
 type SignInField = keyof SignInCredentials;
 type FieldErrors = Partial<Record<SignInField, string>>;
-export type SignInAlert = {tone: "success" | "error"; message: string};
 
 const signInSchema = createSignInSchema(workEmailDomains);
 
@@ -48,7 +48,7 @@ export function useSignInForm() {
     });
   }
 
-  let alert: SignInAlert | null = null;
+  let alert: AuthAlertState | null = null;
   if (mutation.isSuccess) alert = {tone: "success", message: m["sign_in.success"]()};
   else if (mutation.error) alert = {tone: "error", message: getSignInErrorMessage(mutation.error)};
 

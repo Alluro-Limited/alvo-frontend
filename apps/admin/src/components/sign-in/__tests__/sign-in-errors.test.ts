@@ -10,14 +10,14 @@ describe("getSignInErrorMessage", () => {
   it.each([
     [400, "sign_in.errors.invalid_credentials"],
     [401, "sign_in.errors.invalid_credentials"],
-    [429, "sign_in.errors.too_many_attempts"],
-    [500, "sign_in.errors.service_unavailable"],
-    [503, "sign_in.errors.service_unavailable"],
+    [429, "auth.errors.too_many_attempts"],
+    [500, "auth.errors.service_unavailable"],
+    [503, "auth.errors.service_unavailable"],
   ])("maps status %i to %s when the backend sends no message", (status, key) => {
     expect(getSignInErrorMessage(createHttpError(status))).toBe(key);
   });
 
   it("treats network failures as the service being unavailable", () => {
-    expect(getSignInErrorMessage(new TypeError("Failed to fetch"))).toBe("sign_in.errors.service_unavailable");
+    expect(getSignInErrorMessage(new TypeError("Failed to fetch"))).toBe("auth.errors.service_unavailable");
   });
 });

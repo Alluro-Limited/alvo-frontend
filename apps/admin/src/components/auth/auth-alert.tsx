@@ -15,8 +15,11 @@ const tones = {
   },
 } as const;
 
+export type AuthAlertTone = keyof typeof tones;
+export type AuthAlertState = {tone: AuthAlertTone; message: string};
+
 interface AuthAlertProps {
-  tone: keyof typeof tones;
+  tone: AuthAlertTone;
   children: ReactNode;
 }
 
