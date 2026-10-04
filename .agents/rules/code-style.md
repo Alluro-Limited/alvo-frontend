@@ -9,4 +9,4 @@
 - Use Base UI for headless primitives; do not install Radix.
 - Avoid unnecessary `useEffect`, `useMemo`, and `useCallback`.
 - Prefer composition over large components.
-- Format with Oxfmt before committing.
+- Format with `vp fmt` (Oxfmt) before committing.

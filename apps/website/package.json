@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "fumadocs-mdx && bun run copy:blog-assets && vite",
-    "build": "fumadocs-mdx && bun run copy:blog-assets && vite build",
+    "dev": "fumadocs-mdx && bun run copy:blog-assets && vp dev",
+    "build": "fumadocs-mdx && bun run copy:blog-assets && vp build",
     "build:vercel": "bun run build && cp dist/client/_shell.html dist/client/index.html",
-    "preview": "bun run build && vite preview",
+    "preview": "bun run build && vp preview",
     "copy:blog-assets": "bun scripts/copy-blog-assets.ts",
     "generate": "fumadocs-mdx",
-    "lint": "oxlint --max-warnings=0 --no-error-on-unmatched-pattern",
-    "format": "oxfmt"
+    "lint": "vp lint --max-warnings=0 --no-error-on-unmatched-pattern",
+    "format": "vp fmt"
   },
   "dependencies": {
     "@alvo/design-tokens": "workspace:*",
@@ -32,11 +32,10 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxc-transform-react": "^0.145.0",
-    "oxfmt": "^0.63.0",
-    "oxlint": "~1.79.0",
     "tailwindcss": "^4.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "~7.0.2",
-    "vite": "^8.2.1"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   }
 }

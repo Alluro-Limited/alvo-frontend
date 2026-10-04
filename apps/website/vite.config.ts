@@ -3,12 +3,12 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import {tanstackStart} from "@tanstack/react-start/plugin/vite";
 import mdx from "fumadocs-mdx/vite";
-import {defineConfig} from "vite";
+import {defineConfig, lazyPlugins} from "vite-plus";
 
 const __dirname = import.meta.dirname;
 
 export default defineConfig({
-  plugins: [
+  plugins: lazyPlugins(async () => [
     tanstackStart({
       spa: {enabled: true},
       router: {
@@ -19,7 +19,7 @@ export default defineConfig({
     react({compiler: true}),
     mdx(await import("./source.config.ts")),
     tailwindcss(),
-  ],
+  ]),
   resolve: {
     alias: [
       {
