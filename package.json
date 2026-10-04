@@ -13,33 +13,45 @@
     "dev:courier": "bun --filter @alvo/courier-pwa dev",
     "dev:user": "bun --filter @alvo/user-pwa dev",
     "build:website": "bun --filter @alvo/website build",
-    "lint": "oxlint --max-warnings=0 --no-error-on-unmatched-pattern",
-    "lint:fix": "oxlint --fix",
-    "format": "oxfmt",
-    "test": "vitest",
-    "test:ci": "vitest run --reporter=verbose --bail=1",
-    "test:coverage": "vitest --coverage",
+    "lint": "vp lint --max-warnings=0 --no-error-on-unmatched-pattern",
+    "lint:fix": "vp lint --fix",
+    "format": "vp fmt",
+    "check": "vp check",
+    "test": "vp test",
+    "test:ci": "vp test run --reporter=verbose --bail=1",
+    "test:coverage": "vp test --coverage",
     "test:ct": "playwright test -c playwright-ct.config.ts",
     "react-doctor": "react-doctor -y --verbose",
-    "stryker": "stryker run"
+    "stryker": "stryker run",
+    "prepare": "vp config"
   },
   "devDependencies": {
     "@playwright/experimental-ct-react": "^1.62.1",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/typescript-checker": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^26.2.0",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "catalog:",
     "happy-dom": "20.11.2",
-    "lefthook": "^2.1.10",
     "oxc-transform-react": "^0.145.0",
-    "oxfmt": "^0.63.0",
-    "oxlint": "~1.79.0",
     "playwright": "^1.62.1",
     "react-doctor": "^0.9.12",
     "typescript": "~7.0.2",
-    "vitest": "^4.1.10"
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
-  "packageManager": "bun@1.3.11"
+  "overrides": {
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  },
+  "packageManager": "bun@1.3.11",
+  "catalog": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.0.0",
+    "vitest": "5.0.1",
+    "vite-plus": "1.0.0",
+    "@vitest/coverage-v8": "5.0.1"
+  }
 }

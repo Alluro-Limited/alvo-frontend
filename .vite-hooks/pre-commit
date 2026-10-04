@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Runs the Vite+ staged-file tasks configured in `staged` in vite.config.ts.
+vp staged
