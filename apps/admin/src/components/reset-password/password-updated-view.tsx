@@ -10,7 +10,7 @@ export function PasswordUpdatedView() {
       title={m["reset_password.updated.title"]()}
       description={m["reset_password.updated.description"]()}
     >
-      <BackToSignInButton primary />
+      <BackToSignInButton variant="primary">{m["auth.sign_in_with_new_password"]()}</BackToSignInButton>
     </AuthCard>
   );
 }

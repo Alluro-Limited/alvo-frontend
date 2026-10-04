@@ -18,4 +18,12 @@ describe("AuthAlert", () => {
     expect(status.textContent).toBe("Redirecting…");
     expect(status.dataset.tone).toBe("success");
   });
+
+  it("renders warnings as a static note that is not announced", () => {
+    render(<AuthAlert tone="warning">Your account is safe.</AuthAlert>);
+
+    const note = screen.getByRole("note");
+    expect(note.textContent).toBe("Your account is safe.");
+    expect(note.dataset.tone).toBe("warning");
+  });
 });

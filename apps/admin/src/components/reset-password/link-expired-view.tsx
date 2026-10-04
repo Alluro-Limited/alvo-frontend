@@ -28,7 +28,11 @@ export function LinkExpiredView({token, onResent}: LinkExpiredViewProps) {
       description={m["reset_password.expired.description"]()}
     >
       <div className="flex w-full flex-col gap-8">
-        <AuthAlert tone="error">{mutation.error ? getAuthErrorMessage(mutation.error) : m["reset_password.expired.alert"]()}</AuthAlert>
+        {mutation.error ? (
+          <AuthAlert tone="error">{getAuthErrorMessage(mutation.error)}</AuthAlert>
+        ) : (
+          <AuthAlert tone="warning">{m["reset_password.expired.alert"]()}</AuthAlert>
+        )}
         <div className="flex flex-col gap-4">
           {token ? (
             <Button type="button" onClick={() => resend(token)} isLoading={mutation.isPending} className="w-full text-base">
@@ -39,7 +43,7 @@ export function LinkExpiredView({token, onResent}: LinkExpiredViewProps) {
               {m["reset_password.expired.resend"]()}
             </Button>
           )}
-          <BackToSignInButton />
+          <BackToSignInButton variant="subtle" />
         </div>
       </div>
     </AuthCard>

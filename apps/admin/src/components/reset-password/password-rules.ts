@@ -7,11 +7,12 @@ export interface PasswordRule {
   test: (password: string) => boolean;
 }
 
-/** Placeholder policy until the backend publishes one; the checklist and validation both read from it. */
+/** The policy shown as chips under "Confirm password", in Figma order; validation reads the same list. */
 export const PASSWORD_RULES: readonly PasswordRule[] = [
-  {id: "length", label: m["reset_password.rules.length"], test: (password) => password.length >= 8},
   {id: "uppercase", label: m["reset_password.rules.uppercase"], test: (password) => /[A-Z]/.test(password)},
+  {id: "lowercase", label: m["reset_password.rules.lowercase"], test: (password) => /[a-z]/.test(password)},
   {id: "number", label: m["reset_password.rules.number"], test: (password) => /\d/.test(password)},
+  {id: "length", label: m["reset_password.rules.length"], test: (password) => password.length >= 8},
   {id: "symbol", label: m["reset_password.rules.symbol"], test: (password) => /[^A-Za-z0-9\s]/.test(password)},
 ];
 

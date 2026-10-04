@@ -1,5 +1,5 @@
 import type {ReactNode} from "react";
-import {CircleCheck, OctagonAlert} from "lucide-react";
+import {CircleCheck, OctagonAlert, TriangleAlert} from "lucide-react";
 import {cn} from "cnfast";
 
 const tones = {
@@ -7,6 +7,11 @@ const tones = {
     Icon: CircleCheck,
     role: "status",
     className: "border-status-success bg-status-success-subtle text-status-success-dark",
+  },
+  warning: {
+    Icon: TriangleAlert,
+    role: "note",
+    className: "border-status-warning bg-status-warning-subtle text-status-warning-dark",
   },
   error: {
     Icon: OctagonAlert,

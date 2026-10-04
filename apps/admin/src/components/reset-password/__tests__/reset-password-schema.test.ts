@@ -3,18 +3,21 @@ import {describe, expect, it} from "vite-plus/test";
 import {meetsPasswordRules, PASSWORD_RULES} from "../password-rules";
 import {resetPasswordSchema} from "../reset-password-schema";
 
-function issues(password: string, confirmPassword: string) {
+function firstIssue(password: string, confirmPassword: string) {
   const result = v.safeParse(resetPasswordSchema, {password, confirmPassword});
-  if (result.success) return {ok: true};
-  const nested = v.flatten<typeof resetPasswordSchema>(result.issues).nested;
-  return {password: nested?.password?.[0], confirmPassword: nested?.confirmPassword?.[0]};
+  return result.success ? null : result.issues[0].message;
 }
 
 describe("PASSWORD_RULES", () => {
+  it("lists the rules in Figma chip order", () => {
+    expect(PASSWORD_RULES.map((rule) => rule.id)).toEqual(["uppercase", "lowercase", "number", "length", "symbol"]);
+  });
+
   it.each([
-    ["length", "Ab1!", "Abcdef1!"],
     ["uppercase", "abcdef1!", "Abcdef1!"],
+    ["lowercase", "ABCDEF1!", "ABCDEf1!"],
     ["number", "Abcdefg!", "Abcdef1!"],
+    ["length", "Ab1!", "Abcdef1!"],
     ["symbol", "Abcdefg1", "Abcdef1!"],
   ])("%s rejects %s and accepts %s", (id, failing, passing) => {
     const rule = PASSWORD_RULES.find((candidate) => candidate.id === id);
@@ -28,22 +31,19 @@ describe("PASSWORD_RULES", () => {
 });
 
 describe("resetPasswordSchema", () => {
-  it("asks for both fields when empty", () => {
-    expect(issues("", "")).toEqual({
-      password: "reset_password.errors.password_required",
-      confirmPassword: "reset_password.errors.confirm_required",
-    });
+  it("rejects a password that misses a rule", () => {
+    expect(firstIssue("abcdefgh", "abcdefgh")).toBe("reset_password.errors.password_weak");
   });
 
-  it("flags a password that misses a rule", () => {
-    expect(issues("abcdefgh", "abcdefgh").password).toBe("reset_password.errors.password_weak");
+  it("asks for the confirmation", () => {
+    expect(firstIssue("Passw0rd!", "")).toBe("reset_password.errors.confirm_required");
   });
 
   it("flags a confirmation that does not match", () => {
-    expect(issues("Passw0rd!", "Passw0rd?")).toEqual({password: undefined, confirmPassword: "reset_password.errors.mismatch"});
+    expect(firstIssue("Passw0rd!", "Passw0rd?")).toBe("reset_password.errors.mismatch");
   });
 
   it("accepts a strong, matching password", () => {
-    expect(issues("Passw0rd!", "Passw0rd!")).toEqual({ok: true});
+    expect(firstIssue("Passw0rd!", "Passw0rd!")).toBeNull();
   });
 });

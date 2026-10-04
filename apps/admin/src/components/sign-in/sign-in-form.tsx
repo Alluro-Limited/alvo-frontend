@@ -36,7 +36,7 @@ export function SignInForm() {
               {...control}
               name="password"
               autoComplete="current-password"
-              placeholder={m["sign_in.password_placeholder"]()}
+              placeholder={m["auth.password_placeholder"]()}
               value={values.password}
               onChange={(event) => setField("password", event.target.value)}
               className={authInputClassName}
