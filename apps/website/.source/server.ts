@@ -19,9 +19,9 @@ const create = server<
 
 export const blog = await create.doc(
   "blog",
-  "../blog-posts",
+  "../../packages/blog-posts",
   import.meta.glob(["./**/*.mdx"], {
-    base: "./../../blog-posts",
+    base: "./../../../packages/blog-posts",
     query: "?collection=blog",
     eager: true,
   })

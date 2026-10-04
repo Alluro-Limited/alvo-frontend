@@ -14,6 +14,7 @@
     "format": "vp fmt"
   },
   "dependencies": {
+    "@alvo/blog-posts": "workspace:*",
     "@alvo/design-tokens": "workspace:*",
     "@alvo/ui": "workspace:*",
     "@tanstack/react-router": "^1.170.29",

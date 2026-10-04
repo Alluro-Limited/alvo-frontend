@@ -20,7 +20,7 @@ const browserCollections = {
   blog: create.doc(
     "blog",
     import.meta.glob(["./**/*.mdx"], {
-      base: "./../../blog-posts",
+      base: "./../../../packages/blog-posts",
       query: "?collection=blog",
       eager: false,
     })

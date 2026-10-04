@@ -23,14 +23,11 @@
         "vitest": "catalog:",
       },
     },
-    "apps/blog-posts": {
-      "name": "@alvo/blog-posts",
-      "version": "0.0.1",
-    },
     "apps/website": {
       "name": "@alvo/website",
       "version": "0.0.1",
       "dependencies": {
+        "@alvo/blog-posts": "workspace:*",
         "@alvo/design-tokens": "workspace:*",
         "@alvo/ui": "workspace:*",
         "@tanstack/react-router": "^1.170.29",
@@ -55,6 +52,10 @@
         "vite": "catalog:",
         "vite-plus": "catalog:",
       },
+    },
+    "packages/blog-posts": {
+      "name": "@alvo/blog-posts",
+      "version": "0.0.1",
     },
     "packages/design-tokens": {
       "name": "@alvo/design-tokens",
@@ -100,7 +101,7 @@
     "vitest": "5.0.1",
   },
   "packages": {
-    "@alvo/blog-posts": ["@alvo/blog-posts@workspace:apps/blog-posts"],
+    "@alvo/blog-posts": ["@alvo/blog-posts@workspace:packages/blog-posts"],
 
     "@alvo/design-tokens": ["@alvo/design-tokens@workspace:packages/design-tokens"],
 
