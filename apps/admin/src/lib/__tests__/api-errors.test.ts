@@ -1,11 +1,6 @@
-import {HTTPError, type NormalizedOptions} from "ky";
 import {describe, expect, it} from "vite-plus/test";
-import {API_ERROR_CODES, getErrorCode, getErrorMessage} from "../api-errors";
-
-function httpError(status: number) {
-  const request = new Request("https://api.test/resource");
-  return new HTTPError(new Response(null, {status}), request, {} as NormalizedOptions);
-}
+import {createHttpError as httpError} from "@/test/http-error";
+import {API_ERROR_CODES, getErrorCode, getErrorMessage, getServerMessage} from "../api-errors";
 
 const notFound = () => "not found";
 const fallback = () => "fallback";
@@ -19,6 +14,23 @@ describe("getErrorCode", () => {
     expect(getErrorCode(new Error("network down"))).toBeNull();
     expect(getErrorCode(null)).toBeNull();
     expect(getErrorCode(undefined)).toBeNull();
+  });
+});
+
+describe("getServerMessage", () => {
+  it("returns the trimmed message the backend sent", () => {
+    expect(getServerMessage(httpError(401, {message: "  Account locked.  "}))).toBe("Account locked.");
+  });
+
+  it("returns null when the body has no usable message", () => {
+    expect(getServerMessage(httpError(401))).toBeNull();
+    expect(getServerMessage(httpError(401, {message: "   "}))).toBeNull();
+    expect(getServerMessage(httpError(401, {error: "nope"}))).toBeNull();
+  });
+
+  it("returns null for errors that are not HTTP responses", () => {
+    expect(getServerMessage(new Error("network down"))).toBeNull();
+    expect(getServerMessage(null)).toBeNull();
   });
 });
 

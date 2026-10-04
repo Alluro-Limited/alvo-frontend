@@ -1,4 +1,5 @@
 import {HTTPError} from "ky";
+import * as v from "valibot";
 import type {Message} from "@/lib/i18n";
 
 export const API_ERROR_CODES = {
@@ -18,6 +19,15 @@ export type ErrorContext = Partial<Record<number, Message>>;
 /** The HTTP status behind a failed request, or null when the error is not an HTTP response. */
 export function getErrorCode(error: Error | null | undefined): number | null {
   return error instanceof HTTPError ? error.response.status : null;
+}
+
+const ServerErrorSchema = v.object({message: v.pipe(v.string(), v.trim(), v.nonEmpty())});
+
+/** The user-facing message the backend sent with a failed response, or null when it sent none. */
+export function getServerMessage(error: Error | null | undefined): string | null {
+  if (!(error instanceof HTTPError)) return null;
+  const result = v.safeParse(ServerErrorSchema, error.data);
+  return result.success ? result.output.message : null;
 }
 
 /** Picks the message for an error by its status code, never by its text. */

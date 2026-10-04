@@ -18,6 +18,7 @@ export default defineConfig({
         "src/paraglide/**",
         // Route files only wire a path to a page component; the pages are tested.
         "src/routes/**",
+        "src/test/**",
         "**/*.d.ts",
         "**/*.{test,spec}.{ts,tsx}",
         "**/__tests__/**",
