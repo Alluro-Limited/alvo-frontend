@@ -28,6 +28,7 @@ Alvo is a logistics platform with five frontend apps in one monorepo: website, a
 packages/
   design-tokens/     # CSS variables and theme
   ui/                # shared Base UI primitives
+  blog-posts/        # MDX blog and help articles consumed by the website
   api-types/         # backend DTOs
   ts-config/
   eslint-config/
