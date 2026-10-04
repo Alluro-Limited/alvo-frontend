@@ -15,11 +15,11 @@ const signIn = vi.mocked(authService.signIn);
 function renderSignIn() {
   const rootRoute = createRootRoute();
   const routeTree = rootRoute.addChildren([
-    createRoute({getParentRoute: () => rootRoute, path: "/login", component: SignInPage}),
-    createRoute({getParentRoute: () => rootRoute, path: "/", component: () => <p>dashboard</p>}),
+    createRoute({getParentRoute: () => rootRoute, path: "/", component: SignInPage}),
+    createRoute({getParentRoute: () => rootRoute, path: "/dashboard", component: () => <p>dashboard</p>}),
     createRoute({getParentRoute: () => rootRoute, path: "/forgot-password", component: () => <p>forgot</p>}),
   ]);
-  const router = createRouter({routeTree, history: createMemoryHistory({initialEntries: ["/login"]})});
+  const router = createRouter({routeTree, history: createMemoryHistory({initialEntries: ["/"]})});
   const queryClient = new QueryClient({defaultOptions: {mutations: {retry: false}}});
   render(
     <QueryClientProvider client={queryClient}>
@@ -108,10 +108,10 @@ describe("SignInPage", () => {
 
     expect((await screen.findByRole("status")).textContent).toBe("sign_in.success");
     expect((screen.getByRole("button", {name: "sign_in.submit"}) as HTMLButtonElement).disabled).toBe(true);
-    expect(router.state.location.pathname).toBe("/login");
+    expect(router.state.location.pathname).toBe("/");
 
     await act(() => vi.advanceTimersByTimeAsync(SIGN_IN_REDIRECT_DELAY_MS));
-    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard"));
   });
 
   it.each([

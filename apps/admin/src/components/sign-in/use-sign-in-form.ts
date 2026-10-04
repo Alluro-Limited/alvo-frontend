@@ -44,7 +44,7 @@ export function useSignInForm() {
     setFieldErrors(errors);
     if (!credentials) return;
     mutation.mutate(credentials, {
-      onSuccess: () => setTimeout(() => void navigate({to: "/"}), SIGN_IN_REDIRECT_DELAY_MS),
+      onSuccess: () => setTimeout(() => void navigate({to: "/dashboard"}), SIGN_IN_REDIRECT_DELAY_MS),
     });
   }
 
