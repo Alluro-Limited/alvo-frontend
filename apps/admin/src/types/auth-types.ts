@@ -3,6 +3,26 @@ export interface SignInCredentials {
   password: string;
 }
 
+/** `setup_required`: an invited admin signing in for the first time, who must finish account setup. */
+export type AccountStatus = "active" | "setup_required";
+
+export interface SignInResult {
+  accountStatus: AccountStatus;
+}
+
+/** What the invitation tells the new admin before they activate their account. */
+export interface AccountSetupDetails {
+  invitedBy: string;
+  /** Display label of the role the inviting admin assigned, e.g. "Business analyst · Read-only finance". */
+  roleLabel: string;
+}
+
+export interface CompleteAccountSetupInput {
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
 export interface ResetPasswordInput {
   token: string;
   password: string;
@@ -15,7 +35,9 @@ export interface ResendResetLinkResult {
 
 /** Everything the auth screens need from the backend; implemented over HTTP and by the local mock. */
 export interface AuthService {
-  signIn: (credentials: SignInCredentials) => Promise<void>;
+  signIn: (credentials: SignInCredentials) => Promise<SignInResult>;
+  getAccountSetup: () => Promise<AccountSetupDetails>;
+  completeAccountSetup: (input: CompleteAccountSetupInput) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   resetPassword: (input: ResetPasswordInput) => Promise<void>;
   /** Issues a fresh link for an expired one, so the user never re-enters their email. */

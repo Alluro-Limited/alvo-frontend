@@ -3,7 +3,7 @@ import {createMemoryHistory, createRootRoute, createRoute, createRouter, RouterP
 import {render} from "@testing-library/react";
 
 /** Destinations the auth pages link or redirect to, each rendering its own path so tests can assert arrival. */
-const STUB_PATHS = ["/", "/dashboard", "/forgot-password", "/reset-password"];
+const STUB_PATHS = ["/", "/dashboard", "/forgot-password", "/reset-password", "/account-setup"];
 
 /** Renders `component` at `path` in a memory router (with stub sibling routes) and a fresh query client. */
 export function renderRoute(component: RouteComponent, path: string, initialEntry: string = path) {

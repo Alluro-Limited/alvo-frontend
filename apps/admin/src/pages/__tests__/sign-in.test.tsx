@@ -83,7 +83,7 @@ describe("SignInPage", () => {
 
   it("shows the success alert, then redirects to the dashboard", async () => {
     vi.useFakeTimers({shouldAdvanceTime: true});
-    signIn.mockResolvedValue();
+    signIn.mockResolvedValue({accountStatus: "active"});
     const router = renderSignIn();
     await screen.findByRole("heading", {level: 1});
     fillCredentials();
@@ -96,6 +96,18 @@ describe("SignInPage", () => {
 
     await act(() => vi.advanceTimersByTimeAsync(SIGN_IN_REDIRECT_DELAY_MS));
     await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard"));
+  });
+
+  it("sends an invited admin straight to account setup, without the redirect notice", async () => {
+    signIn.mockResolvedValue({accountStatus: "setup_required"});
+    const router = renderSignIn();
+    await screen.findByRole("heading", {level: 1});
+    fillCredentials();
+
+    submit();
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/account-setup"));
+    expect(screen.queryByRole("status")).toBeNull();
   });
 
   it.each([

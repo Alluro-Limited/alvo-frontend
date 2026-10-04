@@ -44,12 +44,16 @@ export function useSignInForm() {
     setFieldErrors(errors);
     if (!credentials) return;
     mutation.mutate(credentials, {
-      onSuccess: () => setTimeout(() => void navigate({to: "/dashboard"}), SIGN_IN_REDIRECT_DELAY_MS),
+      onSuccess: ({accountStatus}) => {
+        // First sign-in of an invited admin: setup comes before the dashboard, so skip the redirect notice.
+        if (accountStatus === "setup_required") return void navigate({to: "/account-setup"});
+        setTimeout(() => void navigate({to: "/dashboard"}), SIGN_IN_REDIRECT_DELAY_MS);
+      },
     });
   }
 
   let alert: AuthAlertState | null = null;
-  if (mutation.isSuccess) alert = {tone: "success", message: m["sign_in.success"]()};
+  if (mutation.data?.accountStatus === "active") alert = {tone: "success", message: m["sign_in.success"]()};
   else if (mutation.error) alert = {tone: "error", message: getSignInErrorMessage(mutation.error)};
 
   return {values, fieldErrors, alert, setField, handleSubmit, isPending: mutation.isPending, isLocked};

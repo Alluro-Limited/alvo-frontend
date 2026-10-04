@@ -25,12 +25,15 @@ describe("httpAuthService", () => {
 
   it.each([
     ["signIn", "auth/login", {email: "ada@alvo.com", password: "secret"}],
+    ["completeAccountSetup", "auth/account-setup", {firstName: "Ada", lastName: "Lovelace", password: "Passw0rd!"}],
     ["requestPasswordReset", "auth/forgot-password", {email: "ada@alvo.com"}],
     ["resetPassword", "auth/reset-password", {token: "t1", password: "Passw0rd!"}],
   ] as const)("%s posts JSON to %s", async (method, path, body) => {
-    const {service, sent} = await loadService();
+    const {service, sent} = await loadService(() => Response.json({accountStatus: "active"}));
 
     if (method === "signIn") await service.signIn({email: "ada@alvo.com", password: "secret"});
+    if (method === "completeAccountSetup")
+      await service.completeAccountSetup({firstName: "Ada", lastName: "Lovelace", password: "Passw0rd!"});
     if (method === "requestPasswordReset") await service.requestPasswordReset("ada@alvo.com");
     if (method === "resetPassword") await service.resetPassword({token: "t1", password: "Passw0rd!"});
 
@@ -38,6 +41,27 @@ describe("httpAuthService", () => {
     expect(sent[0].method).toBe("POST");
     expect(sent[0].url).toBe(`https://api.test/v1/${path}`);
     expect(JSON.parse(sent[0].body)).toEqual(body);
+  });
+
+  it("signIn returns the validated account status", async () => {
+    const {service} = await loadService(() => Response.json({accountStatus: "setup_required"}));
+
+    await expect(service.signIn({email: "ada@alvo.com", password: "secret"})).resolves.toEqual({accountStatus: "setup_required"});
+  });
+
+  it("rejects a sign-in response that does not match the contract", async () => {
+    const {service} = await loadService(() => Response.json({status: "setup_required"}));
+
+    await expect(service.signIn({email: "ada@alvo.com", password: "secret"})).rejects.toThrow();
+  });
+
+  it("getAccountSetup fetches and validates the invitation", async () => {
+    const invitation = {invitedBy: "Dayo Ogunseye", roleLabel: "Business analyst · Read-only finance"};
+    const {service, sent} = await loadService(() => Response.json(invitation));
+
+    await expect(service.getAccountSetup()).resolves.toEqual(invitation);
+    expect(sent[0].method).toBe("GET");
+    expect(sent[0].url).toBe("https://api.test/v1/auth/account-setup");
   });
 
   it("resendResetLink posts the token and returns the validated masked email", async () => {

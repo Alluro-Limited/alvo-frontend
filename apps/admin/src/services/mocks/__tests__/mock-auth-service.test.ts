@@ -21,10 +21,17 @@ describe("mockAuthService", () => {
   });
 
   describe("signIn", () => {
-    it("accepts the mock password for any email", async () => {
+    it("accepts the mock password for any email and reports an active account", async () => {
       expect(await settle(mockAuthService.signIn({email: "ada@alvo.com", password: MOCK_AUTH.password}))).toEqual({
         ok: true,
-        value: undefined,
+        value: {accountStatus: "active"},
+      });
+    });
+
+    it("reports an invited email as needing account setup", async () => {
+      expect(await settle(mockAuthService.signIn({email: MOCK_AUTH.invitedEmail, password: MOCK_AUTH.password}))).toEqual({
+        ok: true,
+        value: {accountStatus: "setup_required"},
       });
     });
 
@@ -37,6 +44,33 @@ describe("mockAuthService", () => {
       [MOCK_AUTH.rateLimitedEmail.toUpperCase(), 429],
     ])("fails %s with %i", async (email, status) => {
       expect(await settle(mockAuthService.signIn({email, password: MOCK_AUTH.password}))).toEqual({ok: false, status});
+    });
+  });
+
+  describe("account setup", () => {
+    it("returns the invitation the invited admin sees", async () => {
+      expect(await settle(mockAuthService.getAccountSetup())).toEqual({ok: true, value: MOCK_AUTH.invitation});
+    });
+
+    it("activates the account for an ordinary invited sign-in", async () => {
+      await settle(mockAuthService.signIn({email: MOCK_AUTH.invitedEmail, password: MOCK_AUTH.password}));
+
+      expect(await settle(mockAuthService.completeAccountSetup({firstName: "Ada", lastName: "Lovelace", password: "x"}))).toEqual({
+        ok: true,
+        value: undefined,
+      });
+    });
+
+    it.each([
+      [MOCK_AUTH.invitedExpiredEmail, 410],
+      [MOCK_AUTH.invitedUnavailableEmail, 503],
+    ])("fails activation for %s with %i", async (email, status) => {
+      await settle(mockAuthService.signIn({email, password: MOCK_AUTH.password}));
+
+      expect(await settle(mockAuthService.completeAccountSetup({firstName: "Ada", lastName: "Lovelace", password: "x"}))).toEqual({
+        ok: false,
+        status,
+      });
     });
   });
 
