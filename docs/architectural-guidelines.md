@@ -26,7 +26,7 @@ All projects should follow the baseline unless a project-specific exception is e
 | SSR / pre-render          | **TanStack Start**                                                | SPA fallback, static prerender where possible            |
 | Server state              | **TanStack React Query**                                          | `staleTime`, `refetchOnWindowFocus` tuned per app        |
 | Client state              | **Zustand**                                                       | Persist only what must survive reload                    |
-| Styling                   | **Tailwind CSS 4** + `@tailwindcss/vite`                          | CSS-variable theming, dark mode support                  |
+| Styling                   | **Tailwind CSS 4** + `@tailwindcss/vite`                          | CSS-variable theming, light theme only                   |
 | UI primitives             | **Base UI** + custom `src/components/ui`                          | shadcn-style owned primitives, not copy-paste            |
 | Class merging             | **`cnfast`**                                                      | `import { cn } from "cnfast"`                            |
 | i18n                      | **Paraglide JS** / inlang                                         | Base locale `en`, other locales added on need            |
@@ -210,10 +210,10 @@ export const projectService = {
 - Loading states use **skeletons**, never spinners.
 - Buttons in loading state are **disabled and re-labeled**, with a lucide `LoaderCircle` inside the button.
 
-### Dark mode
+### Theme
 
-- Use `next-themes` or a custom `ThemeProvider` with `dark` class.
-- All color tokens must have a dark-mode mapping.
+- **Light theme only — no dark mode.** Build only what is in Figma.
+- Do not add `dark:` variants, `prefers-color-scheme` overrides, theme providers, or dark token mappings.
 
 ---
 

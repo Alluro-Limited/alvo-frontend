@@ -6,13 +6,12 @@ const tones = {
   success: {
     Icon: CircleCheck,
     role: "status",
-    className: "border-status-success bg-status-success-subtle text-status-success-dark dark:bg-status-success/15 dark:text-status-success",
+    className: "border-status-success bg-status-success-subtle text-status-success-dark",
   },
   error: {
     Icon: OctagonAlert,
     role: "alert",
-    className:
-      "border-status-fail-dark bg-status-fail-subtle text-status-fail-dark dark:border-status-fail dark:bg-status-fail/15 dark:text-status-fail",
+    className: "border-status-fail-dark bg-status-fail-subtle text-status-fail-dark",
   },
 } as const;
 

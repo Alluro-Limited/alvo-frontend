@@ -9,15 +9,6 @@
   --radius: 0.5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #010d0f;
-    --foreground: hsl(0 0% 98%);
-    --surface: #0a1a1c;
-    --border: hsl(0 0% 14.9%);
-  }
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

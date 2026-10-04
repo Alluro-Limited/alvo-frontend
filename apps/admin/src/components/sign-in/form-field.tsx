@@ -19,7 +19,7 @@ export function FormField({label, error, children}: FormFieldProps) {
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <label htmlFor={id} className="text-base leading-[1.4] tracking-[0.01em] text-primary-800 dark:text-primary-200">
+      <label htmlFor={id} className="text-base leading-[1.4] tracking-[0.01em] text-primary-800">
         {label}
       </label>
       <div className="flex flex-col gap-1">

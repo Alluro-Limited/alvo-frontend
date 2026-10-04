@@ -71,13 +71,17 @@ Each app uses the same `src/` layout: `routes/`, `pages/`, `components/`, `servi
 - Tailwind 4 with CSS variables from `@alvo/design-tokens`.
 - One shared Tailwind entry in `packages/ui/src/index.css`.
 - Each app imports `@alvo/ui/styles`.
-- Dark mode tokens are required.
+- No dark mode. Build only what is in Figma: light theme only, no `dark:` variants, no dark token mappings.
 
 ## i18n
 
 - Do not hardcode user-facing strings.
 - Use `m["some.key"]() from `@/paraglide/messages`.
 - Add new keys to `messages/en.json` first, then machine-translate.
+
+## Local dev
+
+- The user runs the dev server on `localhost:5173`. Do not start extra dev servers or browser previews; use the existing one.
 
 ## Commit workflow
 
