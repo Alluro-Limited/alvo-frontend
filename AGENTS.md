@@ -8,7 +8,7 @@ Alvo is a logistics platform with five frontend apps in one monorepo: website, a
 
 - React 19 with React Compiler
 - TypeScript 7
-- Vite 8 + TanStack Router + TanStack Start
+- Vite+ (`vp`: Vite 8, Vitest, Oxlint, Oxfmt) + TanStack Router + TanStack Start
 - Bun 1.3.x workspaces
 - TanStack React Query
 - Zustand
@@ -18,7 +18,7 @@ Alvo is a logistics platform with five frontend apps in one monorepo: website, a
 - Valibot
 - Vitest + Testing Library
 - Playwright experimental-ct-react
-- Oxlint + Oxfmt
+- Oxlint + Oxfmt via `vp lint` / `vp fmt` (config in root `vite.config.ts`)
 - react-doctor
 - Stryker
 
@@ -80,7 +80,7 @@ Each app uses the same `src/` layout: `routes/`, `pages/`, `components/`, `servi
 ## Commit workflow
 
 - Conventional commits for every commit.
-- Lefthook runs lint, format, tests, and react-doctor pre-commit.
+- `vp staged` (`.vite-hooks/pre-commit`) runs `vp check`, related tests, react-doctor, and Playwright CT pre-commit.
 - Keep each commit scoped to one logical change.
 
 ## Testing

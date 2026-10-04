@@ -14,5 +14,5 @@ Simplifies and refines code for clarity, consistency, and maintainability while 
 2. Preserve all behavior and public APIs.
 3. Remove dead code, unused imports, and unnecessary nesting.
 4. Use existing abstractions, do not introduce new ones unless clearly needed.
-5. Follow the project style guide (Oxfmt, Oxlint, AGENTS.md).
+5. Follow the project style guide (`vp fmt`, `vp lint`, AGENTS.md).
 6. Run `bun run lint` and `bun run test:ci` after changes.

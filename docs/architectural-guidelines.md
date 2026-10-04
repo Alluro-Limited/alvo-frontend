@@ -16,30 +16,30 @@ All projects should follow the baseline unless a project-specific exception is e
 
 ## 2. Baseline technology stack
 
-| Concern | Baseline choice | Notes |
-|---|---|---|
-| Runtime / package manager | **Bun 1.3+** | `packageManager` pinned in `package.json` |
-| Language | **TypeScript 7+** | Strict mode, `noEmit`, `moduleResolution: bundler` |
-| Framework | **React 19** | React Compiler enabled by default |
-| Bundler | **Vite 8** with `@tanstack/react-start/plugin/vite` | Static pre-render by default |
-| Routing | **TanStack Router** | File-based `src/routes/**` |
-| SSR / pre-render | **TanStack Start** | SPA fallback, static prerender where possible |
-| Server state | **TanStack React Query** | `staleTime`, `refetchOnWindowFocus` tuned per app |
-| Client state | **Zustand** | Persist only what must survive reload |
-| Styling | **Tailwind CSS 4** + `@tailwindcss/vite` | CSS-variable theming, dark mode support |
-| UI primitives | **Base UI** + custom `src/components/ui` | shadcn-style owned primitives, not copy-paste |
-| Class merging | **`cnfast`** | `import { cn } from "cnfast"` |
-| i18n | **Paraglide JS** / inlang | Base locale `en`, other locales added on need |
-| Validation | **Valibot** | Runtime validation of external data and forms |
-| API client | **ky** + typed backend endpoints | Keep calls inside `src/services`; no custom auth SDK yet |
-| Charts / visuals | **Recharts** | Use for dashboards and analytics features |
-| Date utilities | **date-fns** | Consistent date formatting |
-| Icons | **lucide-react** | Standard icon set |
-| Notifications | **sonner** | Toasts and copy feedback |
-| Drag/drop | **@dnd-kit** | If needed for ordering or boards |
-| Animation | **motion** | Subtle, prefers-reduced-motion aware |
-| Error tracking | **Sentry** | Enabled in production only |
-| Payments | **Stripe** | Only in Business / User apps where required |
+| Concern                   | Baseline choice                                     | Notes                                                    |
+| ------------------------- | --------------------------------------------------- | -------------------------------------------------------- |
+| Runtime / package manager | **Bun 1.3+**                                        | `packageManager` pinned in `package.json`                |
+| Language                  | **TypeScript 7+**                                   | Strict mode, `noEmit`, `moduleResolution: bundler`       |
+| Framework                 | **React 19**                                        | React Compiler enabled by default                        |
+| Bundler                   | **Vite 8** with `@tanstack/react-start/plugin/vite` | Static pre-render by default                             |
+| Routing                   | **TanStack Router**                                 | File-based `src/routes/**`                               |
+| SSR / pre-render          | **TanStack Start**                                  | SPA fallback, static prerender where possible            |
+| Server state              | **TanStack React Query**                            | `staleTime`, `refetchOnWindowFocus` tuned per app        |
+| Client state              | **Zustand**                                         | Persist only what must survive reload                    |
+| Styling                   | **Tailwind CSS 4** + `@tailwindcss/vite`            | CSS-variable theming, dark mode support                  |
+| UI primitives             | **Base UI** + custom `src/components/ui`            | shadcn-style owned primitives, not copy-paste            |
+| Class merging             | **`cnfast`**                                        | `import { cn } from "cnfast"`                            |
+| i18n                      | **Paraglide JS** / inlang                           | Base locale `en`, other locales added on need            |
+| Validation                | **Valibot**                                         | Runtime validation of external data and forms            |
+| API client                | **ky** + typed backend endpoints                    | Keep calls inside `src/services`; no custom auth SDK yet |
+| Charts / visuals          | **Recharts**                                        | Use for dashboards and analytics features                |
+| Date utilities            | **date-fns**                                        | Consistent date formatting                               |
+| Icons                     | **lucide-react**                                    | Standard icon set                                        |
+| Notifications             | **sonner**                                          | Toasts and copy feedback                                 |
+| Drag/drop                 | **@dnd-kit**                                        | If needed for ordering or boards                         |
+| Animation                 | **motion**                                          | Subtle, prefers-reduced-motion aware                     |
+| Error tracking            | **Sentry**                                          | Enabled in production only                               |
+| Payments                  | **Stripe**                                          | Only in Business / User apps where required              |
 
 ### Only allowed deviations
 
@@ -63,9 +63,8 @@ All five apps live in **one repository** using **Bun workspaces**.
 alvo/
   package.json              # workspaces + shared scripts
   bunfig.toml
-  .oxlintrc.json
-  .oxfmtrc.json
-  lefthook.yml
+  vite.config.ts            # Vite+ fmt, lint, staged, and test projects
+  .vite-hooks/pre-commit    # runs `vp staged`
   apps/
     website/                → alvo.com
     admin/                  → admin.alvo.com
@@ -282,20 +281,21 @@ The courier and user apps are **installable PWAs**.
 
 ### Required tooling
 
-| Tool | Purpose | Config file |
-|---|---|---|
-| **Oxlint** | Linting | `.oxlintrc.json` |
-| **Oxfmt** | Formatting | `.oxfmtrc.json` |
-| **Lefthook** | Pre-commit hooks | `lefthook.yml` |
-| **react-doctor** | Architecture / a11y / bundle checks | `doctor.config.ts` |
-| **Vitest** | Unit tests | `vitest.config.ts` |
-| **Playwright CT** | Component tests | `playwright-ct.config.ts` |
-| **Stryker** | Mutation testing | `stryker.config.json` |
+| Tool              | Purpose                             | Config file                 |
+| ----------------- | ----------------------------------- | --------------------------- |
+| **Vite+ (`vp`)**  | Dev, build, test, lint, format      | `vite.config.ts`            |
+| **Oxlint**        | Linting (`vp lint`)                 | `vite.config.ts` → `lint`   |
+| **Oxfmt**         | Formatting (`vp fmt`)               | `vite.config.ts` → `fmt`    |
+| **vp staged**     | Pre-commit hooks                    | `vite.config.ts` → `staged` |
+| **react-doctor**  | Architecture / a11y / bundle checks | `doctor.config.ts`          |
+| **Vitest**        | Unit tests                          | `vitest.config.ts`          |
+| **Playwright CT** | Component tests                     | `playwright-ct.config.ts`   |
+| **Stryker**       | Mutation testing                    | `stryker.config.json`       |
 
 ### Pre-commit checks
 
-- Oxlint on staged `.{ts,tsx}`
-- Oxfmt on staged `.{ts,tsx,json,md}`
+- `vp check --fix` (format + lint + typecheck) on staged `.{js,ts,jsx,tsx}`
+- `vp fmt` on staged `.{json,md,yaml,yml,css}`
 - Vitest related tests
 - Playwright CT for `*.ct.tsx`
 - react-doctor for changed `.tsx`
@@ -372,13 +372,13 @@ All runtime env variables must be prefixed with `VITE_` so Vite exposes them.
 
 Each app is a separate Cloudflare Pages project with its own subdomain.
 
-| App | Subdomain | Build command | Output directory |
-|---|---|---|---|
-| **Website** | `alvo.com` | `bun --filter @alvo/website build` | `apps/website/dist/client` |
-| **Admin** | `admin.alvo.com` | `bun --filter @alvo/admin build` | `apps/admin/dist/client` |
-| **Business** | `business.alvo.com` | `bun --filter @alvo/business build` | `apps/business/dist/client` |
-| **Courier PWA** | `courier.alvo.com` | `bun --filter @alvo/courier-pwa build` | `apps/courier-pwa/dist/client` |
-| **User PWA** | `user.alvo.com` | `bun --filter @alvo/user-pwa build` | `apps/user-pwa/dist/client` |
+| App             | Subdomain           | Build command                          | Output directory               |
+| --------------- | ------------------- | -------------------------------------- | ------------------------------ |
+| **Website**     | `alvo.com`          | `bun --filter @alvo/website build`     | `apps/website/dist/client`     |
+| **Admin**       | `admin.alvo.com`    | `bun --filter @alvo/admin build`       | `apps/admin/dist/client`       |
+| **Business**    | `business.alvo.com` | `bun --filter @alvo/business build`    | `apps/business/dist/client`    |
+| **Courier PWA** | `courier.alvo.com`  | `bun --filter @alvo/courier-pwa build` | `apps/courier-pwa/dist/client` |
+| **User PWA**    | `user.alvo.com`     | `bun --filter @alvo/user-pwa build`    | `apps/user-pwa/dist/client`    |
 
 - Every app has its own `wrangler.jsonc` at `apps/<name>/wrangler.jsonc`.
 - Configure the custom domain in Cloudflare Pages for each project.
@@ -400,13 +400,13 @@ Each app is a separate Cloudflare Pages project with its own subdomain.
 
 ## 16. Project-specific guidelines
 
-| Project | Primary concerns | Allowed deviations |
-|---|---|---|
-| **Website** | SEO, fast static pages, minimal JS | TanStack Start pre-render, minimal JS |
-| **Admin** | Heavy forms, tables, permissions, analytics | Recharts, complex dashboards, RBAC |
-| **Business** | B2B portal, multi-tenant, billing | Stripe, partner-specific flows |
-| **Courier PWA** | Mobile-first, offline, GPS, quick actions | `vite-plugin-pwa`, manifest, background sync |
-| **User PWA** | Mobile-first, booking/tracking, notifications | `vite-plugin-pwa`, push, install prompt |
+| Project         | Primary concerns                              | Allowed deviations                           |
+| --------------- | --------------------------------------------- | -------------------------------------------- |
+| **Website**     | SEO, fast static pages, minimal JS            | TanStack Start pre-render, minimal JS        |
+| **Admin**       | Heavy forms, tables, permissions, analytics   | Recharts, complex dashboards, RBAC           |
+| **Business**    | B2B portal, multi-tenant, billing             | Stripe, partner-specific flows               |
+| **Courier PWA** | Mobile-first, offline, GPS, quick actions     | `vite-plugin-pwa`, manifest, background sync |
+| **User PWA**    | Mobile-first, booking/tracking, notifications | `vite-plugin-pwa`, push, install prompt      |
 
 ### Shared packages
 
@@ -433,7 +433,7 @@ Before writing the first feature, verify:
 - [ ] `apps/<project>/src/routes/__root.tsx` provides Query, Theme, and any global providers.
 - [ ] Auth bootstrap runs before first render.
 - [ ] `apps/<project>/messages/en.json` exists and Paraglide compiles to `src/paraglide`.
-- [ ] Vitest, Playwright CT, and lefthook are wired.
+- [ ] Vitest, Playwright CT, and `vp staged` are wired.
 - [ ] `apps/<project>/.env.development` and `.env.production` templates are documented.
 - [ ] `apps/<project>/wrangler.jsonc` sets the correct custom domain.
 - [ ] Sentry DSN and sourcemap upload configured for production.
