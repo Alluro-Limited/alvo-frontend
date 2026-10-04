@@ -1,5 +1,6 @@
 import {Button as ButtonPrimitive} from "@base-ui/react/button";
 import {cva, type VariantProps} from "class-variance-authority";
+import {LoaderCircle} from "lucide-react";
 import type {ReactNode} from "react";
 
 import {cn} from "cnfast";
@@ -33,20 +34,21 @@ type ButtonProps = ButtonPrimitive.Props &
     isLoading?: boolean;
   };
 
+/** While `isLoading`, the button is disabled and shows a spinner; pass the re-labeled text (e.g. "Logging in…") as children. */
 function Button({className, variant = "default", size = "default", startIcon, isLoading, children, disabled, ...props}: ButtonProps) {
   const isDisabled = disabled || isLoading || variant === "disabled" || variant === "loading";
   const activeVariant = isLoading ? "loading" : variant;
-  const label = isLoading ? "Loading..." : children;
 
   return (
     <ButtonPrimitive
       data-slot="button"
       disabled={isDisabled}
+      aria-busy={isLoading || undefined}
       className={cn(buttonVariants({variant: activeVariant, size, className}))}
       {...props}
     >
-      {!isLoading && startIcon}
-      {label}
+      {isLoading ? <LoaderCircle data-testid="button-loader" className="size-5 animate-spin" aria-hidden="true" /> : startIcon}
+      {children}
     </ButtonPrimitive>
   );
 }

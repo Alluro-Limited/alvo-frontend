@@ -208,7 +208,7 @@ export const projectService = {
 - One exported component or hook per file.
 - Keep props minimal; compose with slots / children.
 - Loading states use **skeletons**, never spinners.
-- Buttons in loading state are **disabled and re-labeled**.
+- Buttons in loading state are **disabled and re-labeled**, with a lucide `LoaderCircle` inside the button.
 
 ### Dark mode
 

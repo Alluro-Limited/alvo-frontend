@@ -57,7 +57,8 @@ Each app uses the same `src/` layout: `routes/`, `pages/`, `components/`, `servi
 - Use Base UI for primitives; never add Radix.
 - Use `import { cn } from "cnfast"` for class merging.
 - Loading states use skeletons, never spinners.
-- Buttons in loading state are disabled and re-labeled.
+- Buttons in loading state are disabled and re-labeled, with a lucide `LoaderCircle` inside (`<Button isLoading>` does this; pass the new label as children).
+- Icons come from `lucide-react`.
 
 ## Data
 
