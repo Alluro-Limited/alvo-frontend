@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This document is the single source of truth for how every Alvo frontend project is built. All five apps live in **one repository** and are deployed to separate Cloudflare Pages projects on their own subdomains. It is derived from the **RIXL Dashboard** baseline and adapted for five products:
+This document is the single source of truth for how every Alvo frontend project is built. All five apps live in **one repository** and are deployed to separate Vercel projects on their own subdomains. It is derived from the **RIXL Dashboard** baseline and adapted for five products:
 
 1. **Website** — public marketing site, minimal dynamic data.
 2. **Admin Webapp** — internal operations and configuration.
@@ -16,30 +16,30 @@ All projects should follow the baseline unless a project-specific exception is e
 
 ## 2. Baseline technology stack
 
-| Concern                   | Baseline choice                                     | Notes                                                    |
-| ------------------------- | --------------------------------------------------- | -------------------------------------------------------- |
-| Runtime / package manager | **Bun 1.3+**                                        | `packageManager` pinned in `package.json`                |
-| Language                  | **TypeScript 7+**                                   | Strict mode, `noEmit`, `moduleResolution: bundler`       |
-| Framework                 | **React 19**                                        | React Compiler enabled by default                        |
-| Bundler                   | **Vite 8** with `@tanstack/react-start/plugin/vite` | Static pre-render by default                             |
-| Routing                   | **TanStack Router**                                 | File-based `src/routes/**`                               |
-| SSR / pre-render          | **TanStack Start**                                  | SPA fallback, static prerender where possible            |
-| Server state              | **TanStack React Query**                            | `staleTime`, `refetchOnWindowFocus` tuned per app        |
-| Client state              | **Zustand**                                         | Persist only what must survive reload                    |
-| Styling                   | **Tailwind CSS 4** + `@tailwindcss/vite`            | CSS-variable theming, dark mode support                  |
-| UI primitives             | **Base UI** + custom `src/components/ui`            | shadcn-style owned primitives, not copy-paste            |
-| Class merging             | **`cnfast`**                                        | `import { cn } from "cnfast"`                            |
-| i18n                      | **Paraglide JS** / inlang                           | Base locale `en`, other locales added on need            |
-| Validation                | **Valibot**                                         | Runtime validation of external data and forms            |
-| API client                | **ky** + typed backend endpoints                    | Keep calls inside `src/services`; no custom auth SDK yet |
-| Charts / visuals          | **Recharts**                                        | Use for dashboards and analytics features                |
-| Date utilities            | **date-fns**                                        | Consistent date formatting                               |
-| Icons                     | **lucide-react**                                    | Standard icon set                                        |
-| Notifications             | **sonner**                                          | Toasts and copy feedback                                 |
-| Drag/drop                 | **@dnd-kit**                                        | If needed for ordering or boards                         |
-| Animation                 | **motion**                                          | Subtle, prefers-reduced-motion aware                     |
-| Error tracking            | **Sentry**                                          | Enabled in production only                               |
-| Payments                  | **Stripe**                                          | Only in Business / User apps where required              |
+| Concern                   | Baseline choice                                                   | Notes                                                    |
+| ------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------- |
+| Runtime / package manager | **Bun 1.3+**                                                      | `packageManager` pinned in `package.json`                |
+| Language                  | **TypeScript 7+**                                                 | Strict mode, `noEmit`, `moduleResolution: bundler`       |
+| Framework                 | **React 19**                                                      | React Compiler enabled by default                        |
+| Bundler                   | **Vite+ (`vp`, Vite 8)** with `@tanstack/react-start/plugin/vite` | Static pre-render by default                             |
+| Routing                   | **TanStack Router**                                               | File-based `src/routes/**`                               |
+| SSR / pre-render          | **TanStack Start**                                                | SPA fallback, static prerender where possible            |
+| Server state              | **TanStack React Query**                                          | `staleTime`, `refetchOnWindowFocus` tuned per app        |
+| Client state              | **Zustand**                                                       | Persist only what must survive reload                    |
+| Styling                   | **Tailwind CSS 4** + `@tailwindcss/vite`                          | CSS-variable theming, dark mode support                  |
+| UI primitives             | **Base UI** + custom `src/components/ui`                          | shadcn-style owned primitives, not copy-paste            |
+| Class merging             | **`cnfast`**                                                      | `import { cn } from "cnfast"`                            |
+| i18n                      | **Paraglide JS** / inlang                                         | Base locale `en`, other locales added on need            |
+| Validation                | **Valibot**                                                       | Runtime validation of external data and forms            |
+| API client                | **ky** + typed backend endpoints                                  | Keep calls inside `src/services`; no custom auth SDK yet |
+| Charts / visuals          | **Recharts**                                                      | Use for dashboards and analytics features                |
+| Date utilities            | **date-fns**                                                      | Consistent date formatting                               |
+| Icons                     | **lucide-react**                                                  | Standard icon set                                        |
+| Notifications             | **sonner**                                                        | Toasts and copy feedback                                 |
+| Drag/drop                 | **@dnd-kit**                                                      | If needed for ordering or boards                         |
+| Animation                 | **motion**                                                        | Subtle, prefers-reduced-motion aware                     |
+| Error tracking            | **Sentry**                                                        | Enabled in production only                               |
+| Payments                  | **Stripe**                                                        | Only in Business / User apps where required              |
 
 ### Only allowed deviations
 
@@ -66,14 +66,15 @@ alvo/
   vite.config.ts            # Vite+ fmt, lint, staged, and test projects
   .vite-hooks/pre-commit    # runs `vp staged`
   apps/
-    website/                → alvo.com
-    admin/                  → admin.alvo.com
-    business/               → business.alvo.com
-    courier-pwa/            → courier.alvo.com
-    user-pwa/               → user.alvo.com
+    website/                → allurro.com
+    admin/                  → admin.allurro.com
+    business/               → business.allurro.com
+    courier-pwa/            → courier.allurro.com
+    user-pwa/               → user.allurro.com
   packages/
     design-tokens/          # CSS variables + theme TS types
     ui/                     # shared primitives (no app logic)
+    blog-posts/             # MDX blog and help articles for the website
     api-types/              # generated or hand-typed backend contracts
     ts-config/
     eslint-config/
@@ -368,32 +369,51 @@ All runtime env variables must be prefixed with `VITE_` so Vite exposes them.
 
 ## 15. Deployment
 
-### One Cloudflare Pages project per app
+### One Vercel project per app
 
-Each app is a separate Cloudflare Pages project with its own subdomain.
+All five apps deploy from this one repository to **Vercel**. Each app is its own Vercel project, linked to the same Git repo, with its **Root Directory** set to its app folder.
 
-| App             | Subdomain           | Build command                          | Output directory               |
-| --------------- | ------------------- | -------------------------------------- | ------------------------------ |
-| **Website**     | `alvo.com`          | `bun --filter @alvo/website build`     | `apps/website/dist/client`     |
-| **Admin**       | `admin.alvo.com`    | `bun --filter @alvo/admin build`       | `apps/admin/dist/client`       |
-| **Business**    | `business.alvo.com` | `bun --filter @alvo/business build`    | `apps/business/dist/client`    |
-| **Courier PWA** | `courier.alvo.com`  | `bun --filter @alvo/courier-pwa build` | `apps/courier-pwa/dist/client` |
-| **User PWA**    | `user.alvo.com`     | `bun --filter @alvo/user-pwa build`    | `apps/user-pwa/dist/client`    |
+| App             | Domain                 | Root Directory     | Build command          | Output directory |
+| --------------- | ---------------------- | ------------------ | ---------------------- | ---------------- |
+| **Website**     | `allurro.com`          | `apps/website`     | `bun run build:vercel` | `dist/client`    |
+| **Admin**       | `admin.allurro.com`    | `apps/admin`       | `bun run build`        | `dist/client`    |
+| **Business**    | `business.allurro.com` | `apps/business`    | `bun run build`        | `dist/client`    |
+| **Courier PWA** | `courier.allurro.com`  | `apps/courier-pwa` | `bun run build`        | `dist/client`    |
+| **User PWA**    | `user.allurro.com`     | `apps/user-pwa`    | `bun run build`        | `dist/client`    |
 
-- Every app has its own `wrangler.jsonc` at `apps/<name>/wrangler.jsonc`.
-- Configure the custom domain in Cloudflare Pages for each project.
-- Use SPA fallback for all five apps.
+- Every app has its own `apps/<name>/vercel.json` with its build command, output directory, SPA rewrite (`/(.*)` → `/index.html`) and headers.
+- Enable **Include files outside the root directory in the Build Step** so `bun install` resolves the workspace and `packages/*`.
+- Skip builds for apps a commit did not touch. Use Vercel's skip-unaffected-projects setting if it detects the Bun workspace graph; otherwise set the project's **Ignored Build Step** to `git diff --quiet HEAD^ HEAD -- . ../../packages`.
+- Environment variables are set per Vercel project (Production and Preview), mirroring `apps/<name>/.env.production`.
+- The website currently still deploys from the root `vercel.json` (`cd apps/website && …`). Move it to `apps/website/vercel.json` and set the website project's Root Directory to `apps/website` before adding the second app; verify on a preview deployment first.
+
+### Domains (Namecheap DNS)
+
+The apex `allurro.com` is already pointed at the website project. Each subdomain is a separate DNS record, so adding apps does not affect the website.
+
+1. In the app's Vercel project, open **Settings → Domains** and add its subdomain (for example `admin.allurro.com`).
+2. Copy the CNAME target Vercel shows for that domain.
+3. In Namecheap **Advanced DNS**, add a `CNAME` record: host `admin`, value the Vercel target.
+4. Wait for Vercel to verify the domain; it issues the TLS certificate automatically.
+
+### Cross-subdomain concerns
+
+- Sessions shared between subdomains need backend cookies scoped to `.allurro.com`.
+- Add every app origin to the backend CORS allowlist.
+- Use Vercel Pro: the Hobby plan is for non-commercial use only.
 
 ### Marketing website
 
-- Built with the same **Vite + TanStack Start** stack.
+- Built with the same **Vite+ + TanStack Start** stack.
 - Use static prerender for SEO-friendly marketing pages.
 - Keep JavaScript minimal; prefer pre-rendered HTML and progressive enhancement.
+- Blog and help articles live in `packages/blog-posts` and are compiled by fumadocs-mdx at build time.
 
 ### PWAs
 
 - Build includes service worker and `manifest.json`.
-- HTTPS is mandatory.
+- HTTPS is mandatory (provided by Vercel).
+- Serve the service worker with `Cache-Control: no-cache` in the app's `vercel.json` so installed PWAs pick up new deployments.
 - Each PWA deploys to its own subdomain.
 
 ---
@@ -435,7 +455,8 @@ Before writing the first feature, verify:
 - [ ] `apps/<project>/messages/en.json` exists and Paraglide compiles to `src/paraglide`.
 - [ ] Vitest, Playwright CT, and `vp staged` are wired.
 - [ ] `apps/<project>/.env.development` and `.env.production` templates are documented.
-- [ ] `apps/<project>/wrangler.jsonc` sets the correct custom domain.
+- [ ] Vercel project created with Root Directory `apps/<project>` and `apps/<project>/vercel.json`.
+- [ ] Subdomain added in Vercel and its CNAME record added in Namecheap.
 - [ ] Sentry DSN and sourcemap upload configured for production.
 - [ ] PWA manifest and service worker added for courier/user apps.
 - [ ] `README.md` contains `bun install` and `bun --filter @alvo/<project> dev` quick start.

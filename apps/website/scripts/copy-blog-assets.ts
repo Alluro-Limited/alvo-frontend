@@ -1,7 +1,7 @@
 import {cpSync, existsSync, mkdirSync, readdirSync, rmSync} from "node:fs";
 import {resolve} from "node:path";
 
-const src = resolve(import.meta.dirname, "../../blog-posts/images");
+const src = resolve(import.meta.dirname, "../../../packages/blog-posts/images");
 const dest = resolve(import.meta.dirname, "../public/blog/articles");
 
 if (!existsSync(src)) {

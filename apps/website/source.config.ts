@@ -21,7 +21,7 @@ const blogSchema = frontmatterSchema
 
 export const blog = defineCollections({
   type: "doc",
-  dir: resolve(__dirname, "../blog-posts"),
+  dir: resolve(__dirname, "../../packages/blog-posts"),
   files: ["**/*.mdx"],
   schema: blogSchema,
   postprocess: {
