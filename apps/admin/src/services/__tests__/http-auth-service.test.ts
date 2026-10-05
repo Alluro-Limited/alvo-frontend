@@ -28,6 +28,7 @@ describe("httpAuthService", () => {
     ["completeAccountSetup", "auth/account-setup", {firstName: "Ada", lastName: "Lovelace", password: "Passw0rd!"}],
     ["requestPasswordReset", "auth/forgot-password", {email: "ada@alvo.com"}],
     ["resetPassword", "auth/reset-password", {token: "t1", password: "Passw0rd!"}],
+    ["signOut", "auth/logout", null],
   ] as const)("%s posts JSON to %s", async (method, path, body) => {
     const {service, sent} = await loadService(() => Response.json({accountStatus: "active"}));
 
@@ -36,11 +37,26 @@ describe("httpAuthService", () => {
       await service.completeAccountSetup({firstName: "Ada", lastName: "Lovelace", password: "Passw0rd!"});
     if (method === "requestPasswordReset") await service.requestPasswordReset("ada@alvo.com");
     if (method === "resetPassword") await service.resetPassword({token: "t1", password: "Passw0rd!"});
+    if (method === "signOut") await service.signOut();
 
     expect(sent).toHaveLength(1);
     expect(sent[0].method).toBe("POST");
     expect(sent[0].url).toBe(`https://api.test/v1/${path}`);
-    expect(JSON.parse(sent[0].body)).toEqual(body);
+    if (body !== null) expect(JSON.parse(sent[0].body)).toEqual(body);
+  });
+
+  it("getCurrentUser fetches and validates the session profile", async () => {
+    const {service, sent} = await loadService(() => Response.json({name: "Dayo Ogunseye"}));
+
+    await expect(service.getCurrentUser()).resolves.toEqual({name: "Dayo Ogunseye"});
+    expect(sent[0].method).toBe("GET");
+    expect(sent[0].url).toBe("https://api.test/v1/auth/me");
+  });
+
+  it("rejects a current-user response that does not match the contract", async () => {
+    const {service} = await loadService(() => Response.json({user: "Dayo"}));
+
+    await expect(service.getCurrentUser()).rejects.toThrow();
   });
 
   it("signIn returns the validated account status", async () => {

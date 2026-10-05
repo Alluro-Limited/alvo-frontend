@@ -33,6 +33,11 @@ export interface ResendResetLinkResult {
   maskedEmail: string;
 }
 
+/** The signed-in admin, shown in the shell (avatar initial today, menus later). */
+export interface CurrentUser {
+  name: string;
+}
+
 /** Everything the auth screens need from the backend; implemented over HTTP and by the local mock. */
 export interface AuthService {
   signIn: (credentials: SignInCredentials) => Promise<SignInResult>;
@@ -42,4 +47,6 @@ export interface AuthService {
   resetPassword: (input: ResetPasswordInput) => Promise<void>;
   /** Issues a fresh link for an expired one, so the user never re-enters their email. */
   resendResetLink: (token: string) => Promise<ResendResetLinkResult>;
+  getCurrentUser: () => Promise<CurrentUser>;
+  signOut: () => Promise<void>;
 }

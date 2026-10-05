@@ -109,4 +109,21 @@ describe("mockAuthService", () => {
       expect(await settle(mockAuthService.resendResetLink(MOCK_AUTH.unavailableToken))).toEqual({ok: false, status: 503});
     });
   });
+
+  describe("getCurrentUser", () => {
+    it("returns the mock admin", async () => {
+      expect(await settle(mockAuthService.getCurrentUser())).toEqual({ok: true, value: MOCK_AUTH.currentUser});
+    });
+  });
+
+  describe("signOut", () => {
+    it("clears the pending account-setup session", async () => {
+      await settle(mockAuthService.signIn({email: MOCK_AUTH.invitedExpiredEmail, password: MOCK_AUTH.password}));
+      await settle(mockAuthService.signOut());
+
+      // Without a pending setup there is no invitation left to expire.
+      const input = {firstName: "Ada", lastName: "Lovelace", password: "x"};
+      expect(await settle(mockAuthService.completeAccountSetup(input))).toEqual({ok: true, value: undefined});
+    });
+  });
 });

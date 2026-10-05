@@ -11,10 +11,22 @@
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as SplatRouteImport } from "./routes/$"
+import { Route as AppRouteImport } from "./routes/_app"
 import { Route as AccountSetupRouteImport } from "./routes/account-setup"
-import { Route as DashboardRouteImport } from "./routes/dashboard"
 import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
 import { Route as ResetPasswordRouteImport } from "./routes/reset-password"
+import { Route as AppAdminsRouteImport } from "./routes/_app/admins"
+import { Route as AppAssignmentRouteImport } from "./routes/_app/assignment"
+import { Route as AppCourierPayoutsRouteImport } from "./routes/_app/courier-payouts"
+import { Route as AppCouriersRouteImport } from "./routes/_app/couriers"
+import { Route as AppDashboardRouteImport } from "./routes/_app/dashboard"
+import { Route as AppNodesRouteImport } from "./routes/_app/nodes"
+import { Route as AppProfileRouteImport } from "./routes/_app/profile"
+import { Route as AppRevenueRouteImport } from "./routes/_app/revenue"
+import { Route as AppSettingsRouteImport } from "./routes/_app/settings"
+import { Route as AppSmesRouteImport } from "./routes/_app/smes"
+import { Route as AppUsersRouteImport } from "./routes/_app/users"
+import { Route as AppWorkloadsRouteImport } from "./routes/_app/workloads"
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
@@ -26,14 +38,13 @@ const SplatRoute = SplatRouteImport.update({
   path: "/$",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRoute = AppRouteImport.update({
+  id: "/_app",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AccountSetupRoute = AccountSetupRouteImport.update({
   id: "/account-setup",
   path: "/account-setup",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: "/dashboard",
-  path: "/dashboard",
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -46,31 +57,125 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: "/reset-password",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAdminsRoute = AppAdminsRouteImport.update({
+  id: "/admins",
+  path: "/admins",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAssignmentRoute = AppAssignmentRouteImport.update({
+  id: "/assignment",
+  path: "/assignment",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCourierPayoutsRoute = AppCourierPayoutsRouteImport.update({
+  id: "/courier-payouts",
+  path: "/courier-payouts",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCouriersRoute = AppCouriersRouteImport.update({
+  id: "/couriers",
+  path: "/couriers",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: "/dashboard",
+  path: "/dashboard",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNodesRoute = AppNodesRouteImport.update({
+  id: "/nodes",
+  path: "/nodes",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: "/profile",
+  path: "/profile",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRevenueRoute = AppRevenueRouteImport.update({
+  id: "/revenue",
+  path: "/revenue",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: "/settings",
+  path: "/settings",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSmesRoute = AppSmesRouteImport.update({
+  id: "/smes",
+  path: "/smes",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUsersRoute = AppUsersRouteImport.update({
+  id: "/users",
+  path: "/users",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWorkloadsRoute = AppWorkloadsRouteImport.update({
+  id: "/workloads",
+  path: "/workloads",
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
   "/account-setup": typeof AccountSetupRoute
-  "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/reset-password": typeof ResetPasswordRoute
+  "/admins": typeof AppAdminsRoute
+  "/assignment": typeof AppAssignmentRoute
+  "/courier-payouts": typeof AppCourierPayoutsRoute
+  "/couriers": typeof AppCouriersRoute
+  "/dashboard": typeof AppDashboardRoute
+  "/nodes": typeof AppNodesRoute
+  "/profile": typeof AppProfileRoute
+  "/revenue": typeof AppRevenueRoute
+  "/settings": typeof AppSettingsRoute
+  "/smes": typeof AppSmesRoute
+  "/users": typeof AppUsersRoute
+  "/workloads": typeof AppWorkloadsRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
   "/account-setup": typeof AccountSetupRoute
-  "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/reset-password": typeof ResetPasswordRoute
+  "/admins": typeof AppAdminsRoute
+  "/assignment": typeof AppAssignmentRoute
+  "/courier-payouts": typeof AppCourierPayoutsRoute
+  "/couriers": typeof AppCouriersRoute
+  "/dashboard": typeof AppDashboardRoute
+  "/nodes": typeof AppNodesRoute
+  "/profile": typeof AppProfileRoute
+  "/revenue": typeof AppRevenueRoute
+  "/settings": typeof AppSettingsRoute
+  "/smes": typeof AppSmesRoute
+  "/users": typeof AppUsersRoute
+  "/workloads": typeof AppWorkloadsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
+  "/_app": typeof AppRouteWithChildren
   "/account-setup": typeof AccountSetupRoute
-  "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/reset-password": typeof ResetPasswordRoute
+  "/_app/admins": typeof AppAdminsRoute
+  "/_app/assignment": typeof AppAssignmentRoute
+  "/_app/courier-payouts": typeof AppCourierPayoutsRoute
+  "/_app/couriers": typeof AppCouriersRoute
+  "/_app/dashboard": typeof AppDashboardRoute
+  "/_app/nodes": typeof AppNodesRoute
+  "/_app/profile": typeof AppProfileRoute
+  "/_app/revenue": typeof AppRevenueRoute
+  "/_app/settings": typeof AppSettingsRoute
+  "/_app/smes": typeof AppSmesRoute
+  "/_app/users": typeof AppUsersRoute
+  "/_app/workloads": typeof AppWorkloadsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,32 +183,66 @@ export interface FileRouteTypes {
     | "/"
     | "/$"
     | "/account-setup"
-    | "/dashboard"
     | "/forgot-password"
     | "/reset-password"
+    | "/admins"
+    | "/assignment"
+    | "/courier-payouts"
+    | "/couriers"
+    | "/dashboard"
+    | "/nodes"
+    | "/profile"
+    | "/revenue"
+    | "/settings"
+    | "/smes"
+    | "/users"
+    | "/workloads"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
     | "/$"
     | "/account-setup"
-    | "/dashboard"
     | "/forgot-password"
     | "/reset-password"
+    | "/admins"
+    | "/assignment"
+    | "/courier-payouts"
+    | "/couriers"
+    | "/dashboard"
+    | "/nodes"
+    | "/profile"
+    | "/revenue"
+    | "/settings"
+    | "/smes"
+    | "/users"
+    | "/workloads"
   id:
     | "__root__"
     | "/"
     | "/$"
+    | "/_app"
     | "/account-setup"
-    | "/dashboard"
     | "/forgot-password"
     | "/reset-password"
+    | "/_app/admins"
+    | "/_app/assignment"
+    | "/_app/courier-payouts"
+    | "/_app/couriers"
+    | "/_app/dashboard"
+    | "/_app/nodes"
+    | "/_app/profile"
+    | "/_app/revenue"
+    | "/_app/settings"
+    | "/_app/smes"
+    | "/_app/users"
+    | "/_app/workloads"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  AppRoute: typeof AppRouteWithChildren
   AccountSetupRoute: typeof AccountSetupRoute
-  DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
 }
@@ -124,18 +263,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_app": {
+      id: "/_app"
+      path: ""
+      fullPath: "/"
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/account-setup": {
       id: "/account-setup"
       path: "/account-setup"
       fullPath: "/account-setup"
       preLoaderRoute: typeof AccountSetupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/dashboard": {
-      id: "/dashboard"
-      path: "/dashboard"
-      fullPath: "/dashboard"
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/forgot-password": {
@@ -152,14 +291,130 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/_app/admins": {
+      id: "/_app/admins"
+      path: "/admins"
+      fullPath: "/admins"
+      preLoaderRoute: typeof AppAdminsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/assignment": {
+      id: "/_app/assignment"
+      path: "/assignment"
+      fullPath: "/assignment"
+      preLoaderRoute: typeof AppAssignmentRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/courier-payouts": {
+      id: "/_app/courier-payouts"
+      path: "/courier-payouts"
+      fullPath: "/courier-payouts"
+      preLoaderRoute: typeof AppCourierPayoutsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/couriers": {
+      id: "/_app/couriers"
+      path: "/couriers"
+      fullPath: "/couriers"
+      preLoaderRoute: typeof AppCouriersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/dashboard": {
+      id: "/_app/dashboard"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/nodes": {
+      id: "/_app/nodes"
+      path: "/nodes"
+      fullPath: "/nodes"
+      preLoaderRoute: typeof AppNodesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/profile": {
+      id: "/_app/profile"
+      path: "/profile"
+      fullPath: "/profile"
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/revenue": {
+      id: "/_app/revenue"
+      path: "/revenue"
+      fullPath: "/revenue"
+      preLoaderRoute: typeof AppRevenueRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/settings": {
+      id: "/_app/settings"
+      path: "/settings"
+      fullPath: "/settings"
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/smes": {
+      id: "/_app/smes"
+      path: "/smes"
+      fullPath: "/smes"
+      preLoaderRoute: typeof AppSmesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/users": {
+      id: "/_app/users"
+      path: "/users"
+      fullPath: "/users"
+      preLoaderRoute: typeof AppUsersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/workloads": {
+      id: "/_app/workloads"
+      path: "/workloads"
+      fullPath: "/workloads"
+      preLoaderRoute: typeof AppWorkloadsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
+
+interface AppRouteChildren {
+  AppAdminsRoute: typeof AppAdminsRoute
+  AppAssignmentRoute: typeof AppAssignmentRoute
+  AppCourierPayoutsRoute: typeof AppCourierPayoutsRoute
+  AppCouriersRoute: typeof AppCouriersRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppNodesRoute: typeof AppNodesRoute
+  AppProfileRoute: typeof AppProfileRoute
+  AppRevenueRoute: typeof AppRevenueRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSmesRoute: typeof AppSmesRoute
+  AppUsersRoute: typeof AppUsersRoute
+  AppWorkloadsRoute: typeof AppWorkloadsRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAdminsRoute: AppAdminsRoute,
+  AppAssignmentRoute: AppAssignmentRoute,
+  AppCourierPayoutsRoute: AppCourierPayoutsRoute,
+  AppCouriersRoute: AppCouriersRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppNodesRoute: AppNodesRoute,
+  AppProfileRoute: AppProfileRoute,
+  AppRevenueRoute: AppRevenueRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSmesRoute: AppSmesRoute,
+  AppUsersRoute: AppUsersRoute,
+  AppWorkloadsRoute: AppWorkloadsRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  AppRoute: AppRouteWithChildren,
   AccountSetupRoute: AccountSetupRoute,
-  DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
 }

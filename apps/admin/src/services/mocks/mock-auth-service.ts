@@ -18,6 +18,7 @@ export const MOCK_AUTH = {
   expiredToken: "expired",
   unavailableToken: "unavailable",
   maskedEmail: "ol***@alvo.com",
+  currentUser: {name: "Dayo Ogunseye"},
 } as const;
 
 const SERVICE_UNAVAILABLE = 503;
@@ -73,5 +74,13 @@ export const mockAuthService: AuthService = {
     await mockDelay();
     failForToken("auth/reset-password/resend", token, {allowExpired: true});
     return {maskedEmail: MOCK_AUTH.maskedEmail};
+  },
+  getCurrentUser: async () => {
+    await mockDelay();
+    return {...MOCK_AUTH.currentUser};
+  },
+  signOut: async () => {
+    await mockDelay();
+    pendingSetupEmail = null;
   },
 };

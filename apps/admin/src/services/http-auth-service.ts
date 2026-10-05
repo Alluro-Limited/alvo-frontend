@@ -5,6 +5,7 @@ import type {AuthService} from "@/types/auth-types";
 const SignInResponseSchema = v.object({accountStatus: v.picklist(["active", "setup_required"])});
 const AccountSetupResponseSchema = v.object({invitedBy: v.string(), roleLabel: v.string()});
 const ResendResetLinkResponseSchema = v.object({maskedEmail: v.string()});
+const CurrentUserResponseSchema = v.object({name: v.string()});
 
 /**
  * Auth over the real backend. Endpoint paths and bodies are placeholders until the API exists.
@@ -31,5 +32,12 @@ export const httpAuthService: AuthService = {
   resendResetLink: async (token) => {
     const body = await apiClient.post("auth/reset-password/resend", {json: {token}}).json();
     return v.parse(ResendResetLinkResponseSchema, body);
+  },
+  getCurrentUser: async () => {
+    const body = await apiClient.get("auth/me").json();
+    return v.parse(CurrentUserResponseSchema, body);
+  },
+  signOut: async () => {
+    await apiClient.post("auth/logout");
   },
 };
