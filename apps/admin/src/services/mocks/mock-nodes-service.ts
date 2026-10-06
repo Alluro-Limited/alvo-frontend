@@ -54,9 +54,10 @@ export const mockNodesService: NodesService = {
   },
   changeNodeStatus: async (id, input: ChangeNodeStatusInput) => {
     await mockDelay();
-    const row = nodeRowsStore.find((node) => node.id === id);
-    if (!row) throw mockHttpError(`nodes/${id}/status`, API_ERROR_CODES.NOT_FOUND);
-    row.status = input.status;
+    const index = nodeRowsStore.findIndex((node) => node.id === id);
+    if (index < 0) throw mockHttpError(`nodes/${id}/status`, API_ERROR_CODES.NOT_FOUND);
+    // Fresh object so refetches yield new references (in-place mutation leaves the UI stale).
+    nodeRowsStore[index] = {...nodeRowsStore[index], status: input.status};
     return {id, status: input.status};
   },
 };
