@@ -20,12 +20,13 @@ import { Route as AppAssignmentRouteImport } from "./routes/_app/assignment"
 import { Route as AppCourierPayoutsRouteImport } from "./routes/_app/courier-payouts"
 import { Route as AppCouriersRouteImport } from "./routes/_app/couriers"
 import { Route as AppDashboardRouteImport } from "./routes/_app/dashboard"
-import { Route as AppNodesRouteImport } from "./routes/_app/nodes"
 import { Route as AppProfileRouteImport } from "./routes/_app/profile"
 import { Route as AppRevenueRouteImport } from "./routes/_app/revenue"
 import { Route as AppSettingsRouteImport } from "./routes/_app/settings"
 import { Route as AppSmesRouteImport } from "./routes/_app/smes"
 import { Route as AppUsersRouteImport } from "./routes/_app/users"
+import { Route as AppNodesIndexRouteImport } from "./routes/_app/nodes/index"
+import { Route as AppNodesNodeIdRouteImport } from "./routes/_app/nodes/$nodeId"
 import { Route as AppWorkloadsIndexRouteImport } from "./routes/_app/workloads/index"
 import { Route as AppWorkloadsBatchesBatchIdRouteImport } from "./routes/_app/workloads/batches/$batchId"
 
@@ -83,11 +84,6 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: "/dashboard",
   getParentRoute: () => AppRoute,
 } as any)
-const AppNodesRoute = AppNodesRouteImport.update({
-  id: "/nodes",
-  path: "/nodes",
-  getParentRoute: () => AppRoute,
-} as any)
 const AppProfileRoute = AppProfileRouteImport.update({
   id: "/profile",
   path: "/profile",
@@ -113,6 +109,16 @@ const AppUsersRoute = AppUsersRouteImport.update({
   path: "/users",
   getParentRoute: () => AppRoute,
 } as any)
+const AppNodesIndexRoute = AppNodesIndexRouteImport.update({
+  id: "/nodes/",
+  path: "/nodes/",
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNodesNodeIdRoute = AppNodesNodeIdRouteImport.update({
+  id: "/nodes/$nodeId",
+  path: "/nodes/$nodeId",
+  getParentRoute: () => AppRoute,
+} as any)
 const AppWorkloadsIndexRoute = AppWorkloadsIndexRouteImport.update({
   id: "/workloads/",
   path: "/workloads/",
@@ -136,12 +142,13 @@ export interface FileRoutesByFullPath {
   "/courier-payouts": typeof AppCourierPayoutsRoute
   "/couriers": typeof AppCouriersRoute
   "/dashboard": typeof AppDashboardRoute
-  "/nodes": typeof AppNodesRoute
   "/profile": typeof AppProfileRoute
   "/revenue": typeof AppRevenueRoute
   "/settings": typeof AppSettingsRoute
   "/smes": typeof AppSmesRoute
   "/users": typeof AppUsersRoute
+  "/nodes/$nodeId": typeof AppNodesNodeIdRoute
+  "/nodes/": typeof AppNodesIndexRoute
   "/workloads/": typeof AppWorkloadsIndexRoute
   "/workloads/batches/$batchId": typeof AppWorkloadsBatchesBatchIdRoute
 }
@@ -156,12 +163,13 @@ export interface FileRoutesByTo {
   "/courier-payouts": typeof AppCourierPayoutsRoute
   "/couriers": typeof AppCouriersRoute
   "/dashboard": typeof AppDashboardRoute
-  "/nodes": typeof AppNodesRoute
   "/profile": typeof AppProfileRoute
   "/revenue": typeof AppRevenueRoute
   "/settings": typeof AppSettingsRoute
   "/smes": typeof AppSmesRoute
   "/users": typeof AppUsersRoute
+  "/nodes/$nodeId": typeof AppNodesNodeIdRoute
+  "/nodes": typeof AppNodesIndexRoute
   "/workloads": typeof AppWorkloadsIndexRoute
   "/workloads/batches/$batchId": typeof AppWorkloadsBatchesBatchIdRoute
 }
@@ -178,12 +186,13 @@ export interface FileRoutesById {
   "/_app/courier-payouts": typeof AppCourierPayoutsRoute
   "/_app/couriers": typeof AppCouriersRoute
   "/_app/dashboard": typeof AppDashboardRoute
-  "/_app/nodes": typeof AppNodesRoute
   "/_app/profile": typeof AppProfileRoute
   "/_app/revenue": typeof AppRevenueRoute
   "/_app/settings": typeof AppSettingsRoute
   "/_app/smes": typeof AppSmesRoute
   "/_app/users": typeof AppUsersRoute
+  "/_app/nodes/$nodeId": typeof AppNodesNodeIdRoute
+  "/_app/nodes/": typeof AppNodesIndexRoute
   "/_app/workloads/": typeof AppWorkloadsIndexRoute
   "/_app/workloads/batches/$batchId": typeof AppWorkloadsBatchesBatchIdRoute
 }
@@ -200,12 +209,13 @@ export interface FileRouteTypes {
     | "/courier-payouts"
     | "/couriers"
     | "/dashboard"
-    | "/nodes"
     | "/profile"
     | "/revenue"
     | "/settings"
     | "/smes"
     | "/users"
+    | "/nodes/$nodeId"
+    | "/nodes/"
     | "/workloads/"
     | "/workloads/batches/$batchId"
   fileRoutesByTo: FileRoutesByTo
@@ -220,12 +230,13 @@ export interface FileRouteTypes {
     | "/courier-payouts"
     | "/couriers"
     | "/dashboard"
-    | "/nodes"
     | "/profile"
     | "/revenue"
     | "/settings"
     | "/smes"
     | "/users"
+    | "/nodes/$nodeId"
+    | "/nodes"
     | "/workloads"
     | "/workloads/batches/$batchId"
   id:
@@ -241,12 +252,13 @@ export interface FileRouteTypes {
     | "/_app/courier-payouts"
     | "/_app/couriers"
     | "/_app/dashboard"
-    | "/_app/nodes"
     | "/_app/profile"
     | "/_app/revenue"
     | "/_app/settings"
     | "/_app/smes"
     | "/_app/users"
+    | "/_app/nodes/$nodeId"
+    | "/_app/nodes/"
     | "/_app/workloads/"
     | "/_app/workloads/batches/$batchId"
   fileRoutesById: FileRoutesById
@@ -339,13 +351,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
-    "/_app/nodes": {
-      id: "/_app/nodes"
-      path: "/nodes"
-      fullPath: "/nodes"
-      preLoaderRoute: typeof AppNodesRouteImport
-      parentRoute: typeof AppRoute
-    }
     "/_app/profile": {
       id: "/_app/profile"
       path: "/profile"
@@ -381,6 +386,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppUsersRouteImport
       parentRoute: typeof AppRoute
     }
+    "/_app/nodes/": {
+      id: "/_app/nodes/"
+      path: "/nodes"
+      fullPath: "/nodes/"
+      preLoaderRoute: typeof AppNodesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/nodes/$nodeId": {
+      id: "/_app/nodes/$nodeId"
+      path: "/nodes/$nodeId"
+      fullPath: "/nodes/$nodeId"
+      preLoaderRoute: typeof AppNodesNodeIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     "/_app/workloads/": {
       id: "/_app/workloads/"
       path: "/workloads"
@@ -404,12 +423,13 @@ interface AppRouteChildren {
   AppCourierPayoutsRoute: typeof AppCourierPayoutsRoute
   AppCouriersRoute: typeof AppCouriersRoute
   AppDashboardRoute: typeof AppDashboardRoute
-  AppNodesRoute: typeof AppNodesRoute
   AppProfileRoute: typeof AppProfileRoute
   AppRevenueRoute: typeof AppRevenueRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSmesRoute: typeof AppSmesRoute
   AppUsersRoute: typeof AppUsersRoute
+  AppNodesNodeIdRoute: typeof AppNodesNodeIdRoute
+  AppNodesIndexRoute: typeof AppNodesIndexRoute
   AppWorkloadsIndexRoute: typeof AppWorkloadsIndexRoute
   AppWorkloadsBatchesBatchIdRoute: typeof AppWorkloadsBatchesBatchIdRoute
 }
@@ -420,12 +440,13 @@ const AppRouteChildren: AppRouteChildren = {
   AppCourierPayoutsRoute: AppCourierPayoutsRoute,
   AppCouriersRoute: AppCouriersRoute,
   AppDashboardRoute: AppDashboardRoute,
-  AppNodesRoute: AppNodesRoute,
   AppProfileRoute: AppProfileRoute,
   AppRevenueRoute: AppRevenueRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSmesRoute: AppSmesRoute,
   AppUsersRoute: AppUsersRoute,
+  AppNodesNodeIdRoute: AppNodesNodeIdRoute,
+  AppNodesIndexRoute: AppNodesIndexRoute,
   AppWorkloadsIndexRoute: AppWorkloadsIndexRoute,
   AppWorkloadsBatchesBatchIdRoute: AppWorkloadsBatchesBatchIdRoute,
 }

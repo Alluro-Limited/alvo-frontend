@@ -69,7 +69,10 @@ export const PROFILE_ITEM: ShellNavItem = {to: "/profile", icon: User, label: m[
 
 const ALL_NAV_ITEMS = [...NAV_SECTIONS.flatMap((section) => section.items), PROFILE_ITEM];
 
-/** Resolves the breadcrumb label for the current pathname, if it belongs to the nav. */
+/** Resolves the breadcrumb label for the current pathname, matching nested routes by longest prefix. */
 export function navLabelForPath(pathname: string): (() => string) | undefined {
-  return ALL_NAV_ITEMS.find((item) => item.to === pathname)?.label;
+  const match = ALL_NAV_ITEMS.filter((item) => pathname === item.to || pathname.startsWith(`${item.to}/`)).sort(
+    (a, b) => b.to.length - a.to.length
+  )[0];
+  return match?.label;
 }

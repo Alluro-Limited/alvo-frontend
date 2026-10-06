@@ -21,6 +21,13 @@ export function useListFilters() {
     location: location || undefined,
     page,
   };
+  const clearFilters = useCallback(() => {
+    setQuery("");
+    setStatus("");
+    setLocation("");
+    setPage(1);
+  }, []);
+
   return {
     filters: {query, status, location},
     listParams,
@@ -28,5 +35,6 @@ export function useListFilters() {
     onStatus: firstPage(setStatus),
     onLocation: firstPage(setLocation),
     onPage: setPage,
+    clearFilters,
   };
 }
