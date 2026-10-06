@@ -1,21 +1,36 @@
 import {m} from "@/paraglide/messages";
-import type {ParcelStatus, WorkloadFilterOptions} from "@/types/workloads-types";
 import wlSearch from "@/assets/wl-search.svg";
 import {FIELD_CLASSES, SelectShell} from "./select-shell";
-import {STATUS_LABELS} from "./status-labels";
+
+export interface FilterOption {
+  id: string;
+  label: string;
+}
 
 interface WorkloadsToolbarProps {
   query: string;
-  status: ParcelStatus | "";
-  nodeId: string;
-  filterOptions: WorkloadFilterOptions;
+  status: string;
+  location: string;
+  searchPlaceholder: string;
+  statusOptions: FilterOption[];
+  locationOptions: FilterOption[];
   onQuery: (value: string) => void;
-  onStatus: (value: ParcelStatus | "") => void;
-  onNode: (value: string) => void;
+  onStatus: (value: string) => void;
+  onLocation: (value: string) => void;
 }
 
-/** Search field + status/node filter selects inside the rounded toolbar strip. */
-export function WorkloadsToolbar({query, status, nodeId, filterOptions, onQuery, onStatus, onNode}: WorkloadsToolbarProps) {
+/** Search field + status/location filter selects inside the rounded toolbar strip. */
+export function WorkloadsToolbar({
+  query,
+  status,
+  location,
+  searchPlaceholder,
+  statusOptions,
+  locationOptions,
+  onQuery,
+  onStatus,
+  onLocation,
+}: WorkloadsToolbarProps) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl bg-white p-3">
       <div className="relative w-full max-w-[612px]">
@@ -29,25 +44,25 @@ export function WorkloadsToolbar({query, status, nodeId, filterOptions, onQuery,
           type="search"
           value={query}
           onChange={(event) => onQuery(event.target.value)}
-          placeholder={m["workloads.search_placeholder"]()}
-          aria-label={m["workloads.search_placeholder"]()}
+          placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder}
           className={`${FIELD_CLASSES} pl-12 placeholder:text-grey-500`}
         />
       </div>
       <div className="flex w-[284px] shrink-0 items-center gap-2">
-        <SelectShell aria-label={m["workloads.filter_status_aria"]()} value={status} onChange={(v) => onStatus(v as ParcelStatus | "")}>
+        <SelectShell aria-label={m["workloads.filter_status_aria"]()} value={status} onChange={onStatus}>
           <option value="">{m["workloads.filter_all"]()}</option>
-          {filterOptions.statuses.map((option) => (
-            <option key={option} value={option}>
-              {STATUS_LABELS[option]()}
+          {statusOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
             </option>
           ))}
         </SelectShell>
-        <SelectShell aria-label={m["workloads.filter_node_aria"]()} value={nodeId} onChange={onNode}>
+        <SelectShell aria-label={m["workloads.filter_location_aria"]()} value={location} onChange={onLocation}>
           <option value="">{m["workloads.filter_all"]()}</option>
-          {filterOptions.nodes.map((node) => (
-            <option key={node.id} value={node.id}>
-              {node.label}
+          {locationOptions.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.label}
             </option>
           ))}
         </SelectShell>

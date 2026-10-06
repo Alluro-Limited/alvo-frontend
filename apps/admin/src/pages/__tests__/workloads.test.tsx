@@ -6,7 +6,7 @@ import type {ParcelDetail, WorkloadListResponse} from "@/types/workloads-types";
 import {WorkloadsPage} from "../workloads";
 
 vi.mock("@/services/workloads-service", () => ({
-  workloadsService: {getWorkloads: vi.fn(), getParcelDetail: vi.fn(), flagParcels: vi.fn(), exportParcels: vi.fn()},
+  workloadsService: {getWorkloads: vi.fn(), getParcelDetail: vi.fn(), flagParcels: vi.fn(), exportList: vi.fn()},
 }));
 
 const getWorkloads = vi.mocked(workloadsService.getWorkloads);
@@ -18,7 +18,7 @@ function list(overrides: Partial<WorkloadListResponse["parcels"]> = {}): Workloa
     metrics: {ongoing: 3, pendingPickup: 12, expired: 1, slaAtRisk: 2, flagged: 0},
     filters: {
       statuses: ["pending_pickup", "in_transit", "delivered", "failed", "expired"],
-      nodes: [{id: "LK-022", label: "Ikeja (LK-022)"}],
+      locations: [{id: "LK-022", label: "Ikeja (LK-022)"}],
     },
     parcels: {
       items: [
@@ -64,12 +64,16 @@ function detail(overrides: Partial<ParcelDetail> = {}): ParcelDetail {
     size: "Small - 1.8kg",
     charged: 1450,
     slaRemainingMin: 182,
-    timeline: [
-      {key: "created", actor: "Via mobile app", at: "2026-03-16T08:02:00"},
-      {key: "dropped_at_node", at: "2026-03-16T09:15:00"},
-      {key: "picked_up"},
-      {key: "delivered"},
-      {key: "collected"},
+    routes: [
+      {
+        steps: [
+          {key: "created", actor: "Via mobile app", at: "2026-03-16T08:02:00"},
+          {key: "dropped_at_node", at: "2026-03-16T09:15:00"},
+          {key: "picked_up"},
+          {key: "delivered"},
+          {key: "collected"},
+        ],
+      },
     ],
     ...overrides,
   };
@@ -151,5 +155,51 @@ describe("WorkloadsPage", () => {
     await waitFor(() =>
       expect(flagParcels).toHaveBeenCalledWith(expect.objectContaining({ids: ["PRV-88183", "PRV-88201"], reason: "other"}))
     );
+  });
+
+  it("renders batch cards when the batches tab is in the URL", async () => {
+    getWorkloads.mockResolvedValue({
+      metrics: {active: 9, queued: 4},
+      filters: {statuses: ["active", "queued"], locations: [{id: "ikeja", label: "Ikeja"}]},
+      batches: {
+        items: [
+          {
+            id: "BTC-2301",
+            tags: ["active"],
+            sme: "Kuda Bank",
+            createdAt: new Date().toISOString(),
+            city: "Ikeja",
+            totalValue: 336000,
+            parcelCount: 840,
+            delivered: 170,
+            breakdown: [
+              {key: "delivered", count: 170},
+              {key: "in_transit", count: 56},
+            ],
+          },
+        ],
+        page: 1,
+        pageSize: 5,
+        total: 43,
+      },
+    });
+    renderRoute(WorkloadsPage, "/workloads", "/workloads?tab=batches");
+
+    expect(await screen.findByText("BTC-2301")).toBeTruthy();
+    expect(screen.getByText("Kuda Bank", {exact: false})).toBeTruthy();
+    expect(screen.getByText("workloads.batch_view_parcels")).toBeTruthy();
+    expect(getWorkloads).toHaveBeenCalledWith(expect.objectContaining({tab: "batches"}));
+  });
+
+  it("shows the batch empty state when no batches match", async () => {
+    getWorkloads.mockResolvedValue({
+      metrics: {active: 0},
+      filters: {statuses: [], locations: []},
+      batches: {items: [], page: 1, pageSize: 5, total: 0},
+    });
+    renderRoute(WorkloadsPage, "/workloads", "/workloads?tab=batches");
+
+    expect(await screen.findByText("workloads.batch_empty_title")).toBeTruthy();
+    expect(screen.getByText("workloads.batch_empty_description")).toBeTruthy();
   });
 });

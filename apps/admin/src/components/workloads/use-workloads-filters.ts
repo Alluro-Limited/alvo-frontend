@@ -1,35 +1,27 @@
-import {useCallback, useState} from "react";
-import type {ParcelStatus, WorkloadListParams, WorkloadTab} from "@/types/workloads-types";
+import {useCallback} from "react";
+import {useNavigate, useSearch} from "@tanstack/react-router";
+import type {WorkloadListParams, WorkloadTab} from "@/types/workloads-types";
+import {useListFilters} from "./use-list-filters";
 
-/** Tab/search/filter/page state for the Workloads page — any filter change returns to page 1. */
+function parseTab(value: string | undefined): WorkloadTab {
+  return value === "batches" || value === "safe" ? value : "single";
+}
+
+/** Tab (URL search param) plus shared list filters for the Workloads page. */
 export function useWorkloadsFilters() {
-  const [tab, setTab] = useState<WorkloadTab>("single");
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<ParcelStatus | "">("");
-  const [nodeId, setNodeId] = useState("");
-  const [page, setPage] = useState(1);
+  const search = useSearch({strict: false}) as {tab?: string};
+  const navigate = useNavigate();
+  const tab = parseTab(search.tab);
+  const {filters, listParams, onQuery, onStatus, onLocation, onPage} = useListFilters();
 
-  const firstPage = useCallback(<T>(set: (v: T) => void) => {
-    return (v: T) => {
-      set(v);
-      setPage(1);
-    };
-  }, []);
+  const onTab = useCallback(
+    (next: WorkloadTab) => {
+      onPage(1);
+      void navigate({to: "/workloads", search: {tab: next}});
+    },
+    [onPage, navigate]
+  );
 
-  const params: WorkloadListParams = {
-    tab,
-    query: query.trim() || undefined,
-    status: status || undefined,
-    nodeId: nodeId || undefined,
-    page,
-  };
-  return {
-    params,
-    filters: {tab, query, status, nodeId},
-    onTab: firstPage(setTab),
-    onQuery: firstPage(setQuery),
-    onStatus: firstPage(setStatus),
-    onNode: firstPage(setNodeId),
-    onPage: setPage,
-  };
+  const params: WorkloadListParams = {tab, ...listParams};
+  return {params, filters: {tab, ...filters}, onTab, onQuery, onStatus, onLocation, onPage};
 }

@@ -33,7 +33,7 @@ function DrawerBody({parcel, onFlag}: {parcel: ParcelDetail; onFlag: () => void}
       <ParcelStatusBanner status={parcel.status} note={parcel.statusNote} />
       {parcel.flag && <FlaggedBanner flag={parcel.flag} />}
       <ParcelInfoCard parcel={parcel} />
-      <ParcelTimeline steps={parcel.timeline} />
+      <ParcelTimeline routes={parcel.routes} />
       {parcel.flag ? (
         <Button variant="outline" className="w-full" disabled>
           {m["workloads.already_flagged"]()}

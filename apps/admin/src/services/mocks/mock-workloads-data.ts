@@ -1,10 +1,10 @@
-import type {ParcelDetail, ParcelRow, WorkloadFilterOptions, WorkloadMetrics} from "@/types/workloads-types";
+import type {ParcelDetail, ParcelRow, ParcelRoute, WorkloadFilterOptions, WorkloadMetrics} from "@/types/workloads-types";
 
 export const WORKLOAD_METRICS: WorkloadMetrics = {ongoing: 3, pendingPickup: 12, expired: 1, slaAtRisk: 2, flagged: 0};
 
 export const WORKLOAD_FILTER_OPTIONS: WorkloadFilterOptions = {
   statuses: ["pending_pickup", "in_transit", "delivered", "failed", "expired"],
-  nodes: [
+  locations: [
     {id: "LK-022", label: "Ikeja (LK-022)"},
     {id: "IK-023", label: "Ikeja (IK-023)"},
     {id: "LK-015", label: "Lekki (LK-015)"},
@@ -160,12 +160,16 @@ const PRV_88183: ParcelDetail = {
   size: "Small - 1.8kg",
   charged: 1450,
   slaRemainingMin: 182,
-  timeline: [
-    {key: "created", actor: "Via mobile app", at: "2026-03-16T08:02:00"},
-    {key: "dropped_at_node", actor: "LK-022", at: "2026-03-16T09:15:00"},
-    {key: "picked_up", actor: "PRG-023", at: "2026-03-16T10:40:00"},
-    {key: "delivered"},
-    {key: "collected"},
+  routes: [
+    {
+      steps: [
+        {key: "created", actor: "Via mobile app", at: "2026-03-16T08:02:00"},
+        {key: "dropped_at_node", actor: "LK-022", at: "2026-03-16T09:15:00"},
+        {key: "picked_up", actor: "PRG-023", at: "2026-03-16T10:40:00"},
+        {key: "delivered"},
+        {key: "collected"},
+      ],
+    },
   ],
   tracking: {
     route: [LAGOS.ikeja, [3.365, 6.585], [3.39, 6.56], [3.42, 6.53], [3.45, 6.49], LAGOS.lekki],
@@ -185,9 +189,28 @@ const PRV_88183: ParcelDetail = {
   },
 };
 
-/** Generic detail for any other parcel id — derived from its row so every row opens a real drawer. */
-function detailFor(row: ParcelRow): ParcelDetail {
+/** The single default route leg for parcels that carry no batch-specific routes. */
+function defaultRouteFor(row: ParcelRow): ParcelRoute[] {
   const done = row.status === "delivered";
+  return [
+    {
+      steps: [
+        {key: "created", actor: "Via mobile app", at: "2026-03-16T08:02:00"},
+        {key: "dropped_at_node", actor: "LK-022", at: "2026-03-16T09:15:00"},
+        {
+          key: "picked_up",
+          actor: row.courierId ?? undefined,
+          at: done || row.status === "in_transit" ? "2026-03-16T10:40:00" : undefined,
+        },
+        {key: "delivered", at: done ? "2026-03-16T11:55:00" : undefined},
+        {key: "collected"},
+      ],
+    },
+  ];
+}
+
+/** Generic detail for any other parcel id — derived from its row so every row opens a real drawer. */
+export function detailFor(row: ParcelRow, routes?: ParcelRoute[]): ParcelDetail {
   return {
     id: row.id,
     serviceType: "standard",
@@ -201,13 +224,7 @@ function detailFor(row: ParcelRow): ParcelDetail {
     size: "Small - 1.8kg",
     charged: 1450,
     slaRemainingMin: row.slaRemainingMin,
-    timeline: [
-      {key: "created", actor: "Via mobile app", at: "2026-03-16T08:02:00"},
-      {key: "dropped_at_node", actor: "LK-022", at: "2026-03-16T09:15:00"},
-      {key: "picked_up", actor: row.courierId ?? undefined, at: done || row.status === "in_transit" ? "2026-03-16T10:40:00" : undefined},
-      {key: "delivered", at: done ? "2026-03-16T11:55:00" : undefined},
-      {key: "collected"},
-    ],
+    routes: routes ?? defaultRouteFor(row),
     tracking: row.status === "in_transit" || row.status === "failed" ? PRV_88183.tracking : undefined,
   };
 }

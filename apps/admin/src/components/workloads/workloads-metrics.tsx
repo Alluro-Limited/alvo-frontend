@@ -1,24 +1,38 @@
 import {cn} from "cnfast";
 import {m} from "@/paraglide/messages";
-import type {WorkloadMetrics} from "@/types/workloads-types";
+import type {WorkloadMetricKey, WorkloadMetrics} from "@/types/workloads-types";
 
-const DOT_STYLES: Record<keyof WorkloadMetrics, string> = {
+const DOT_STYLES: Record<WorkloadMetricKey, string> = {
   ongoing: "bg-primary-500",
+  active: "bg-primary-500",
   pendingPickup: "bg-accent-500",
+  queued: "bg-warning-500",
+  total: "bg-grey-600",
+  delivered: "bg-success-500",
+  inTransit: "bg-secondary-500",
   expired: "bg-status-fail",
+  expiredParcel: "bg-status-fail",
   slaAtRisk: "bg-warning-500",
+  slaBreaches: "bg-warning-500",
   flagged: "bg-status-warning",
 };
 
-const LABELS: Record<keyof WorkloadMetrics, () => string> = {
+const LABELS: Record<WorkloadMetricKey, () => string> = {
   ongoing: m["workloads.metric_ongoing"],
+  active: m["workloads.metric_active"],
   pendingPickup: m["workloads.metric_pending_pickup"],
+  queued: m["workloads.metric_queued"],
+  total: m["workloads.metric_total"],
+  delivered: m["workloads.metric_delivered"],
+  inTransit: m["workloads.metric_in_transit"],
   expired: m["workloads.metric_expired"],
+  expiredParcel: m["workloads.metric_expired_parcel"],
   slaAtRisk: m["workloads.metric_sla_at_risk"],
+  slaBreaches: m["workloads.metric_sla_breaches"],
   flagged: m["workloads.metric_flagged"],
 };
 
-function MetricCard({metric, value}: {metric: keyof WorkloadMetrics; value: number}) {
+function MetricCard({metric, value}: {metric: WorkloadMetricKey; value: number}) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-clip rounded-lg border border-grey-300 bg-white p-4">
       <div
@@ -35,12 +49,13 @@ function MetricCard({metric, value}: {metric: keyof WorkloadMetrics; value: numb
   );
 }
 
-/** The five count cards above the parcels table — driven entirely by the response payload. */
+/** Count cards above the list — renders whatever metric keys the response carries, in payload order. */
 export function WorkloadsMetrics({metrics}: {metrics: WorkloadMetrics}) {
+  const keys = (Object.keys(metrics) as WorkloadMetricKey[]).filter((key) => key in DOT_STYLES);
   return (
     <div className="flex gap-2">
-      {(Object.keys(DOT_STYLES) as (keyof WorkloadMetrics)[]).map((metric) => (
-        <MetricCard key={metric} metric={metric} value={metrics[metric]} />
+      {keys.map((metric) => (
+        <MetricCard key={metric} metric={metric} value={metrics[metric] ?? 0} />
       ))}
     </div>
   );

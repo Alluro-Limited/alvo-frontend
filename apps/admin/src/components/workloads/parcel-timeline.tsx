@@ -1,8 +1,8 @@
 import {m} from "@/paraglide/messages";
-import type {ParcelTimelineStep, TimelineStepKey} from "@/types/workloads-types";
+import type {ParcelRoute, ParcelTimelineStep, TimelineStepKey} from "@/types/workloads-types";
 import timelineCheck from "@/assets/timeline-check.svg";
 import timelinePending from "@/assets/timeline-pending.svg";
-import {formatTimelineAt} from "./workloads-format";
+import {formatOrdinal, formatTimelineAt} from "./workloads-format";
 
 const STEP_LABELS: Record<TimelineStepKey, () => string> = {
   created: m["workloads.timeline_created"],
@@ -30,16 +30,29 @@ function TimelineStep({step, last}: {step: ParcelTimelineStep; last: boolean}) {
   );
 }
 
-/** Vertical lifecycle timeline inside the parcel drawer. */
-export function ParcelTimeline({steps}: {steps: ParcelTimelineStep[]}) {
+function routeTitle(route: ParcelRoute, index: number, count: number) {
+  if (route.label) return route.label;
+  if (count === 1) return m["workloads.timeline_title"]();
+  return m["workloads.route_timeline_numbered"]({ordinal: formatOrdinal(index + 1)});
+}
+
+/** Vertical lifecycle timelines inside the parcel drawer — one section per route leg. */
+export function ParcelTimeline({routes}: {routes: ParcelRoute[]}) {
   return (
-    <section className="rounded-lg bg-white p-4" aria-label={m["workloads.timeline_title"]()}>
-      <h3 className="pb-3 text-sm leading-[1.4] font-semibold tracking-[0.14px] text-black">{m["workloads.timeline_title"]()}</h3>
-      <ol>
-        {steps.map((step, index) => (
-          <TimelineStep key={step.key} step={step} last={index === steps.length - 1} />
-        ))}
-      </ol>
-    </section>
+    <>
+      {routes.map((route, index) => {
+        const title = routeTitle(route, index, routes.length);
+        return (
+          <section key={title} className="rounded-lg bg-white p-4" aria-label={title}>
+            <h3 className="pb-3 text-sm leading-[1.4] font-semibold tracking-[0.14px] text-black">{title}</h3>
+            <ol>
+              {route.steps.map((step, stepIndex) => (
+                <TimelineStep key={step.key} step={step} last={stepIndex === route.steps.length - 1} />
+              ))}
+            </ol>
+          </section>
+        );
+      })}
+    </>
   );
 }

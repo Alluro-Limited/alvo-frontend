@@ -26,7 +26,8 @@ import { Route as AppRevenueRouteImport } from "./routes/_app/revenue"
 import { Route as AppSettingsRouteImport } from "./routes/_app/settings"
 import { Route as AppSmesRouteImport } from "./routes/_app/smes"
 import { Route as AppUsersRouteImport } from "./routes/_app/users"
-import { Route as AppWorkloadsRouteImport } from "./routes/_app/workloads"
+import { Route as AppWorkloadsIndexRouteImport } from "./routes/_app/workloads/index"
+import { Route as AppWorkloadsBatchesBatchIdRouteImport } from "./routes/_app/workloads/batches/$batchId"
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
@@ -112,11 +113,17 @@ const AppUsersRoute = AppUsersRouteImport.update({
   path: "/users",
   getParentRoute: () => AppRoute,
 } as any)
-const AppWorkloadsRoute = AppWorkloadsRouteImport.update({
-  id: "/workloads",
-  path: "/workloads",
+const AppWorkloadsIndexRoute = AppWorkloadsIndexRouteImport.update({
+  id: "/workloads/",
+  path: "/workloads/",
   getParentRoute: () => AppRoute,
 } as any)
+const AppWorkloadsBatchesBatchIdRoute =
+  AppWorkloadsBatchesBatchIdRouteImport.update({
+    id: "/workloads/batches/$batchId",
+    path: "/workloads/batches/$batchId",
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
@@ -135,7 +142,8 @@ export interface FileRoutesByFullPath {
   "/settings": typeof AppSettingsRoute
   "/smes": typeof AppSmesRoute
   "/users": typeof AppUsersRoute
-  "/workloads": typeof AppWorkloadsRoute
+  "/workloads/": typeof AppWorkloadsIndexRoute
+  "/workloads/batches/$batchId": typeof AppWorkloadsBatchesBatchIdRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -154,7 +162,8 @@ export interface FileRoutesByTo {
   "/settings": typeof AppSettingsRoute
   "/smes": typeof AppSmesRoute
   "/users": typeof AppUsersRoute
-  "/workloads": typeof AppWorkloadsRoute
+  "/workloads": typeof AppWorkloadsIndexRoute
+  "/workloads/batches/$batchId": typeof AppWorkloadsBatchesBatchIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -175,7 +184,8 @@ export interface FileRoutesById {
   "/_app/settings": typeof AppSettingsRoute
   "/_app/smes": typeof AppSmesRoute
   "/_app/users": typeof AppUsersRoute
-  "/_app/workloads": typeof AppWorkloadsRoute
+  "/_app/workloads/": typeof AppWorkloadsIndexRoute
+  "/_app/workloads/batches/$batchId": typeof AppWorkloadsBatchesBatchIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -196,7 +206,8 @@ export interface FileRouteTypes {
     | "/settings"
     | "/smes"
     | "/users"
-    | "/workloads"
+    | "/workloads/"
+    | "/workloads/batches/$batchId"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | "/smes"
     | "/users"
     | "/workloads"
+    | "/workloads/batches/$batchId"
   id:
     | "__root__"
     | "/"
@@ -235,7 +247,8 @@ export interface FileRouteTypes {
     | "/_app/settings"
     | "/_app/smes"
     | "/_app/users"
-    | "/_app/workloads"
+    | "/_app/workloads/"
+    | "/_app/workloads/batches/$batchId"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -368,11 +381,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AppUsersRouteImport
       parentRoute: typeof AppRoute
     }
-    "/_app/workloads": {
-      id: "/_app/workloads"
+    "/_app/workloads/": {
+      id: "/_app/workloads/"
       path: "/workloads"
-      fullPath: "/workloads"
-      preLoaderRoute: typeof AppWorkloadsRouteImport
+      fullPath: "/workloads/"
+      preLoaderRoute: typeof AppWorkloadsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    "/_app/workloads/batches/$batchId": {
+      id: "/_app/workloads/batches/$batchId"
+      path: "/workloads/batches/$batchId"
+      fullPath: "/workloads/batches/$batchId"
+      preLoaderRoute: typeof AppWorkloadsBatchesBatchIdRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -390,7 +410,8 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppSmesRoute: typeof AppSmesRoute
   AppUsersRoute: typeof AppUsersRoute
-  AppWorkloadsRoute: typeof AppWorkloadsRoute
+  AppWorkloadsIndexRoute: typeof AppWorkloadsIndexRoute
+  AppWorkloadsBatchesBatchIdRoute: typeof AppWorkloadsBatchesBatchIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -405,7 +426,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppSmesRoute: AppSmesRoute,
   AppUsersRoute: AppUsersRoute,
-  AppWorkloadsRoute: AppWorkloadsRoute,
+  AppWorkloadsIndexRoute: AppWorkloadsIndexRoute,
+  AppWorkloadsBatchesBatchIdRoute: AppWorkloadsBatchesBatchIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

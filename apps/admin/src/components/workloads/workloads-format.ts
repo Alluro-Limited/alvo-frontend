@@ -19,6 +19,13 @@ export function formatTimelineAt(iso: string): string {
   return `${day}, ${time}`;
 }
 
+/** 1 → "1st", 2 → "2nd", 3 → "3rd", 4+ → "Nth" — labels for numbered route timelines. */
+export function formatOrdinal(n: number): string {
+  const suffix =
+    n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th";
+  return `${n}${suffix}`;
+}
+
 /** Triggers a browser download of the CSV body returned by the workloads service. */
 export function downloadCsv(csv: string): void {
   const url = URL.createObjectURL(new Blob([csv], {type: "text/csv"}));

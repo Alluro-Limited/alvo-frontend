@@ -4,21 +4,35 @@ import type {ParcelRow} from "@/types/workloads-types";
 import {ParcelStatusTag} from "./parcel-status-tag";
 import {formatSla} from "./workloads-format";
 
-const HEADERS = [
-  {key: "parcel", label: m["workloads.col_parcel_id"], width: "w-[110px]"},
-  {key: "sender", label: m["workloads.col_sender"], width: "w-[150px]"},
-  {key: "destination", label: m["workloads.col_destination"], width: "w-[165px]"},
-  {key: "courier", label: m["workloads.col_courier"], width: ""},
-  {key: "node", label: m["workloads.col_destination_node"], width: "w-[160px]"},
-  {key: "status", label: m["workloads.col_status"], width: "w-[160px]"},
-  {key: "sla", label: m["workloads.col_sla"], width: ""},
-] as const;
+export type WorkloadsTableVariant = "single" | "batch";
+
+const HEADERS: Record<WorkloadsTableVariant, {key: string; label: () => string; width: string}[]> = {
+  single: [
+    {key: "parcel", label: m["workloads.col_parcel_id"], width: "w-[110px]"},
+    {key: "sender", label: m["workloads.col_sender"], width: "w-[150px]"},
+    {key: "destination", label: m["workloads.col_destination"], width: "w-[165px]"},
+    {key: "courier", label: m["workloads.col_courier"], width: ""},
+    {key: "node", label: m["workloads.col_destination_node"], width: "w-[160px]"},
+    {key: "status", label: m["workloads.col_status"], width: "w-[160px]"},
+    {key: "sla", label: m["workloads.col_sla"], width: ""},
+  ],
+  batch: [
+    {key: "parcel", label: m["workloads.col_parcel_id"], width: "w-[110px]"},
+    {key: "recipient", label: m["workloads.col_recipient"], width: "w-[150px]"},
+    {key: "destination", label: m["workloads.col_destination"], width: "w-[165px]"},
+    {key: "courier", label: m["workloads.col_courier"], width: ""},
+    {key: "node", label: m["workloads.col_last_node"], width: "w-[160px]"},
+    {key: "status", label: m["workloads.col_status"], width: "w-[160px]"},
+    {key: "sla", label: m["workloads.col_sla_left"], width: ""},
+  ],
+};
 
 const CELL = "h-12 overflow-clip px-4 text-sm leading-[1.4] tracking-[0.14px] text-ellipsis whitespace-nowrap text-grey-600";
 const HEAD_CELL = "h-12 px-4 text-left text-sm leading-[1.4] font-medium tracking-[0.14px] whitespace-nowrap text-black";
 
 interface WorkloadsTableProps {
   rows: ParcelRow[];
+  variant: WorkloadsTableVariant;
   selected: ReadonlySet<string>;
   onToggleRow: (id: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
@@ -26,7 +40,7 @@ interface WorkloadsTableProps {
 }
 
 /** The parcels table: selectable rows with status pills; clicking a row opens the detail drawer. */
-export function WorkloadsTable({rows, selected, onToggleRow, onToggleAll, onOpen}: WorkloadsTableProps) {
+export function WorkloadsTable({rows, variant, selected, onToggleRow, onToggleAll, onOpen}: WorkloadsTableProps) {
   const allChecked = rows.length > 0 && rows.every((row) => selected.has(row.id));
   return (
     <table className="w-full border border-grey-200" aria-label={m["nav.workloads"]()}>
@@ -40,7 +54,7 @@ export function WorkloadsTable({rows, selected, onToggleRow, onToggleAll, onOpen
               className="size-3.5"
             />
           </th>
-          {HEADERS.map((header) => (
+          {HEADERS[variant].map((header) => (
             <th key={header.key} className={`${HEAD_CELL} ${header.width}`}>
               {header.label()}
             </th>
@@ -53,6 +67,7 @@ export function WorkloadsTable({rows, selected, onToggleRow, onToggleAll, onOpen
           <ParcelTableRow
             key={row.id}
             row={row}
+            variant={variant}
             checked={selected.has(row.id)}
             onToggle={(checked) => onToggleRow(row.id, checked)}
             onOpen={() => onOpen(row.id)}
@@ -65,11 +80,13 @@ export function WorkloadsTable({rows, selected, onToggleRow, onToggleAll, onOpen
 
 function ParcelTableRow({
   row,
+  variant,
   checked,
   onToggle,
   onOpen,
 }: {
   row: ParcelRow;
+  variant: WorkloadsTableVariant;
   checked: boolean;
   onToggle: (checked: boolean) => void;
   onOpen: () => void;
@@ -92,10 +109,10 @@ function ParcelTableRow({
         <Checkbox checked={checked} onCheckedChange={(value) => onToggle(value === true)} aria-label={row.id} className="size-3.5" />
       </td>
       <td className={CELL}>{row.id}</td>
-      <td className={CELL}>{row.sender}</td>
+      <td className={CELL}>{variant === "batch" ? (row.recipient ?? row.sender) : row.sender}</td>
       <td className={CELL}>{row.destination}</td>
       <td className={CELL}>{row.courierId ?? "—"}</td>
-      <td className={CELL}>{row.destinationNodeId}</td>
+      <td className={CELL}>{variant === "batch" ? (row.lastNodeId ?? row.destinationNodeId) : row.destinationNodeId}</td>
       <td className="h-12 px-4">
         <ParcelStatusTag status={row.status} />
       </td>

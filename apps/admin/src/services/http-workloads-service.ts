@@ -3,37 +3,75 @@ import {apiClient} from "@/services/api-client";
 import type {FlagParcelsInput, WorkloadListParams, WorkloadsService} from "@/types/workloads-types";
 
 const ParcelStatusSchema = v.picklist(["pending_pickup", "in_transit", "delivered", "failed", "expired"]);
+const BatchTagSchema = v.picklist(["active", "completed", "queued", "stalled", "flagged"]);
 const LngLatSchema = v.tuple([v.number(), v.number()]);
 
-const ListResponseSchema = v.object({
-  metrics: v.object({
+const MetricsSchema = v.partial(
+  v.object({
     ongoing: v.number(),
     pendingPickup: v.number(),
     expired: v.number(),
     slaAtRisk: v.number(),
     flagged: v.number(),
-  }),
-  parcels: v.object({
-    items: v.array(
-      v.object({
-        id: v.string(),
-        sender: v.string(),
-        destination: v.string(),
-        courierId: v.nullable(v.string()),
-        destinationNodeId: v.string(),
-        status: ParcelStatusSchema,
-        slaRemainingMin: v.nullable(v.number()),
-        flagged: v.boolean(),
-      })
-    ),
-    page: v.number(),
-    pageSize: v.number(),
+    active: v.number(),
+    queued: v.number(),
+    slaBreaches: v.number(),
+    expiredParcel: v.number(),
     total: v.number(),
-  }),
-  filters: v.object({
-    statuses: v.array(ParcelStatusSchema),
-    nodes: v.array(v.object({id: v.string(), label: v.string()})),
-  }),
+    inTransit: v.number(),
+    delivered: v.number(),
+  })
+);
+
+const PageSchema = <TItem extends v.GenericSchema>(item: TItem) =>
+  v.object({items: v.array(item), page: v.number(), pageSize: v.number(), total: v.number()});
+
+const ParcelRowSchema = v.object({
+  id: v.string(),
+  sender: v.string(),
+  recipient: v.optional(v.string()),
+  destination: v.string(),
+  courierId: v.nullable(v.string()),
+  destinationNodeId: v.string(),
+  lastNodeId: v.optional(v.string()),
+  status: ParcelStatusSchema,
+  slaRemainingMin: v.nullable(v.number()),
+  flagged: v.boolean(),
+});
+
+const FilterOptionsSchema = v.object({
+  statuses: v.array(v.string()),
+  locations: v.array(v.object({id: v.string(), label: v.string()})),
+});
+
+const BatchRowSchema = v.object({
+  id: v.string(),
+  tags: v.array(BatchTagSchema),
+  sme: v.string(),
+  createdAt: v.string(),
+  city: v.string(),
+  totalValue: v.number(),
+  parcelCount: v.number(),
+  delivered: v.number(),
+  breakdown: v.array(v.object({key: v.picklist(["delivered", "in_transit", "delayed"]), count: v.number()})),
+});
+
+const ListResponseSchema = v.object({
+  metrics: MetricsSchema,
+  parcels: v.optional(PageSchema(ParcelRowSchema)),
+  batches: v.optional(PageSchema(BatchRowSchema)),
+  filters: FilterOptionsSchema,
+});
+
+const ParcelRouteSchema = v.object({
+  label: v.optional(v.string()),
+  steps: v.array(
+    v.object({
+      key: v.picklist(["created", "dropped_at_node", "picked_up", "delivered", "collected"]),
+      actor: v.optional(v.string()),
+      at: v.optional(v.string()),
+    })
+  ),
 });
 
 const ParcelDetailSchema = v.object({
@@ -49,13 +87,7 @@ const ParcelDetailSchema = v.object({
   size: v.string(),
   charged: v.number(),
   slaRemainingMin: v.nullable(v.number()),
-  timeline: v.array(
-    v.object({
-      key: v.picklist(["created", "dropped_at_node", "picked_up", "delivered", "collected"]),
-      actor: v.optional(v.string()),
-      at: v.optional(v.string()),
-    })
-  ),
+  routes: v.array(ParcelRouteSchema),
   tracking: v.optional(
     v.object({
       route: v.array(LngLatSchema),
@@ -67,13 +99,26 @@ const ParcelDetailSchema = v.object({
   ),
 });
 
+const BatchDetailSchema = v.object({
+  id: v.string(),
+  tags: v.array(BatchTagSchema),
+  sme: v.string(),
+  createdAt: v.string(),
+  city: v.string(),
+  totalValue: v.number(),
+  parcelCount: v.number(),
+  delivered: v.number(),
+  metrics: MetricsSchema,
+  filters: FilterOptionsSchema,
+});
+
 function listSearchParams(params: WorkloadListParams) {
   return {
     tab: params.tab,
     page: params.page,
     ...(params.query ? {q: params.query} : {}),
     ...(params.status ? {status: params.status} : {}),
-    ...(params.nodeId ? {nodeId: params.nodeId} : {}),
+    ...(params.location ? {location: params.location} : {}),
   };
 }
 
@@ -83,6 +128,14 @@ export const httpWorkloadsService: WorkloadsService = {
     const body = await apiClient.get("workloads", {searchParams: listSearchParams(params)}).json();
     return v.parse(ListResponseSchema, body);
   },
+  getBatchDetail: async (id) => {
+    const body = await apiClient.get(`workloads/batches/${id}`).json();
+    return v.parse(BatchDetailSchema, body);
+  },
+  getBatchParcels: async (batchId, params) => {
+    const body = await apiClient.get(`workloads/batches/${batchId}/parcels`, {searchParams: listSearchParams(params)}).json();
+    return v.parse(PageSchema(ParcelRowSchema), body);
+  },
   getParcelDetail: async (id) => {
     const body = await apiClient.get(`workloads/parcels/${id}`).json();
     return v.parse(ParcelDetailSchema, body);
@@ -91,5 +144,17 @@ export const httpWorkloadsService: WorkloadsService = {
     const body = await apiClient.post("workloads/parcels/flag", {json: input}).json();
     return v.parse(v.object({flagged: v.number()}), body);
   },
-  exportParcels: (params) => apiClient.get("workloads/parcels/export", {searchParams: listSearchParams(params)}).text(),
+  exportList: (params) =>
+    apiClient
+      .get(
+        params.batchId
+          ? `workloads/batches/${params.batchId}/parcels/export`
+          : params.tab === "batches"
+            ? "workloads/batches/export"
+            : "workloads/parcels/export",
+        {
+          searchParams: listSearchParams(params),
+        }
+      )
+      .text(),
 };

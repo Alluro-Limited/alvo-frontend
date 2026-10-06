@@ -7,7 +7,7 @@ import tabSafe from "@/assets/tab-safe.svg";
 
 const TABS: {id: WorkloadTab; label: () => string; icon: string; ready: boolean}[] = [
   {id: "single", label: m["workloads.tab_single"], icon: tabPackage, ready: true},
-  {id: "batches", label: m["workloads.tab_batches"], icon: tabBatches, ready: false},
+  {id: "batches", label: m["workloads.tab_batches"], icon: tabBatches, ready: true},
   {id: "safe", label: m["workloads.tab_safe"], icon: tabSafe, ready: false},
 ];
 
