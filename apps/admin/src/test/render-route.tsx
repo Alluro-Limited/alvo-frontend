@@ -9,6 +9,7 @@ const STUB_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/account-setup",
+  "/assignment",
   "/nodes",
   "/nodes/$nodeId",
   "/workloads",

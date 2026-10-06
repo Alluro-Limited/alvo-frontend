@@ -10,16 +10,33 @@ interface FlagForReviewDialogProps {
   submitting: boolean;
   /** The last flag attempt failed — shows an inline error and keeps the form open. */
   failed: boolean;
-  /** What a single flagged entity is called in the subtitle — "Parcel {id}" vs "Item {id}". */
-  noun?: "parcel" | "item";
+  /** What a single flagged entity is called in the subtitle — "Parcel {id}" vs "Item {id}" vs "Assignment {id}". */
+  noun?: "parcel" | "item" | "assignment";
+  /** Replaces the default parcel description — assignments carry their own copy. */
+  description?: string;
   onClose: () => void;
   onSubmit: (reason: FlagReason, notes: string) => void;
 }
 
-/** Flag-for-review modal — same dialog for one parcel, a Safe item, or a bulk selection. */
-export function FlagForReviewDialog({open, parcelIds, submitting, failed, noun = "parcel", onClose, onSubmit}: FlagForReviewDialogProps) {
+const SUBTITLES = {
+  parcel: m["workloads.flag_subtitle"],
+  item: m["workloads.flag_subtitle_item"],
+  assignment: m["assignment.flag_subtitle"],
+} as const;
+
+/** Flag-for-review modal — same dialog for one parcel, a Safe item, an assignment, or a bulk selection. */
+export function FlagForReviewDialog({
+  open,
+  parcelIds,
+  submitting,
+  failed,
+  noun = "parcel",
+  description,
+  onClose,
+  onSubmit,
+}: FlagForReviewDialogProps) {
   const single = parcelIds.length === 1;
-  const subtitle = noun === "item" ? m["workloads.flag_subtitle_item"] : m["workloads.flag_subtitle"];
+  const subtitle = SUBTITLES[noun];
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogPortal>
@@ -36,7 +53,7 @@ export function FlagForReviewDialog({open, parcelIds, submitting, failed, noun =
               <img src={wlClose} alt="" className="size-6" aria-hidden="true" />
             </DialogClose>
           </div>
-          <DialogDescription className="pt-3 text-grey-600">{m["workloads.flag_modal_description"]()}</DialogDescription>
+          <DialogDescription className="pt-3 text-grey-600">{description ?? m["workloads.flag_modal_description"]()}</DialogDescription>
           <FlagForm submitting={submitting} failed={failed} onCancel={onClose} onSubmit={onSubmit} />
         </DialogPopup>
       </DialogPortal>

@@ -5,7 +5,8 @@ import wlExport from "@/assets/wl-export.svg";
 
 interface SelectionBarProps {
   count: number;
-  onExport: () => void;
+  /** Omit for surfaces with no bulk export (Assignment). */
+  onExport?: () => void;
   onFlag: () => void;
   onClear: () => void;
 }
@@ -23,14 +24,16 @@ export function SelectionBar({count, onExport, onFlag, onClear}: SelectionBarPro
       </p>
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onExport}
-            className="flex h-9 items-center gap-1.5 rounded-md border-[0.75px] border-status-success px-4 text-sm font-medium text-status-success-dark"
-          >
-            <img src={wlExport} alt="" className="size-3" aria-hidden="true" />
-            {m["workloads.export"]()}
-          </button>
+          {onExport && (
+            <button
+              type="button"
+              onClick={onExport}
+              className="flex h-9 items-center gap-1.5 rounded-md border-[0.75px] border-status-success px-4 text-sm font-medium text-status-success-dark"
+            >
+              <img src={wlExport} alt="" className="size-3" aria-hidden="true" />
+              {m["workloads.export"]()}
+            </button>
+          )}
           <button
             type="button"
             onClick={onFlag}

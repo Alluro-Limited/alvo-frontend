@@ -18,6 +18,8 @@ interface WorkloadsToolbarProps {
   location?: string;
   locationOptions?: FilterOption[];
   onLocation?: (value: string) => void;
+  /** Second dropdown's aria-label — defaults to the location label. */
+  secondAriaLabel?: string;
 }
 
 function FilterSelect({
@@ -51,6 +53,7 @@ export function WorkloadsToolbar({
   searchPlaceholder,
   statusOptions,
   locationOptions,
+  secondAriaLabel,
   onQuery,
   onStatus,
   onLocation,
@@ -77,7 +80,7 @@ export function WorkloadsToolbar({
         <FilterSelect ariaLabel={m["workloads.filter_status_aria"]()} value={status} options={statusOptions} onChange={onStatus} />
         {locationOptions && (
           <FilterSelect
-            ariaLabel={m["workloads.filter_location_aria"]()}
+            ariaLabel={secondAriaLabel ?? m["workloads.filter_location_aria"]()}
             value={location ?? ""}
             options={locationOptions}
             onChange={(v) => onLocation?.(v)}
