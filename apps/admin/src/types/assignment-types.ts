@@ -6,16 +6,19 @@ export type AssignmentStatus = "created" | "pending_pickup" | "active" | "public
 /** The three delivery modes shown as explainer cards and type pills. */
 export type DeliveryType = "bulk" | "node" | "express";
 
-/** One row in the assignments table. */
+/** One row in the assignments table and one card/marker in the map view. */
 export interface AssignmentRow {
   id: string;
   type: DeliveryType;
-  /** Courier display name — null renders "-" (unassigned/public pool). */
-  courier: string | null;
+  /** Assigned courier — null renders "-" (unassigned/public pool). */
+  courier: AssignmentCourier | null;
   pickup: string;
   dropoff: string;
   items: number;
   status: AssignmentStatus;
+  /** Minutes/distance to completion — shown on the map card while a courier is on the run. */
+  etaMin: number | null;
+  distanceKm: number | null;
   /** [lng, lat] marker position for the map view — usually the drop-off node. */
   position: [number, number];
 }
@@ -43,6 +46,9 @@ export interface AssignmentListResponse {
   /** Filter options supplied by the backend. */
   filters: {statuses: string[]; types: string[]};
 }
+
+/** Map-surface params — the same filters as the list, without pagination. */
+export type AssignmentMapParams = Pick<AssignmentListParams, "query" | "status" | "type">;
 
 /** A flag record attached to an assignment. */
 export interface AssignmentFlag {
@@ -137,6 +143,8 @@ export interface FlagAssignmentInput {
 
 export interface AssignmentsService {
   getAssignments: (params: AssignmentListParams) => Promise<AssignmentListResponse>;
+  /** Every assignment matching the filters — unpaginated, for the map markers and cards. */
+  getAssignmentMap: (params: AssignmentMapParams) => Promise<AssignmentRow[]>;
   getAssignmentDetail: (id: string) => Promise<AssignmentDetail>;
   getAssignable: () => Promise<AssignableAssignment[]>;
   getIdleCouriers: (query?: string) => Promise<IdleCourier[]>;

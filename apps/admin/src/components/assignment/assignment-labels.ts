@@ -1,4 +1,5 @@
 import {m} from "@/paraglide/messages";
+import type {FilterOption} from "@/components/workloads/workloads-toolbar";
 import type {AssignmentItemStatus, AssignmentStatus, DeliveryType} from "@/types/assignment-types";
 
 export const ASSIGNMENT_STATUS_LABELS: Record<AssignmentStatus, () => string> = {
@@ -38,4 +39,15 @@ export function assignmentStatusLabel(status: string): string {
 
 export function deliveryTypeLabel(type: string): string {
   return type in TYPE_LABELS ? TYPE_LABELS[type as DeliveryType]() : type;
+}
+
+/** Maps the backend filter ids to labeled options — shared by the list toolbar and the map panel. */
+export function assignmentFilterOptions(filters: {statuses: string[]; types: string[]}): {
+  statusOptions: FilterOption[];
+  typeOptions: FilterOption[];
+} {
+  return {
+    statusOptions: filters.statuses.map((status) => ({id: status, label: assignmentStatusLabel(status)})),
+    typeOptions: filters.types.map((type) => ({id: type, label: deliveryTypeLabel(type)})),
+  };
 }

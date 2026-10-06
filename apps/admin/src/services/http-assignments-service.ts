@@ -12,11 +12,13 @@ const PageSchema = <TItem extends v.GenericSchema>(item: TItem) =>
 const RowSchema = v.object({
   id: v.string(),
   type: TypeSchema,
-  courier: v.nullable(v.string()),
+  courier: v.nullable(v.object({name: v.string(), code: v.string()})),
   pickup: v.string(),
   dropoff: v.string(),
   items: v.number(),
   status: StatusSchema,
+  etaMin: v.nullable(v.number()),
+  distanceKm: v.nullable(v.number()),
   position: LngLatSchema,
 });
 
@@ -83,6 +85,18 @@ export const httpAssignmentsService: AssignmentsService = {
       })
       .json();
     return v.parse(ListResponseSchema, body);
+  },
+  getAssignmentMap: async (params) => {
+    const body = await apiClient
+      .get("assignments/map", {
+        searchParams: {
+          ...(params.query ? {q: params.query} : {}),
+          ...(params.status ? {status: params.status} : {}),
+          ...(params.type ? {type: params.type} : {}),
+        },
+      })
+      .json();
+    return v.parse(v.array(RowSchema), body);
   },
   getAssignmentDetail: async (id) => {
     const body = await apiClient.get(`assignments/${id}`).json();

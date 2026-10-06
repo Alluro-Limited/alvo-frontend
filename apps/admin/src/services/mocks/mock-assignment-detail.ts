@@ -81,10 +81,9 @@ function codeName(place: string): string {
 
 function courierBlock(row: AssignmentRow): Pick<AssignmentDetail, "courier" | "progress" | "etaMin"> {
   if (row.courier === null) return {courier: null, progress: null, etaMin: null};
-  const courier = {name: row.courier, code: `PRG-${(20 + row.id.length * 7) % 90}`};
-  if (row.status === "active") return {courier, progress: 65, etaMin: 35};
-  if (row.status === "completed") return {courier, progress: 100, etaMin: null};
-  return {courier, progress: null, etaMin: null};
+  if (row.status === "active") return {courier: row.courier, progress: 65, etaMin: row.etaMin};
+  if (row.status === "completed") return {courier: row.courier, progress: 100, etaMin: null};
+  return {courier: row.courier, progress: null, etaMin: null};
 }
 
 /** Derives the drawer payload from a list row — the real backend would return this as one document. */

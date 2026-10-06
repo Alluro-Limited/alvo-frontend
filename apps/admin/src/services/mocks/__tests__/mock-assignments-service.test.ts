@@ -31,7 +31,7 @@ describe("mockAssignmentsService", () => {
       expect(byQuery.assignments.items[0].id).toBe("ASN-1089");
 
       const byCourier = await mockAssignmentsService.getAssignments({page: 1, query: "adebayo"});
-      expect(byCourier.assignments.items.some((row) => row.courier === "Adebayo Kalu")).toBe(true);
+      expect(byCourier.assignments.items.some((row) => row.courier?.name === "Adebayo Kalu")).toBe(true);
     });
 
     it("paginates deterministically", async () => {
@@ -39,6 +39,26 @@ describe("mockAssignmentsService", () => {
       const second = await mockAssignmentsService.getAssignments({page: 2});
       const ids = new Set(first.assignments.items.map((row) => row.id));
       expect(second.assignments.items.every((row) => !ids.has(row.id))).toBe(true);
+    });
+  });
+
+  describe("getAssignmentMap", () => {
+    it("returns every matching row unpaginated", async () => {
+      const rows = await mockAssignmentsService.getAssignmentMap({});
+      expect(rows.length).toBe(343);
+      expect(rows.every((row) => row.position.length === 2)).toBe(true);
+    });
+
+    it("applies the same filters as the list", async () => {
+      const actives = await mockAssignmentsService.getAssignmentMap({status: "active", type: "bulk"});
+      expect(actives.length).toBeGreaterThan(0);
+      expect(actives.every((row) => row.status === "active" && row.type === "bulk")).toBe(true);
+
+      const byCourierCode = await mockAssignmentsService.getAssignmentMap({query: "PRG-274"});
+      expect(byCourierCode.some((row) => row.courier?.code === "PRG-274")).toBe(true);
+
+      const empty = await mockAssignmentsService.getAssignmentMap({query: "no-such-assignment"});
+      expect(empty).toHaveLength(0);
     });
   });
 

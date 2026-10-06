@@ -616,5 +616,16 @@
   "assignment.assign_confirm": "Confirm Assignment",
   "assignment.assign_confirming": "Assigning...",
   "assignment.assigned_toast": "{id} assigned to {courier}",
-  "assignment.assign_error": "Couldn't assign the courier. Try again."
+  "assignment.assign_error": "Couldn't assign the courier. Try again.",
+  "assignment.map_search_placeholder": "Search ID, partner, name...",
+  "assignment.map_status_label": "Status",
+  "assignment.map_type_label": "Delivery type",
+  "assignment.map_collapse": "Collapse",
+  "assignment.map_expand": "Expand",
+  "assignment.map_items": "({count} items)",
+  "assignment.map_items_one": "({count} item)",
+  "assignment.map_eta": "ETA: {minutes} mins • {distance} km",
+  "assignment.map_empty_title": "No active assignments",
+  "assignment.map_empty_description": "Active assignments appear when couriers accept and begin their routes.",
+  "assignment.map_error": "Couldn't load the assignment map. Try again."
 }

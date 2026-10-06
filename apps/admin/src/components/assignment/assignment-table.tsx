@@ -94,7 +94,7 @@ function AssignmentTableRow({
       <td className={CELL}>
         <AssignmentTypePill type={row.type} />
       </td>
-      <td className={CELL}>{row.courier ?? "-"}</td>
+      <td className={CELL}>{row.courier?.name ?? "-"}</td>
       <td className={CELL}>{row.pickup}</td>
       <td className={CELL}>{row.dropoff}</td>
       <td className={CELL}>

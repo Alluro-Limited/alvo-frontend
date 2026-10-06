@@ -8,6 +8,7 @@ import {AssignmentPage} from "../assignment";
 vi.mock("@/services/assignments-service", () => ({
   assignmentsService: {
     getAssignments: vi.fn(),
+    getAssignmentMap: vi.fn(),
     getAssignmentDetail: vi.fn(),
     getAssignable: vi.fn(),
     getIdleCouriers: vi.fn(),
@@ -17,6 +18,7 @@ vi.mock("@/services/assignments-service", () => ({
 }));
 
 const getAssignments = vi.mocked(assignmentsService.getAssignments);
+const getAssignmentMap = vi.mocked(assignmentsService.getAssignmentMap);
 const getAssignmentDetail = vi.mocked(assignmentsService.getAssignmentDetail);
 const getAssignable = vi.mocked(assignmentsService.getAssignable);
 const getIdleCouriers = vi.mocked(assignmentsService.getIdleCouriers);
@@ -26,11 +28,13 @@ const flagAssignment = vi.mocked(assignmentsService.flagAssignment);
 const ACTIVE_ROW: AssignmentRow = {
   id: "ASN-0382",
   type: "express",
-  courier: "Adaeze Kalu",
+  courier: {name: "Adaeze Kalu", code: "PRG-034"},
   pickup: "Ikeja Hub",
   dropoff: "Lekki Node LK-015",
   items: 3,
   status: "active",
+  etaMin: 14,
+  distanceKm: 9,
   position: [3.42, 6.44],
 };
 
@@ -42,6 +46,8 @@ const POOL_ROW: AssignmentRow = {
   dropoff: "VI Node VI-002",
   items: 12,
   status: "public_pool",
+  etaMin: null,
+  distanceKm: null,
   position: [3.4, 6.51],
 };
 
@@ -85,6 +91,7 @@ describe("AssignmentPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getAssignments.mockResolvedValue(list());
+    getAssignmentMap.mockResolvedValue([ACTIVE_ROW, POOL_ROW]);
     getAssignmentDetail.mockResolvedValue(DETAIL);
     getAssignable.mockResolvedValue([
       {id: "ASN-1089", type: "bulk", status: "public_pool", route: "Yaba Hub → VI Node VI-002", items: 12},
@@ -233,5 +240,77 @@ describe("AssignmentPage", () => {
 
     await waitFor(() => expect(flagAssignment).toHaveBeenCalledWith("ASN-1089", {reason: "other", notes: undefined}));
     expect(flagAssignment).toHaveBeenCalledWith("ASN-0382", {reason: "other", notes: undefined});
+  });
+
+  describe("map view", () => {
+    async function openMap() {
+      renderRoute(AssignmentPage, "/assignment");
+      await screen.findByText("ASN-0382");
+      fireEvent.click(screen.getByRole("tab", {name: "nodes.view_map"}));
+      await screen.findByTestId("assignment-map-cards");
+    }
+
+    it("renders the floating panel with cards once loaded", async () => {
+      await openMap();
+      await screen.findByRole("button", {name: "ASN-0382"});
+
+      const cards = screen.getByTestId("assignment-map-cards");
+      expect(cards.textContent).toContain("ASN-0382");
+      expect(cards.textContent).toContain("ASN-1089");
+      expect(cards.textContent).toContain("Adaeze Kalu");
+      expect(cards.textContent).toContain("PRG-034");
+      expect(cards.textContent).toContain("assignment.map_eta");
+      expect(getAssignmentMap).toHaveBeenCalledWith(expect.objectContaining({}));
+      expect(screen.getByPlaceholderText("assignment.map_search_placeholder")).toBeTruthy();
+    });
+
+    it("fetches the map with the panel's search and filters", async () => {
+      await openMap();
+
+      fireEvent.change(screen.getByPlaceholderText("assignment.map_search_placeholder"), {target: {value: "ASN-99"}});
+      await waitFor(() => expect(getAssignmentMap).toHaveBeenCalledWith(expect.objectContaining({query: "ASN-99"})));
+
+      const selects = screen.getAllByRole("combobox");
+      fireEvent.change(selects[0], {target: {value: "active"}});
+      await waitFor(() => expect(getAssignmentMap).toHaveBeenCalledWith(expect.objectContaining({status: "active"})));
+    });
+
+    it("collapses and expands the panel", async () => {
+      await openMap();
+
+      fireEvent.click(screen.getByRole("button", {name: "assignment.map_collapse"}));
+      expect(screen.queryByTestId("assignment-map-cards")).toBeNull();
+
+      fireEvent.click(screen.getByRole("button", {name: "assignment.map_expand"}));
+      expect(await screen.findByTestId("assignment-map-cards")).toBeTruthy();
+    });
+
+    it("opens the detail drawer from a card", async () => {
+      await openMap();
+
+      const cards = screen.getByTestId("assignment-map-cards");
+      fireEvent.click(await screen.findByRole("button", {name: "ASN-0382"}));
+      await waitFor(() => expect(getAssignmentDetail).toHaveBeenCalledWith("ASN-0382"));
+      expect(cards).toBeTruthy();
+    });
+
+    it("shows the map empty state", async () => {
+      getAssignmentMap.mockResolvedValue([]);
+      await openMap();
+
+      expect(await screen.findByText("assignment.map_empty_title")).toBeTruthy();
+      expect(screen.getByText("assignment.map_empty_description")).toBeTruthy();
+    });
+
+    it("shows the filtered-empty state and clears filters", async () => {
+      getAssignmentMap.mockResolvedValue([]);
+      await openMap();
+      await screen.findByText("assignment.map_empty_title");
+
+      fireEvent.change(screen.getByPlaceholderText("assignment.map_search_placeholder"), {target: {value: "zzz"}});
+      expect(await screen.findByText("assignment.filtered_empty_title")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", {name: "assignment.clear_filter"}));
+      await waitFor(() => expect(getAssignmentMap).toHaveBeenLastCalledWith(expect.objectContaining({query: undefined})));
+    });
   });
 });

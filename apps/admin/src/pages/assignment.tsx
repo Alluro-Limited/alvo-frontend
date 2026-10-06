@@ -5,6 +5,8 @@ import {AssignmentDrawer} from "@/components/assignment/assignment-drawer";
 import {AssignmentError} from "@/components/assignment/assignment-error";
 import {AssignmentHeader} from "@/components/assignment/assignment-header";
 import {AssignmentList} from "@/components/assignment/assignment-list";
+import {assignmentFilterOptions} from "@/components/assignment/assignment-labels";
+import {AssignmentMapView} from "@/components/assignment/assignment-map-view";
 import {AssignmentSkeleton} from "@/components/assignment/assignment-skeleton";
 import {ItemsInAssignmentModal} from "@/components/assignment/items-in-assignment-modal";
 import {ManualAssignModal} from "@/components/assignment/manual-assign-modal";
@@ -14,11 +16,11 @@ import {useAssignmentOverlays} from "@/components/assignment/use-assignment-over
 import {FlagForReviewDialog} from "@/components/workloads/flag-for-review-dialog";
 import {useParcelSelection} from "@/components/workloads/use-parcel-selection";
 import type {ListMapView} from "@/components/view-tabs";
+import type {FilterOption} from "@/components/workloads/workloads-toolbar";
 import {useAssignmentsQuery} from "@/queries/use-assignments-query";
-import type {AssignmentListResponse} from "@/types/assignment-types";
+import type {AssignmentListResponse, AssignmentMapParams} from "@/types/assignment-types";
 
 interface ListHandlers {
-  view: ListMapView;
   selected: ReadonlySet<string>;
   filters: {query: string; status: string; type: string};
   onQuery: (v: string) => void;
@@ -93,6 +95,63 @@ function PageOverlays({overlays, flag, onTrackMap}: PageOverlaysProps) {
   );
 }
 
+interface ListRegionProps extends PageContentProps {
+  view: ListMapView;
+  refreshing: boolean;
+  onView: (view: ListMapView) => void;
+  onRefresh: () => void;
+  onManualAssign: () => void;
+}
+
+/** The header row plus the pending/error/list content below it. */
+function ListRegion({
+  view,
+  refreshing,
+  onView,
+  onRefresh,
+  onManualAssign,
+  pending,
+  failed,
+  retrying,
+  data,
+  onRetry,
+  ...handlers
+}: ListRegionProps) {
+  return (
+    <>
+      <AssignmentHeader view={view} refreshing={refreshing} onView={onView} onRefresh={onRefresh} onManualAssign={onManualAssign} />
+      <PageContent pending={pending} failed={failed} retrying={retrying} data={data} onRetry={onRetry} {...handlers} />
+    </>
+  );
+}
+
+interface PageBodyProps extends ListRegionProps {
+  mapParams: AssignmentMapParams;
+  filterOptions: {statusOptions: FilterOption[]; typeOptions: FilterOption[]};
+}
+
+/** The map surface or the list region, depending on the active tab. */
+function PageBody({view, mapParams, filterOptions, ...list}: PageBodyProps) {
+  const {filters, onQuery, onStatus, onType, onView, onOpen, onClearFilters} = list;
+  if (view === "map") {
+    return (
+      <AssignmentMapView
+        params={mapParams}
+        filtered={filters.query !== "" || filters.status !== "" || filters.type !== ""}
+        statusOptions={filterOptions.statusOptions}
+        typeOptions={filterOptions.typeOptions}
+        onQuery={onQuery}
+        onStatus={onStatus}
+        onType={onType}
+        onView={onView}
+        onOpen={onOpen}
+        onClearFilters={onClearFilters}
+      />
+    );
+  }
+  return <ListRegion view={view} {...list} />;
+}
+
 /** The Assignment console — metrics, type cards, filters, list/map views, drawer, and the manual-assign flow. */
 export function AssignmentPage() {
   const [view, setView] = useState<ListMapView>("list");
@@ -103,32 +162,34 @@ export function AssignmentPage() {
   const overlays = useAssignmentOverlays();
   const flag = useAssignmentFlagFlow(clear);
 
-  const handlers: ListHandlers = {
-    view,
-    selected,
-    filters,
-    onQuery,
-    onStatus,
-    onType,
-    onToggleRow: toggleRow,
-    onToggleAll: toggleAll,
-    onOpen: overlays.openDrawer,
-    onPage,
-    onClearFilters: clearFilters,
-    onBulkFlag: () => flag.openFlag([...selected]),
-    onClearSelection: clear,
-  };
-
   return (
     <div className="flex flex-col gap-4">
-      <AssignmentHeader
+      <PageBody
         view={view}
+        mapParams={{query: params.query, status: params.status, type: params.type}}
+        filterOptions={assignmentFilterOptions(data?.filters ?? {statuses: [], types: []})}
+        filters={filters}
+        onClearFilters={clearFilters}
         refreshing={isRefetching}
         onView={setView}
         onRefresh={() => void refetch()}
         onManualAssign={() => overlays.openAssign(null)}
+        pending={isPending}
+        failed={isError}
+        retrying={isRefetching}
+        data={data}
+        onRetry={() => void refetch()}
+        selected={selected}
+        onQuery={onQuery}
+        onStatus={onStatus}
+        onType={onType}
+        onToggleRow={toggleRow}
+        onToggleAll={toggleAll}
+        onOpen={overlays.openDrawer}
+        onPage={onPage}
+        onBulkFlag={() => flag.openFlag([...selected])}
+        onClearSelection={clear}
       />
-      <PageContent pending={isPending} failed={isError} retrying={isRefetching} data={data} onRetry={() => void refetch()} {...handlers} />
       <PageOverlays
         overlays={overlays}
         flag={flag}

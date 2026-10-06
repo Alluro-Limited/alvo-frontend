@@ -1,20 +1,17 @@
 import {m} from "@/paraglide/messages";
 import wlEmptyBox from "@/assets/wl-empty-box.svg";
-import type {ListMapView} from "@/components/view-tabs";
 import {SelectionBar} from "@/components/workloads/selection-bar";
 import {WorkloadsEmpty} from "@/components/workloads/workloads-empty";
 import {WorkloadsPagination} from "@/components/workloads/workloads-pagination";
 import {WorkloadsToolbar, type FilterOption} from "@/components/workloads/workloads-toolbar";
 import type {AssignmentListResponse} from "@/types/assignment-types";
-import {assignmentStatusLabel, deliveryTypeLabel} from "./assignment-labels";
-import {AssignmentMap} from "./assignment-map";
+import {assignmentFilterOptions} from "./assignment-labels";
 import {AssignmentMetrics} from "./assignment-metrics";
 import {AssignmentTable} from "./assignment-table";
 import {AssignmentTypeCards} from "./assignment-type-cards";
 
 interface AssignmentListProps {
   data: AssignmentListResponse;
-  view: ListMapView;
   selected: ReadonlySet<string>;
   filters: {query: string; status: string; type: string};
   onQuery: (value: string) => void;
@@ -29,10 +26,9 @@ interface AssignmentListProps {
   onClearSelection: () => void;
 }
 
-/** The populated/empty body under the assignment header — metrics, type cards, filters, then the list or map. */
+/** The populated/empty body under the assignment header — metrics, type cards, filters, then the table. */
 export function AssignmentList({
   data,
-  view,
   selected,
   filters,
   onQuery,
@@ -46,8 +42,7 @@ export function AssignmentList({
   onBulkFlag,
   onClearSelection,
 }: AssignmentListProps) {
-  const statusOptions: FilterOption[] = data.filters.statuses.map((status) => ({id: status, label: assignmentStatusLabel(status)}));
-  const typeOptions: FilterOption[] = data.filters.types.map((type) => ({id: type, label: deliveryTypeLabel(type)}));
+  const {statusOptions, typeOptions} = assignmentFilterOptions(data.filters);
   const filtered = filters.query !== "" || filters.status !== "" || filters.type !== "";
 
   return (
@@ -67,7 +62,6 @@ export function AssignmentList({
       />
       <ContentRegion
         data={data}
-        view={view}
         filtered={filtered}
         selected={selected}
         onToggleRow={onToggleRow}
@@ -82,14 +76,13 @@ export function AssignmentList({
 
 type ContentRegionProps = Pick<
   AssignmentListProps,
-  "data" | "view" | "selected" | "onToggleRow" | "onToggleAll" | "onOpen" | "onPage" | "onClearFilters"
+  "data" | "selected" | "onToggleRow" | "onToggleAll" | "onOpen" | "onPage" | "onClearFilters"
 > & {filtered: boolean};
 
-/** Empty states first, then the map or the table. */
-function ContentRegion({data, view, filtered, selected, onToggleRow, onToggleAll, onOpen, onPage, onClearFilters}: ContentRegionProps) {
+/** Empty states first, then the table. */
+function ContentRegion({data, filtered, selected, onToggleRow, onToggleAll, onOpen, onPage, onClearFilters}: ContentRegionProps) {
   const rows = data.assignments.items;
   if (rows.length === 0) return <EmptyRegion filtered={filtered} onClearFilters={onClearFilters} />;
-  if (view === "map") return <AssignmentMap rows={rows} onOpen={onOpen} />;
   return (
     <TableRegion
       data={data}

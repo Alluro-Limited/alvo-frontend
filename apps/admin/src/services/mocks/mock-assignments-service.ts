@@ -1,5 +1,5 @@
 import {API_ERROR_CODES} from "@/lib/api-errors";
-import type {AssignableAssignment, AssignmentFlag, AssignmentListParams, AssignmentRow, AssignmentsService} from "@/types/assignment-types";
+import type {AssignableAssignment, AssignmentFlag, AssignmentMapParams, AssignmentRow, AssignmentsService} from "@/types/assignment-types";
 import {mockDelay, mockHttpError} from "./mock-http";
 import {assignmentDetailFor} from "./mock-assignment-detail";
 import {ASSIGNMENT_SEEDS, IDLE_COURIERS} from "./mock-assignment-seeds";
@@ -17,12 +17,15 @@ const ASSIGNABLE_STATUSES = new Set(["pending_pickup", "public_pool", "failed"])
 const rowsStore: AssignmentRow[] = [...ASSIGNMENT_SEEDS];
 const flagsStore = new Map<string, AssignmentFlag>();
 
-function applyFilters(params: AssignmentListParams) {
+function applyFilters(params: AssignmentMapParams) {
   const q = params.query?.trim().toLowerCase();
   let items = rowsStore;
   if (params.status) items = items.filter((row) => row.status === params.status);
   if (params.type) items = items.filter((row) => row.type === params.type);
-  if (q) items = items.filter((row) => [row.id, row.courier ?? "", row.pickup, row.dropoff].some((f) => f.toLowerCase().includes(q)));
+  if (q)
+    items = items.filter((row) =>
+      [row.id, row.courier?.name ?? "", row.courier?.code ?? "", row.pickup, row.dropoff].some((f) => f.toLowerCase().includes(q))
+    );
   return items;
 }
 
@@ -65,6 +68,10 @@ export const mockAssignmentsService: AssignmentsService = {
       filters: {statuses: STATUS_FILTERS, types: TYPE_FILTERS},
     };
   },
+  getAssignmentMap: async (params) => {
+    await mockDelay();
+    return applyFilters(params);
+  },
   getAssignmentDetail: async (id) => {
     await mockDelay();
     const row = rowsStore.find((assignment) => assignment.id === id);
@@ -91,7 +98,13 @@ export const mockAssignmentsService: AssignmentsService = {
     const courier = IDLE_COURIERS.find((entry) => entry.id === input.courierId);
     if (index < 0 || !courier) throw mockHttpError("assignments/assign", API_ERROR_CODES.NOT_FOUND);
     // Fresh object so refetches yield new references (in-place mutation leaves the UI stale).
-    rowsStore[index] = {...rowsStore[index], courier: courier.name, status: "pending_pickup"};
+    rowsStore[index] = {
+      ...rowsStore[index],
+      courier: {name: courier.name, code: courier.code},
+      status: "pending_pickup",
+      etaMin: 45,
+      distanceKm: 18,
+    };
     return {id: input.assignmentId, courier: courier.name};
   },
   flagAssignment: async (id, input) => {
