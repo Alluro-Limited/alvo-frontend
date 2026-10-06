@@ -1,7 +1,7 @@
 /** Status values the backend reports for a parcel. */
 export type ParcelStatus = "pending_pickup" | "in_transit" | "delivered" | "failed" | "expired";
 
-/** The workload surfaces. Single Send and Batches are built; Safe lands later. */
+/** The workload surfaces — all three tabs are live. */
 export type WorkloadTab = "single" | "batches" | "safe";
 
 /**
@@ -20,7 +20,9 @@ export type WorkloadMetricKey =
   | "expiredParcel"
   | "total"
   | "delivered"
-  | "inTransit";
+  | "inTransit"
+  | "expiringSoon"
+  | "retrieved";
 
 /** Metric strip above the list — server-computed per tab, independent of filters. */
 export type WorkloadMetrics = Partial<Record<WorkloadMetricKey, number>>;
@@ -75,7 +77,23 @@ export interface BatchRow {
   breakdown: {key: BatchBreakdownKey; count: number}[];
 }
 
-/** Options behind the two filter dropdowns — supplied by the backend, not hardcoded. */
+/** Status values the backend reports for an item stored in SAFE. */
+export type SafeItemStatus = "active" | "pending_pickup" | "expiring_soon" | "expired" | "retrieved";
+
+/** One row in the Safe storage table. */
+export interface SafeItemRow {
+  id: string;
+  /** The customer who owns the stored item. */
+  owner: string;
+  /** The locker/node holding the item, e.g. "LK-022". */
+  nodeId: string;
+  /** ISO timestamp the item was stored — renders as "3 days ago". */
+  storedAt: string;
+  status: SafeItemStatus;
+  flagged: boolean;
+}
+
+/** Options behind the filter dropdowns — supplied by the backend, not hardcoded. */
 export interface WorkloadFilterOptions {
   statuses: string[];
   locations: {id: string; label: string}[];
@@ -99,6 +117,8 @@ export interface WorkloadListResponse {
   parcels?: Page<ParcelRow>;
   /** Present for the batches tab. */
   batches?: Page<BatchRow>;
+  /** Present for the Safe tab. */
+  safeItems?: Page<SafeItemRow>;
   filters: WorkloadFilterOptions;
 }
 
@@ -183,6 +203,40 @@ export interface ParcelDetail {
   tracking?: ParcelTracking;
 }
 
+/** Lifecycle steps in a Safe item's storage timeline. */
+export type SafeStepKey = "book_safe" | "item_stored" | "storage_active" | "expired" | "period_extended" | "expires" | "retrieved";
+
+export interface SafeTimelineStep {
+  key: SafeStepKey;
+  /** Sub-line under the step label ("LK-022 · VI, Lagos · 3 days ago") — backend supplies display text. */
+  detail: string;
+  /** Completed steps render the check icon; upcoming steps the grey box. */
+  done: boolean;
+}
+
+/** Detail payload behind the Safe item drawer. */
+export interface SafeItemDetail {
+  id: string;
+  status: SafeItemStatus;
+  /** Banner sub-line, e.g. "Dropped on 16 Mar 2026 at 2:34 PM". */
+  statusNote?: string;
+  flag: ParcelFlagRecord | null;
+  owner: string;
+  /** Display node, e.g. "Lekki (LK-015)". */
+  node: string;
+  /** What was stored, e.g. "Key". */
+  item: string;
+  size: string;
+  /** Charge in naira. */
+  charged: number;
+  /** ISO timestamp the item was stored — drives the Date and Duration rows. */
+  storedAt: string;
+  /** ISO timestamp the booking lapses — drives the "Expires in" row. */
+  expiresAt: string;
+  /** Storage lifecycle — extended bookings add Expired → Period Extended legs. */
+  timeline: SafeTimelineStep[];
+}
+
 export interface FlagParcelsInput {
   ids: string[];
   reason: string;
@@ -194,6 +248,7 @@ export interface WorkloadsService {
   getBatchDetail: (id: string) => Promise<BatchDetail>;
   getBatchParcels: (batchId: string, params: WorkloadListParams) => Promise<Page<ParcelRow>>;
   getParcelDetail: (id: string) => Promise<ParcelDetail>;
+  getSafeItemDetail: (id: string) => Promise<SafeItemDetail>;
   flagParcels: (input: FlagParcelsInput) => Promise<{flagged: number}>;
   /** CSV export of the rows matching the current filters (or the given ids). */
   exportList: (params: WorkloadListParams & {ids?: string[]}) => Promise<string>;

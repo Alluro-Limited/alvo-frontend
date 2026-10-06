@@ -26,6 +26,44 @@ export function formatOrdinal(n: number): string {
   return `${n}${suffix}`;
 }
 
+function dayDiff(iso: string): number {
+  const then = new Date(iso);
+  const now = new Date();
+  return Math.round((startOfDay(now).getTime() - startOfDay(then).getTime()) / 86_400_000);
+}
+
+function startOfDay(date: Date): Date {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+/** Safe table "Stored" cell: "Today", "1 day ago", or "{count} days ago". */
+export function formatStoredAgo(iso: string): string {
+  const days = dayDiff(iso);
+  if (days <= 0) return m["workloads.stored_today"]();
+  if (days === 1) return m["workloads.stored_day_ago"]();
+  return m["workloads.stored_days_ago"]({count: days});
+}
+
+/** Safe info-card Date row — "16 Mar 2026". */
+export function formatSafeDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"});
+}
+
+/** Safe info-card Duration row — how many days the item has been stored. */
+export function formatStorageDuration(storedAt: string): string {
+  return m["workloads.duration_days"]({count: Math.max(0, dayDiff(storedAt))});
+}
+
+/** Safe info-card "Expires in" row — "4 days (21 May, 2026 · 9:15 AM)". */
+export function formatExpiresIn(expiresAt: string): string {
+  const date = new Date(expiresAt);
+  const days = Math.max(0, Math.round((date.getTime() - Date.now()) / 86_400_000));
+  const at = `${date.toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"})} · ${date.toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit"})}`;
+  return m["workloads.expires_in"]({days, at});
+}
+
 /** Triggers a browser download of the CSV body returned by the workloads service. */
 export function downloadCsv(csv: string): void {
   const url = URL.createObjectURL(new Blob([csv], {type: "text/csv"}));

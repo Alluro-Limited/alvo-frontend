@@ -2,10 +2,12 @@ import {HTTPError} from "ky";
 import {beforeEach, describe, expect, it} from "vite-plus/test";
 import {flagStore, mockWorkloadsService} from "../mock-workloads-service";
 import {BATCH_PARCEL_ROWS, BATCH_ROWS, MOCK_BATCH_PAGE_SIZE} from "../mock-batches-data";
+import {MOCK_SAFE_PAGE_SIZE, SAFE_ITEM_ROWS} from "../mock-safe-data";
 import {MOCK_PAGE_SIZE, PARCEL_ROWS} from "../mock-workloads-data";
 
 const params = {tab: "single" as const, page: 1};
 const batchParams = {tab: "batches" as const, page: 1};
+const safeParams = {tab: "safe" as const, page: 1};
 
 describe("mockWorkloadsService", () => {
   beforeEach(() => {
@@ -135,5 +137,67 @@ describe("mockWorkloadsService — batches", () => {
 
     const parcelCsv = await mockWorkloadsService.exportList({tab: "batches", page: 1, batchId: "BTC-2301"});
     expect(parcelCsv.split("\n")[0]).toContain("parcel_id");
+  });
+});
+
+describe("mockWorkloadsService — safe", () => {
+  beforeEach(() => {
+    flagStore.clear();
+  });
+
+  it("returns safe items, safe metrics, and status filter options", async () => {
+    const data = await mockWorkloadsService.getWorkloads(safeParams);
+
+    expect(data.metrics.active).toBeGreaterThan(0);
+    expect(data.safeItems?.items).toHaveLength(Math.min(MOCK_SAFE_PAGE_SIZE, SAFE_ITEM_ROWS.length));
+    expect(data.safeItems?.total).toBe(SAFE_ITEM_ROWS.length);
+    expect(data.filters.statuses).toContain("expiring_soon");
+    expect(data.parcels).toBeUndefined();
+    expect(data.batches).toBeUndefined();
+  });
+
+  it("filters safe items by status and by id/owner search", async () => {
+    const byStatus = await mockWorkloadsService.getWorkloads({...safeParams, status: "expired"});
+    expect(byStatus.safeItems?.items.every((row) => row.status === "expired")).toBe(true);
+    expect(byStatus.safeItems?.items.length).toBeGreaterThan(0);
+
+    const byId = await mockWorkloadsService.getWorkloads({...safeParams, query: "sfe-10083"});
+    expect(byId.safeItems?.items.map((row) => row.id)).toEqual(["SFE-10083"]);
+
+    const byOwner = await mockWorkloadsService.getWorkloads({...safeParams, query: "olanrewaju"});
+    expect(byOwner.safeItems?.items.map((row) => row.id)).toEqual(["SFE-10083"]);
+  });
+
+  it("returns item detail with info fields and a storage timeline", async () => {
+    const detail = await mockWorkloadsService.getSafeItemDetail("SFE-10083");
+
+    expect(detail.owner).toBe("Olanrewaju Quadri");
+    expect(detail.item).toBeTruthy();
+    expect(detail.timeline[0].key).toBe("book_safe");
+    expect(detail.timeline.map((step) => step.key)).toContain("period_extended");
+
+    await expect(mockWorkloadsService.getSafeItemDetail("SFE-00000")).rejects.toMatchObject({response: {status: 404}});
+  });
+
+  it("flagging a safe item marks its row and detail", async () => {
+    await mockWorkloadsService.flagParcels({ids: ["SFE-10100"], reason: "other", notes: "seal broken"});
+
+    const list = await mockWorkloadsService.getWorkloads({...safeParams, query: "SFE-10100"});
+    expect(list.safeItems?.items[0].flagged).toBe(true);
+
+    const detail = await mockWorkloadsService.getSafeItemDetail("SFE-10100");
+    expect(detail.flag?.reason).toBe("other");
+    expect(detail.flag?.notes).toBe("seal broken");
+  });
+
+  it("exports safe items as CSV honoring filters", async () => {
+    const csv = await mockWorkloadsService.exportList(safeParams);
+    expect(csv.split("\n")[0]).toContain("item_id");
+    expect(csv).toContain("SFE-10083");
+
+    const filtered = await mockWorkloadsService.exportList({...safeParams, status: "retrieved"});
+    const lines = filtered.trim().split("\n");
+    expect(lines.length).toBeGreaterThan(1);
+    expect(lines.slice(1).every((line) => line.includes(",retrieved,"))).toBe(true);
   });
 });

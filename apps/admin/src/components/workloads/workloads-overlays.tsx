@@ -1,24 +1,27 @@
+import type {ReactNode} from "react";
 import {FlagForReviewDialog} from "./flag-for-review-dialog";
-import {ParcelDetailDrawer} from "./parcel-detail-drawer";
 import {WorkloadsToast} from "./workloads-toast";
 import type {useFlagFlow} from "./use-flag-flow";
 
 interface WorkloadsOverlaysProps {
-  drawerId: string | null;
+  /** The active tab's item drawer (parcel or Safe), wired by the page. */
+  drawer: ReactNode;
+  /** Entity noun in the flag modal's subtitle — "item" on the Safe tab. */
+  noun?: "parcel" | "item";
   flag: ReturnType<typeof useFlagFlow>;
-  onCloseDrawer: () => void;
 }
 
-/** The page's overlay layer: parcel drawer, flag modal, and the success toast. */
-export function WorkloadsOverlays({drawerId, flag, onCloseDrawer}: WorkloadsOverlaysProps) {
+/** The page's overlay layer: the item drawer, flag modal, and the success toast. */
+export function WorkloadsOverlays({drawer, noun, flag}: WorkloadsOverlaysProps) {
   return (
     <>
-      <ParcelDetailDrawer parcelId={drawerId} onClose={onCloseDrawer} onFlag={(id) => flag.openFlag([id])} />
+      {drawer}
       <FlagForReviewDialog
         open={flag.flagIds !== null}
         parcelIds={flag.flagIds ?? []}
         submitting={flag.submitting}
         failed={flag.failed}
+        noun={noun}
         onClose={flag.closeFlag}
         onSubmit={flag.submit}
       />

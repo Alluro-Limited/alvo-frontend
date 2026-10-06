@@ -4,7 +4,7 @@ import type {
   FlagParcelsInput,
   ParcelFlagRecord,
   ParcelRow,
-  WorkloadFilterOptions,
+  SafeItemRow,
   WorkloadListParams,
   WorkloadsService,
 } from "@/types/workloads-types";
@@ -19,6 +19,7 @@ import {
   MOCK_BATCH_PAGE_SIZE,
   MOCK_BATCH_TOTAL,
 } from "./mock-batches-data";
+import {MOCK_SAFE_PAGE_SIZE, SAFE_FILTER_OPTIONS, SAFE_ITEM_ROWS, SAFE_METRICS, safeItemDetailFor} from "./mock-safe-data";
 import {
   MOCK_PAGE_SIZE,
   MOCK_PARCEL_TOTAL,
@@ -75,6 +76,16 @@ function applyBatchParcelFilters(params: WorkloadListParams & {ids?: string[]}) 
   return items;
 }
 
+function applySafeFilters(params: WorkloadListParams & {ids?: string[]}) {
+  const q = params.query?.trim().toLowerCase();
+  const ids = params.ids ? new Set(params.ids) : null;
+  let items = SAFE_ITEM_ROWS.map((row) => ({...row, flagged: isFlagged(row)}));
+  if (ids) items = items.filter((row) => ids.has(row.id));
+  if (params.status) items = items.filter((row) => row.status === params.status);
+  if (q) items = items.filter((row) => [row.id, row.owner].some((field) => field.toLowerCase().includes(q)));
+  return items;
+}
+
 function escapeCsv(value: string) {
   return /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
@@ -116,7 +127,12 @@ function batchesCsv(items: BatchRow[]) {
   );
 }
 
-const EMPTY_FILTERS: WorkloadFilterOptions = {statuses: [], locations: []};
+function safeCsv(items: SafeItemRow[]) {
+  return toCsv(
+    "item_id,owner,node,stored_at,status,flagged",
+    items.map((row) => [row.id, row.owner, row.nodeId, row.storedAt, row.status, row.flagged ? "yes" : "no"])
+  );
+}
 
 /** In-memory stand-in for the workloads API while it does not exist. */
 export const mockWorkloadsService: WorkloadsService = {
@@ -137,8 +153,20 @@ export const mockWorkloadsService: WorkloadsService = {
         filters: BATCH_FILTER_OPTIONS,
       };
     }
-    if (params.tab !== "single") {
-      return {metrics: {}, filters: EMPTY_FILTERS};
+    if (params.tab === "safe") {
+      const items = applySafeFilters(params);
+      const start = (params.page - 1) * MOCK_SAFE_PAGE_SIZE;
+      const flagged = items.filter((row) => row.flagged).length;
+      return {
+        metrics: {...SAFE_METRICS, flagged: (SAFE_METRICS.flagged ?? 0) + flagged},
+        safeItems: {
+          items: items.slice(start, start + MOCK_SAFE_PAGE_SIZE),
+          page: params.page,
+          pageSize: MOCK_SAFE_PAGE_SIZE,
+          total: items.length,
+        },
+        filters: SAFE_FILTER_OPTIONS,
+      };
     }
     const items = applyParcelFilters(params);
     const start = (params.page - 1) * MOCK_PAGE_SIZE;
@@ -174,6 +202,12 @@ export const mockWorkloadsService: WorkloadsService = {
     if (!detail) throw mockHttpError("workloads/parcels", API_ERROR_CODES.NOT_FOUND);
     return {...detail, flag: flagStore.get(id) ?? detail.flag};
   },
+  getSafeItemDetail: async (id) => {
+    await mockDelay();
+    const detail = safeItemDetailFor(id);
+    if (!detail) throw mockHttpError(`workloads/safe/${id}`, API_ERROR_CODES.NOT_FOUND);
+    return {...detail, flag: flagStore.get(id) ?? detail.flag};
+  },
   flagParcels: async (input: FlagParcelsInput) => {
     await mockDelay();
     for (const id of input.ids) flagStore.set(id, {reason: input.reason, notes: input.notes, at: new Date().toISOString()});
@@ -183,6 +217,7 @@ export const mockWorkloadsService: WorkloadsService = {
     await mockDelay();
     if (params.batchId) return parcelsCsv(applyBatchParcelFilters(params));
     if (params.tab === "batches") return batchesCsv(applyBatchFilters(params));
+    if (params.tab === "safe") return safeCsv(applySafeFilters(params));
     return parcelsCsv(applyParcelFilters(params));
   },
 };

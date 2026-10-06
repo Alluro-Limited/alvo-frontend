@@ -8,7 +8,7 @@ import tabSafe from "@/assets/tab-safe.svg";
 const TABS: {id: WorkloadTab; label: () => string; icon: string; ready: boolean}[] = [
   {id: "single", label: m["workloads.tab_single"], icon: tabPackage, ready: true},
   {id: "batches", label: m["workloads.tab_batches"], icon: tabBatches, ready: true},
-  {id: "safe", label: m["workloads.tab_safe"], icon: tabSafe, ready: false},
+  {id: "safe", label: m["workloads.tab_safe"], icon: tabSafe, ready: true},
 ];
 
 interface WorkloadsTabsProps {
@@ -16,7 +16,7 @@ interface WorkloadsTabsProps {
   onChange: (tab: WorkloadTab) => void;
 }
 
-/** The pilled Single Send / Batches / Safe switcher. Batches and Safe stay disabled until their designs land. */
+/** The pilled Single Send / Batches / Safe switcher. */
 export function WorkloadsTabs({value, onChange}: WorkloadsTabsProps) {
   return (
     <div className="flex h-10 items-start rounded-lg bg-white p-1" role="tablist" aria-label={m["nav.workloads"]()}>

@@ -1,7 +1,6 @@
 import {m} from "@/paraglide/messages";
-import type {ParcelRoute, ParcelTimelineStep, TimelineStepKey} from "@/types/workloads-types";
-import timelineCheck from "@/assets/timeline-check.svg";
-import timelinePending from "@/assets/timeline-pending.svg";
+import type {ParcelRoute, TimelineStepKey} from "@/types/workloads-types";
+import {TimelineStepItem} from "./timeline-step-item";
 import {formatOrdinal, formatTimelineAt} from "./workloads-format";
 
 const STEP_LABELS: Record<TimelineStepKey, () => string> = {
@@ -12,22 +11,9 @@ const STEP_LABELS: Record<TimelineStepKey, () => string> = {
   collected: m["workloads.timeline_collected"],
 };
 
-function TimelineStep({step, last}: {step: ParcelTimelineStep; last: boolean}) {
-  const done = Boolean(step.at);
-  return (
-    <li className="flex gap-3">
-      <div className="flex flex-col items-center">
-        <img src={done ? timelineCheck : timelinePending} alt="" className="size-4 shrink-0" aria-hidden="true" />
-        {!last && <span className="w-0.5 flex-1 bg-grey-200" aria-hidden="true" />}
-      </div>
-      <div className="pb-4">
-        <p className="text-sm leading-[1.4] font-medium tracking-[0.14px] text-black">{STEP_LABELS[step.key]()}</p>
-        <p className="text-xs leading-[1.4] tracking-[0.12px] text-grey-500">
-          {step.at ? [step.actor, formatTimelineAt(step.at)].filter(Boolean).join(" · ") : m["workloads.timeline_pending"]()}
-        </p>
-      </div>
-    </li>
-  );
+function TimelineStep({step, last}: {step: ParcelRoute["steps"][number]; last: boolean}) {
+  const detail = step.at ? [step.actor, formatTimelineAt(step.at)].filter(Boolean).join(" · ") : m["workloads.timeline_pending"]();
+  return <TimelineStepItem label={STEP_LABELS[step.key]()} detail={detail} done={Boolean(step.at)} last={last} />;
 }
 
 function routeTitle(route: ParcelRoute, index: number, count: number) {

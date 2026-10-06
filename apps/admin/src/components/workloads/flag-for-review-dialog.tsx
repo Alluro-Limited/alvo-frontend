@@ -10,13 +10,16 @@ interface FlagForReviewDialogProps {
   submitting: boolean;
   /** The last flag attempt failed — shows an inline error and keeps the form open. */
   failed: boolean;
+  /** What a single flagged entity is called in the subtitle — "Parcel {id}" vs "Item {id}". */
+  noun?: "parcel" | "item";
   onClose: () => void;
   onSubmit: (reason: FlagReason, notes: string) => void;
 }
 
-/** Flag-for-review modal — same dialog for one parcel or a bulk selection. */
-export function FlagForReviewDialog({open, parcelIds, submitting, failed, onClose, onSubmit}: FlagForReviewDialogProps) {
+/** Flag-for-review modal — same dialog for one parcel, a Safe item, or a bulk selection. */
+export function FlagForReviewDialog({open, parcelIds, submitting, failed, noun = "parcel", onClose, onSubmit}: FlagForReviewDialogProps) {
   const single = parcelIds.length === 1;
+  const subtitle = noun === "item" ? m["workloads.flag_subtitle_item"] : m["workloads.flag_subtitle"];
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogPortal>
@@ -27,11 +30,7 @@ export function FlagForReviewDialog({open, parcelIds, submitting, failed, onClos
               <DialogTitle className="text-xl leading-[1.3] font-semibold text-black">
                 {single ? m["workloads.flag_modal_title"]() : m["workloads.flag_modal_multi_title"]({count: parcelIds.length})}
               </DialogTitle>
-              {single && (
-                <p className="pt-1 text-sm leading-[1.4] tracking-[0.14px] text-grey-500">
-                  {m["workloads.flag_subtitle"]({id: parcelIds[0]})}
-                </p>
-              )}
+              {single && <p className="pt-1 text-sm leading-[1.4] tracking-[0.14px] text-grey-500">{subtitle({id: parcelIds[0]})}</p>}
             </div>
             <DialogClose className="rounded p-0.5 text-grey-600 hover:bg-grey-100" aria-label={m["workloads.close"]()}>
               <img src={wlClose} alt="" className="size-6" aria-hidden="true" />

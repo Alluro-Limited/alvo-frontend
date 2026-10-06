@@ -7,6 +7,7 @@ import {BatchDetailHeader} from "@/components/workloads/batch-detail-header";
 import {BatchDetailSkeleton} from "@/components/workloads/batch-detail-skeleton";
 import {BatchDetailTopbar} from "@/components/workloads/batch-detail-topbar";
 import {BatchParcelSection} from "@/components/workloads/batch-parcel-section";
+import {ParcelDetailDrawer} from "@/components/workloads/parcel-detail-drawer";
 import {WorkloadsError} from "@/components/workloads/workloads-error";
 import {WorkloadsMetrics} from "@/components/workloads/workloads-metrics";
 import {WorkloadsOverlays} from "@/components/workloads/workloads-overlays";
@@ -111,7 +112,10 @@ export function BatchDetailPage({batchId}: {batchId: string}) {
         onExport={() => void exportParcels()}
       />
       <DetailBody detail={detail} parcels={parcels} selected={selected} filters={filters} handlers={handlers} onRetry={refresh} />
-      <WorkloadsOverlays drawerId={drawerId} flag={flag} onCloseDrawer={() => setDrawerId(null)} />
+      <WorkloadsOverlays
+        drawer={<ParcelDetailDrawer parcelId={drawerId} onClose={() => setDrawerId(null)} onFlag={(id) => flag.openFlag([id])} />}
+        flag={flag}
+      />
     </div>
   );
 }

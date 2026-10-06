@@ -1,17 +1,8 @@
-import type {ReactNode} from "react";
 import {m} from "@/paraglide/messages";
 import {formatNairaAmount} from "@/lib/format";
 import type {ParcelDetail} from "@/types/workloads-types";
+import {InfoRow} from "./info-row";
 import {formatSla} from "./workloads-format";
-
-function InfoRow({label, children}: {label: string; children: ReactNode}) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-grey-200 py-3 last:border-b-0">
-      <p className="text-sm leading-[1.4] tracking-[0.14px] text-grey-500">{label}</p>
-      <div className="text-right text-sm leading-[1.4] font-medium tracking-[0.14px] text-black">{children}</div>
-    </div>
-  );
-}
 
 function CourierCell({courier}: {courier: NonNullable<ParcelDetail["courier"]>}) {
   return (

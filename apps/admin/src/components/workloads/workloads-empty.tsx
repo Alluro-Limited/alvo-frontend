@@ -1,11 +1,15 @@
+import {Button} from "@alvo/ui";
+
 interface WorkloadsEmptyProps {
   icon: string;
   title: string;
   description: string;
+  /** Optional action under the copy — e.g. "Clear filter" on the filtered-empty variant. */
+  action?: {label: string; onClick: () => void};
 }
 
 /** Centered empty panel shown when the filtered list returns no items. */
-export function WorkloadsEmpty({icon, title, description}: WorkloadsEmptyProps) {
+export function WorkloadsEmpty({icon, title, description, action}: WorkloadsEmptyProps) {
   return (
     <div className="flex min-h-[480px] items-center justify-center rounded-lg bg-white">
       <div className="flex w-[295px] flex-col items-center gap-4 text-center">
@@ -14,6 +18,11 @@ export function WorkloadsEmpty({icon, title, description}: WorkloadsEmptyProps) 
           <p className="text-sm leading-[1.4] font-medium tracking-[0.14px] text-black">{title}</p>
           <p className="text-xs leading-[1.4] tracking-[0.12px] text-grey-500">{description}</p>
         </div>
+        {action && (
+          <Button variant="outline" onClick={action.onClick}>
+            {action.label}
+          </Button>
+        )}
       </div>
     </div>
   );

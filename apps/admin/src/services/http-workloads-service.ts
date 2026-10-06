@@ -3,6 +3,7 @@ import {apiClient} from "@/services/api-client";
 import type {FlagParcelsInput, WorkloadListParams, WorkloadsService} from "@/types/workloads-types";
 
 const ParcelStatusSchema = v.picklist(["pending_pickup", "in_transit", "delivered", "failed", "expired"]);
+const SafeItemStatusSchema = v.picklist(["active", "pending_pickup", "expiring_soon", "expired", "retrieved"]);
 const BatchTagSchema = v.picklist(["active", "completed", "queued", "stalled", "flagged"]);
 const LngLatSchema = v.tuple([v.number(), v.number()]);
 
@@ -20,6 +21,8 @@ const MetricsSchema = v.partial(
     total: v.number(),
     inTransit: v.number(),
     delivered: v.number(),
+    expiringSoon: v.number(),
+    retrieved: v.number(),
   })
 );
 
@@ -56,10 +59,20 @@ const BatchRowSchema = v.object({
   breakdown: v.array(v.object({key: v.picklist(["delivered", "in_transit", "delayed"]), count: v.number()})),
 });
 
+const SafeItemRowSchema = v.object({
+  id: v.string(),
+  owner: v.string(),
+  nodeId: v.string(),
+  storedAt: v.string(),
+  status: SafeItemStatusSchema,
+  flagged: v.boolean(),
+});
+
 const ListResponseSchema = v.object({
   metrics: MetricsSchema,
   parcels: v.optional(PageSchema(ParcelRowSchema)),
   batches: v.optional(PageSchema(BatchRowSchema)),
+  safeItems: v.optional(PageSchema(SafeItemRowSchema)),
   filters: FilterOptionsSchema,
 });
 
@@ -95,6 +108,27 @@ const ParcelDetailSchema = v.object({
       courierPosition: LngLatSchema,
       etaMinutes: v.number(),
       destinationPosition: LngLatSchema,
+    })
+  ),
+});
+
+const SafeItemDetailSchema = v.object({
+  id: v.string(),
+  status: SafeItemStatusSchema,
+  statusNote: v.optional(v.string()),
+  flag: v.nullable(v.object({reason: v.string(), notes: v.optional(v.string()), at: v.string()})),
+  owner: v.string(),
+  node: v.string(),
+  item: v.string(),
+  size: v.string(),
+  charged: v.number(),
+  storedAt: v.string(),
+  expiresAt: v.string(),
+  timeline: v.array(
+    v.object({
+      key: v.picklist(["book_safe", "item_stored", "storage_active", "expired", "period_extended", "expires", "retrieved"]),
+      detail: v.string(),
+      done: v.boolean(),
     })
   ),
 });
@@ -140,6 +174,10 @@ export const httpWorkloadsService: WorkloadsService = {
     const body = await apiClient.get(`workloads/parcels/${id}`).json();
     return v.parse(ParcelDetailSchema, body);
   },
+  getSafeItemDetail: async (id) => {
+    const body = await apiClient.get(`workloads/safe/${id}`).json();
+    return v.parse(SafeItemDetailSchema, body);
+  },
   flagParcels: async (input: FlagParcelsInput) => {
     const body = await apiClient.post("workloads/parcels/flag", {json: input}).json();
     return v.parse(v.object({flagged: v.number()}), body);
@@ -151,7 +189,9 @@ export const httpWorkloadsService: WorkloadsService = {
           ? `workloads/batches/${params.batchId}/parcels/export`
           : params.tab === "batches"
             ? "workloads/batches/export"
-            : "workloads/parcels/export",
+            : params.tab === "safe"
+              ? "workloads/safe/export"
+              : "workloads/parcels/export",
         {
           searchParams: listSearchParams(params),
         }

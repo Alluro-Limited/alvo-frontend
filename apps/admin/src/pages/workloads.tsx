@@ -1,5 +1,8 @@
 import {useState} from "react";
 import {BatchList} from "@/components/workloads/batch-list";
+import {ParcelDetailDrawer} from "@/components/workloads/parcel-detail-drawer";
+import {SafeItemDrawer} from "@/components/workloads/safe-item-drawer";
+import {SafeList} from "@/components/workloads/safe-list";
 import {useFlagFlow} from "@/components/workloads/use-flag-flow";
 import {useParcelExport} from "@/components/workloads/use-parcel-export";
 import {useParcelSelection} from "@/components/workloads/use-parcel-selection";
@@ -31,6 +34,18 @@ interface RegionProps {
 }
 
 function WorkloadsRegion({data, selected, filters, handlers}: RegionProps) {
+  if (filters.tab === "safe") {
+    return (
+      <SafeList
+        data={data}
+        filters={{query: filters.query, status: filters.status}}
+        onQuery={handlers.onQuery}
+        onStatus={handlers.onStatus}
+        onOpen={handlers.onOpen}
+        onPage={handlers.onPage}
+      />
+    );
+  }
   if (filters.tab === "batches") {
     return (
       <BatchList
@@ -60,6 +75,21 @@ function WorkloadsRegion({data, selected, filters, handlers}: RegionProps) {
       onClearSelection={handlers.onClearSelection}
     />
   );
+}
+
+function ItemDrawer({
+  tab,
+  itemId,
+  onClose,
+  onFlag,
+}: {
+  tab: string;
+  itemId: string | null;
+  onClose: () => void;
+  onFlag: (id: string) => void;
+}) {
+  if (tab === "safe") return <SafeItemDrawer itemId={itemId} onClose={onClose} onFlag={onFlag} />;
+  return <ParcelDetailDrawer parcelId={itemId} onClose={onClose} onFlag={onFlag} />;
 }
 
 /** Operations console: Single Send parcels and SME batches — list, metrics, drawer, flag and track flows. */
@@ -101,7 +131,11 @@ export function WorkloadsPage() {
       ) : (
         <WorkloadsRegion data={data} selected={selected} filters={filters} handlers={handlers} />
       )}
-      <WorkloadsOverlays drawerId={drawerId} flag={flag} onCloseDrawer={() => setDrawerId(null)} />
+      <WorkloadsOverlays
+        drawer={<ItemDrawer tab={filters.tab} itemId={drawerId} onClose={() => setDrawerId(null)} onFlag={(id) => flag.openFlag([id])} />}
+        noun={filters.tab === "safe" ? "item" : "parcel"}
+        flag={flag}
+      />
     </div>
   );
 }

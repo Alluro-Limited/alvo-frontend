@@ -15,6 +15,8 @@ const DOT_STYLES: Record<WorkloadMetricKey, string> = {
   slaAtRisk: "bg-warning-500",
   slaBreaches: "bg-warning-500",
   flagged: "bg-status-warning",
+  expiringSoon: "bg-warning-500",
+  retrieved: "bg-success-500",
 };
 
 const LABELS: Record<WorkloadMetricKey, () => string> = {
@@ -30,6 +32,8 @@ const LABELS: Record<WorkloadMetricKey, () => string> = {
   slaAtRisk: m["workloads.metric_sla_at_risk"],
   slaBreaches: m["workloads.metric_sla_breaches"],
   flagged: m["workloads.metric_flagged"],
+  expiringSoon: m["workloads.metric_expiring_soon"],
+  retrieved: m["workloads.metric_retrieved"],
 };
 
 function MetricCard({metric, value}: {metric: WorkloadMetricKey; value: number}) {
