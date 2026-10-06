@@ -22,6 +22,7 @@
     "cnfast": "^0.1.0",
     "ky": "^2.1.0",
     "lucide-react": "^1.37.0",
+    "maplibre-gl": "6.11.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "valibot": "^1.5.0"

@@ -17,7 +17,10 @@ export const Route = createRootRoute({
       // Internal tool: keep it out of search results.
       {name: "robots", content: "noindex, nofollow"},
     ],
-    links: [{rel: "stylesheet", href: appCss}],
+    links: [
+      {rel: "stylesheet", href: appCss},
+      {rel: "icon", type: "image/svg+xml", href: "/favicon.svg"},
+    ],
   }),
   shellComponent: RootDocument,
   component: RootApp,

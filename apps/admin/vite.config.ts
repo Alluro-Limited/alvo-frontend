@@ -51,6 +51,11 @@ export default defineConfig({
       "@": resolve(import.meta.dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    // maplibre-gl v6 loads a worker via a sibling module URL, which the dep
+    // prebundler doesn't rewrite — serve it unbundled so the worker resolves.
+    exclude: ["maplibre-gl"],
+  },
   build: {
     target: "es2022",
     sourcemap: true,

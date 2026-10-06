@@ -1,6 +1,7 @@
 import {API_ERROR_CODES} from "@/lib/api-errors";
 import type {AuthService} from "@/types/auth-types";
 import {mockDelay, mockHttpError} from "./mock-http";
+import {mockSession} from "./mock-session";
 
 /**
  * Inputs that drive the mock into each designed state. Anything else takes the happy path,
@@ -23,9 +24,6 @@ export const MOCK_AUTH = {
 
 const SERVICE_UNAVAILABLE = 503;
 
-/** Stands in for the session cookie: which invited admin is mid-setup. */
-let pendingSetupEmail: string | null = null;
-
 function failForEmail(path: string, email: string) {
   const normalized = email.toLowerCase();
   if (normalized === MOCK_AUTH.unavailableEmail) throw mockHttpError(path, SERVICE_UNAVAILABLE);
@@ -38,8 +36,8 @@ function failForToken(path: string, token: string, {allowExpired}: {allowExpired
 }
 
 function failForPendingSetup(path: string) {
-  if (pendingSetupEmail === MOCK_AUTH.invitedExpiredEmail) throw mockHttpError(path, API_ERROR_CODES.GONE);
-  if (pendingSetupEmail === MOCK_AUTH.invitedUnavailableEmail) throw mockHttpError(path, SERVICE_UNAVAILABLE);
+  if (mockSession.pendingSetupEmail === MOCK_AUTH.invitedExpiredEmail) throw mockHttpError(path, API_ERROR_CODES.GONE);
+  if (mockSession.pendingSetupEmail === MOCK_AUTH.invitedUnavailableEmail) throw mockHttpError(path, SERVICE_UNAVAILABLE);
 }
 
 /** In-memory stand-in for the backend while it does not exist. Never ships when `VITE_API_URL` is set. */
@@ -50,7 +48,8 @@ export const mockAuthService: AuthService = {
     if (password !== MOCK_AUTH.password) throw mockHttpError("auth/login", API_ERROR_CODES.UNAUTHORIZED);
     const normalized = email.toLowerCase();
     const isInvited = normalized.startsWith("invited");
-    pendingSetupEmail = isInvited ? normalized : null;
+    mockSession.email = normalized;
+    mockSession.pendingSetupEmail = isInvited ? normalized : null;
     return {accountStatus: isInvited ? "setup_required" : "active"};
   },
   getAccountSetup: async () => {
@@ -60,7 +59,8 @@ export const mockAuthService: AuthService = {
   completeAccountSetup: async () => {
     await mockDelay();
     failForPendingSetup("auth/account-setup");
-    pendingSetupEmail = null;
+    mockSession.pendingSetupEmail = null;
+    mockSession.justActivated = true;
   },
   requestPasswordReset: async (email) => {
     await mockDelay();
@@ -81,6 +81,8 @@ export const mockAuthService: AuthService = {
   },
   signOut: async () => {
     await mockDelay();
-    pendingSetupEmail = null;
+    mockSession.email = null;
+    mockSession.pendingSetupEmail = null;
+    mockSession.justActivated = false;
   },
 };
