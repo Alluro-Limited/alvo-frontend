@@ -1,5 +1,5 @@
 import {createFileRoute} from "@tanstack/react-router";
-import {PlaceholderPage} from "@/pages/placeholder-page";
+import {CouriersPage} from "@/pages/couriers";
 import {m} from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_app/couriers")({
@@ -8,5 +8,5 @@ export const Route = createFileRoute("/_app/couriers")({
 });
 
 function couriersPage() {
-  return <PlaceholderPage title={m["nav.courier"]()} />;
+  return <CouriersPage />;
 }
