@@ -28,3 +28,23 @@ export function formatEta(iso: string): string {
   const hour = date.getHours() % 12 || 12;
   return `${hour}:${String(date.getMinutes()).padStart(2, "0")}${date.getHours() >= 12 ? "PM" : "AM"}`;
 }
+
+/** "Apr 15, 2026" — the Joined columns on account tables. */
+export function formatJoined(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"});
+}
+
+/** "March 12, 2026" — drawer Joined Date rows use the long month. */
+export function formatJoinedLong(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {month: "long", day: "numeric", year: "numeric"});
+}
+
+/** "₦12,400" — wallet balances arrive in kobo. */
+export function formatNaira(kobo: number): string {
+  return `₦${Math.round(kobo / 100).toLocaleString("en-US")}`;
+}
+
+/** "7:15 AM" — clock time with a space before the meridiem, like the batch history rows. */
+export function formatClockTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {hour: "numeric", minute: "2-digit"});
+}

@@ -11,7 +11,7 @@ interface FlagForReviewDialogProps {
   /** The last flag attempt failed — shows an inline error and keeps the form open. */
   failed: boolean;
   /** What a single flagged entity is called in the subtitle — "Parcel {id}" vs "Item {id}" vs "Assignment {id}". */
-  noun?: "parcel" | "item" | "assignment" | "user";
+  noun?: "parcel" | "item" | "assignment" | "user" | "sme";
   /** Replaces the default parcel description — assignments carry their own copy. */
   description?: string;
   onClose: () => void;
@@ -23,6 +23,7 @@ const SUBTITLES = {
   item: m["workloads.flag_subtitle_item"],
   assignment: m["assignment.flag_subtitle"],
   user: m["users.flag_subtitle"],
+  sme: m["smes.flag_subtitle"],
 } as const;
 
 /** Flag-for-review modal — same dialog for one parcel, a Safe item, an assignment, or a bulk selection. */

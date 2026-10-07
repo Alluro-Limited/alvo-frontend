@@ -11,6 +11,7 @@ const STUB_PATHS = [
   "/account-setup",
   "/assignment",
   "/users",
+  "/smes",
   "/nodes",
   "/nodes/$nodeId",
   "/workloads",

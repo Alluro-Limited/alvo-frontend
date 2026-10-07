@@ -13,6 +13,7 @@ const statusTagVariants = cva(
         delayed: "border-status-delayed-dark bg-status-delayed-subtle text-status-delayed-dark",
         pickup: "border-primary-600 bg-primary-100/30 text-primary-600",
         booked: "border-secondary-500 bg-secondary-50 text-secondary-500",
+        violet: "border-accent-500 bg-accent-50 text-accent-500",
         default: "border-neutral-500 bg-neutral-50 text-grey-600",
       },
     },

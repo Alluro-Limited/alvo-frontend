@@ -44,17 +44,4 @@ export function suspendReasonLabel(reason: string): string {
   return reason in SUSPEND_REASON_LABELS ? SUSPEND_REASON_LABELS[reason as SuspendReason]() : reason;
 }
 
-/** "Apr 15, 2026" — the Joined column and the drawer's Joined Date row. */
-export function formatJoined(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {month: "short", day: "numeric", year: "numeric"});
-}
-
-/** "March 12, 2025" — the drawer's Joined Date row uses the long month. */
-export function formatJoinedLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {month: "long", day: "numeric", year: "numeric"});
-}
-
-/** "₦12,400" — wallet balances come in kobo. */
-export function formatNaira(kobo: number): string {
-  return `₦${Math.round(kobo / 100).toLocaleString("en-US")}`;
-}
+export {formatJoined, formatJoinedLong, formatNaira} from "@/lib/format";

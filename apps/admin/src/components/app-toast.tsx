@@ -10,8 +10,8 @@ const TOAST_MS = 5000;
 interface AppToastProps {
   message: string;
   onDismiss: () => void;
-  /** "success" renders the dark-teal confirmation toast with a check icon (e.g. "account suspended"). */
-  variant?: "default" | "success";
+  /** "success" renders the dark-teal confirmation toast, "destructive" the dark-red one — both with a check icon. */
+  variant?: "default" | "success" | "destructive";
 }
 
 /** Dark bottom-right toast shared by every surface ("New node registered...", "PRV-88190 flagged...").
@@ -29,10 +29,10 @@ export function AppToast({message, onDismiss, variant = "default"}: AppToastProp
       role="status"
       className={cn(
         "fixed right-6 bottom-6 z-50 flex items-center gap-3 rounded-lg px-4 py-3 shadow-lg",
-        variant === "success" ? "bg-primary-800" : "bg-black"
+        variant === "success" ? "bg-primary-800" : variant === "destructive" ? "bg-status-fail-dark" : "bg-black"
       )}
     >
-      {variant === "success" && <CheckCircle2 className="size-4 shrink-0 text-white" aria-hidden="true" />}
+      {variant !== "default" && <CheckCircle2 className="size-4 shrink-0 text-white" aria-hidden="true" />}
       <p className="text-sm leading-[1.4] font-medium tracking-[0.14px] text-white">{message}</p>
       <button
         type="button"

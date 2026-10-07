@@ -9,7 +9,7 @@
     "preview": "vp build && vp preview",
     "test": "vp test",
     "test:coverage": "vp test run --coverage",
-    "i18n:compile": "paraglide-js compile --project project.inlang --outdir ./src/paraglide",
+    "i18n:compile": "paraglide-js compile --project project.inlang --outdir ./src/paraglide --emit-ts-declarations",
     "machine-translate": "inlang machine translate --project project.inlang"
   },
   "dependencies": {
