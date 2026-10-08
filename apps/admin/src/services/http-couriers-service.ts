@@ -87,6 +87,43 @@ const AssignmentSchema = v.object({
   status: AssignmentStatusSchema,
 });
 
+const NodeRefSchema = v.object({
+  name: v.string(),
+  code: v.string(),
+  zone: v.string(),
+  position: v.tuple([v.number(), v.number()]),
+});
+
+const TrackSchema = v.object({
+  courierId: v.string(),
+  name: v.string(),
+  photoUrl: v.nullable(v.string()),
+  vehicle: VehicleSchema,
+  status: v.picklist(["in_transit", "delayed"]),
+  motion: v.picklist(["enroute", "idle"]),
+  publicPool: v.boolean(),
+  type: DeliveryTypeSchema,
+  batchId: v.string(),
+  items: v.number(),
+  pickup: NodeRefSchema,
+  dropoff: NodeRefSchema,
+  etaMinutes: v.number(),
+  distanceKm: v.number(),
+  position: v.tuple([v.number(), v.number()]),
+  routePath: v.array(v.tuple([v.number(), v.number()])),
+  lastKnownLocation: v.string(),
+  offlineMinutes: v.number(),
+  rating: v.number(),
+  serviceTier: v.picklist(["standard", "express"]),
+  etaAt: v.string(),
+  phone: v.string(),
+});
+
+const TrackingResponseSchema = v.object({
+  tracks: v.array(TrackSchema),
+  filters: v.object({statuses: v.array(v.string()), types: v.array(v.string())}),
+});
+
 function listSearchParams(params: {query?: string; status?: string; verification?: string; vehicle?: string; ids?: string[]}) {
   return {
     ...(params.query ? {q: params.query} : {}),
@@ -115,9 +152,9 @@ export const httpCouriersService: CouriersService = {
       .json();
     return v.parse(ListResponseSchema, body);
   },
-  getCourierMap: async (params) => {
-    const body = await apiClient.get("couriers/map", {searchParams: listSearchParams(params)}).json();
-    return v.parse(v.array(RowSchema), body);
+  getCourierTracking: async (params) => {
+    const body = await apiClient.get("couriers/tracking", {searchParams: assignmentSearchParams(params)}).json();
+    return v.parse(TrackingResponseSchema, body);
   },
   getCourierDetail: async (id) => {
     const body = await apiClient.get(`couriers/${id}`).json();

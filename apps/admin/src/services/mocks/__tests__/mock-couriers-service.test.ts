@@ -49,12 +49,52 @@ describe("mockCouriersService", () => {
     });
   });
 
-  describe("getCourierMap", () => {
-    it("returns every filtered row with live positions", async () => {
-      const rows = await mockCouriersService.getCourierMap({status: "active"});
-      expect(rows.length).toBeGreaterThan(100);
-      expect(rows.every((row) => row.status === "active")).toBe(true);
-      expect(rows.every((row) => Array.isArray(row.position))).toBe(true);
+  describe("getCourierTracking", () => {
+    it("returns active-assignment tracks matching the on-assignment metric", async () => {
+      const list = await mockCouriersService.getCouriers({page: 1});
+      const {tracks, filters} = await mockCouriersService.getCourierTracking({});
+
+      expect(tracks).toHaveLength(list.metrics.onAssignment);
+      expect(filters.statuses).toContain("in_transit");
+      expect(filters.types).toContain("bulk");
+      expect(
+        tracks.every(
+          (track) =>
+            track.batchId.startsWith("B-") && track.items > 0 && track.routePath.length >= 2 && track.etaMinutes > 0 && track.rating > 0
+        )
+      ).toBe(true);
+    });
+
+    it("tracks only ride for active verified couriers", async () => {
+      const {tracks} = await mockCouriersService.getCourierTracking({});
+      for (const track of tracks) {
+        const detail = await mockCouriersService.getCourierDetail(track.courierId);
+        expect(detail.status).toBe("active");
+        expect(detail.verification).toBe("verified");
+      }
+    });
+
+    it("filters by status, type and query", async () => {
+      const all = await mockCouriersService.getCourierTracking({});
+      const delayed = await mockCouriersService.getCourierTracking({status: "delayed"});
+      expect(delayed.tracks.every((track) => track.status === "delayed")).toBe(true);
+
+      const first = all.tracks[0];
+      const typed = await mockCouriersService.getCourierTracking({type: first.type});
+      expect(typed.tracks.every((track) => track.type === first.type)).toBe(true);
+      expect(typed.tracks.length).toBeGreaterThan(0);
+
+      const searched = await mockCouriersService.getCourierTracking({query: first.name.split(" ")[0]});
+      expect(searched.tracks.some((track) => track.courierId === first.courierId)).toBe(true);
+    });
+
+    it("drops tracks when the courier is suspended", async () => {
+      const before = await mockCouriersService.getCourierTracking({});
+      const target = before.tracks[0];
+      await mockCouriersService.suspendCourier(target.courierId, {reason: "fraud"});
+      const after = await mockCouriersService.getCourierTracking({});
+      expect(after.tracks.some((track) => track.courierId === target.courierId)).toBe(false);
+      await mockCouriersService.unsuspendCourier(target.courierId, {});
     });
   });
 

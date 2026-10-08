@@ -27,20 +27,7 @@ export interface CouriersPageContentProps {
 /** The body under the header — pending/error shells first, then the list or map region. */
 export function CouriersPageContent({view, filters, selection, list, overlays, flag, suspend, exporter, onView}: CouriersPageContentProps) {
   if (view === "map") {
-    return (
-      <CouriersMapView
-        params={filters.mapParams}
-        filtered={filters.filtered}
-        filters={list.data?.filters ?? {statuses: [], verifications: [], vehicles: []}}
-        onQuery={filters.onQuery}
-        onStatus={filters.onStatus}
-        onVerification={filters.onVerification}
-        onVehicle={filters.onVehicle}
-        onView={onView}
-        onOpen={overlays.openDrawer}
-        onClearFilters={filters.clearFilters}
-      />
-    );
+    return <CouriersMapView onView={onView} />;
   }
   if (list.isPending) return <CouriersSkeleton />;
   if (list.isError || !list.data) return <WorkloadsError onRetry={() => void list.refetch()} isRetrying={list.isRefetching} />;

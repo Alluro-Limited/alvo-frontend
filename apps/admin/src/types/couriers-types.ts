@@ -48,7 +48,69 @@ export interface CourierListParams {
   page: number;
 }
 
-export type CourierMapParams = Omit<CourierListParams, "page">;
+/** Delivery progress on an active assignment — the card pill and the Status filter. */
+export type CourierTrackStatus = "in_transit" | "delayed";
+
+/** Courier motion state — the popup header pill and its online dot. */
+export type CourierMotion = "enroute" | "idle";
+
+/** Service tier shown in the popup's Delivery Type row. */
+export type CourierServiceTier = "standard" | "express";
+
+/** A network node a track runs from/to. */
+export interface CourierNodeRef {
+  /** e.g. "Ikeja" / "Super Node". */
+  name: string;
+  /** e.g. "IK-023" / "SN-001". */
+  code: string;
+  zone: string;
+  position: [number, number];
+}
+
+/** One courier on assignment — powers the map card, marker, polyline, and the tracking popup. */
+export interface CourierTrack {
+  /** Resolves to the courier drawer, e.g. "PRG-0299". */
+  courierId: string;
+  name: string;
+  photoUrl: string | null;
+  vehicle: VehicleType;
+  status: CourierTrackStatus;
+  motion: CourierMotion;
+  /** Orange "Public Pool" pill when the assignment came off the open pool. */
+  publicPool: boolean;
+  type: DeliveryType;
+  /** e.g. "B-2281". */
+  batchId: string;
+  items: number;
+  pickup: CourierNodeRef;
+  dropoff: CourierNodeRef;
+  etaMinutes: number;
+  distanceKm: number;
+  /** Live courier position — the avatar pin. */
+  position: [number, number];
+  /** Route polyline from the pickup node to the courier — drawn when selected. */
+  routePath: [number, number][];
+  /** Popup detail block. */
+  lastKnownLocation: string;
+  offlineMinutes: number;
+  rating: number;
+  serviceTier: CourierServiceTier;
+  /** ISO timestamp — the popup renders it as a clock time ("5:30PM"). */
+  etaAt: string;
+  phone: string;
+}
+
+export interface CourierTrackingParams {
+  query?: string;
+  status?: string;
+  type?: string;
+}
+
+export interface CourierTrackingResponse {
+  tracks: CourierTrack[];
+  /** Filter options supplied by the backend. */
+  filters: {statuses: string[]; types: string[]};
+}
 
 export interface CourierListResponse {
   metrics: CourierMetrics;
@@ -167,8 +229,8 @@ export interface CourierExportParams extends Omit<CourierListParams, "page"> {
 
 export interface CouriersService {
   getCouriers: (params: CourierListParams) => Promise<CourierListResponse>;
-  /** Unpaginated, filtered rows for the Map view markers. */
-  getCourierMap: (params: CourierMapParams) => Promise<CourierRow[]>;
+  /** Active assignments behind the Map view — cards, markers, and the tracking popup. */
+  getCourierTracking: (params: CourierTrackingParams) => Promise<CourierTrackingResponse>;
   getCourierDetail: (id: string) => Promise<CourierDetail>;
   /** Paginated deliveries behind the Assignment History modal. */
   getCourierAssignments: (id: string, params: CourierAssignmentsParams) => Promise<Page<CourierAssignment>>;

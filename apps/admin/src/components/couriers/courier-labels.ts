@@ -1,8 +1,13 @@
 import {m} from "@/paraglide/messages";
+import {TYPE_SHORT_LABELS} from "@/components/assignment/assignment-labels";
+import type {DeliveryType} from "@/types/assignment-types";
 import type {
   CourierDeleteReason,
+  CourierMotion,
+  CourierServiceTier,
   CourierStatus,
   CourierSuspendReason,
+  CourierTrackStatus,
   CourierVerification,
   CourierVerificationItemKey,
   VehicleType,
@@ -24,6 +29,21 @@ export const VEHICLE_LABELS: Record<VehicleType, () => string> = {
   car: m["couriers.vehicle_car"],
   motorcycle: m["couriers.vehicle_motorcycle"],
   van: m["couriers.vehicle_van"],
+};
+
+export const TRACK_STATUS_LABELS: Record<CourierTrackStatus, () => string> = {
+  in_transit: m["couriers.track_in_transit"],
+  delayed: m["couriers.track_delayed"],
+};
+
+export const MOTION_LABELS: Record<CourierMotion, () => string> = {
+  enroute: m["couriers.track_enroute"],
+  idle: m["couriers.track_idle"],
+};
+
+export const TIER_LABELS: Record<CourierServiceTier, () => string> = {
+  standard: m["couriers.tier_standard"],
+  express: m["couriers.tier_express"],
 };
 
 export const VERIFICATION_ITEM_LABELS: Record<CourierVerificationItemKey, () => string> = {
@@ -62,6 +82,15 @@ export function courierVerificationLabel(verification: string): string {
 
 export function vehicleLabel(vehicle: string): string {
   return vehicle in VEHICLE_LABELS ? VEHICLE_LABELS[vehicle as VehicleType]() : vehicle;
+}
+
+/** Fallback-tolerant labels for backend-supplied track filter ids. */
+export function trackStatusLabel(status: string): string {
+  return status in TRACK_STATUS_LABELS ? TRACK_STATUS_LABELS[status as CourierTrackStatus]() : status;
+}
+
+export function trackTypeLabel(type: string): string {
+  return type in TYPE_SHORT_LABELS ? TYPE_SHORT_LABELS[type as DeliveryType]() : type;
 }
 
 /** Maps the backend filter ids to labeled options for the list toolbar. */

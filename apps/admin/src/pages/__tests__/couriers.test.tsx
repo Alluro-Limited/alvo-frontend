@@ -2,14 +2,21 @@ import {fireEvent, screen, waitFor} from "@testing-library/react";
 import {beforeEach, describe, expect, it, vi} from "vite-plus/test";
 import {couriersService} from "@/services/couriers-service";
 import {renderRoute} from "@/test/render-route";
-import type {CourierAssignment, CourierDetail, CourierListResponse, CourierRow} from "@/types/couriers-types";
+import type {
+  CourierAssignment,
+  CourierDetail,
+  CourierListResponse,
+  CourierRow,
+  CourierTrack,
+  CourierTrackingResponse,
+} from "@/types/couriers-types";
 import type {Page} from "@/types/workloads-types";
 import {CouriersPage} from "../couriers";
 
 vi.mock("@/services/couriers-service", () => ({
   couriersService: {
     getCouriers: vi.fn(),
-    getCourierMap: vi.fn(),
+    getCourierTracking: vi.fn(),
     getCourierDetail: vi.fn(),
     getCourierAssignments: vi.fn(),
     approveVerificationItem: vi.fn(),
@@ -23,7 +30,7 @@ vi.mock("@/services/couriers-service", () => ({
 }));
 
 const getCouriers = vi.mocked(couriersService.getCouriers);
-const getCourierMap = vi.mocked(couriersService.getCourierMap);
+const getCourierTracking = vi.mocked(couriersService.getCourierTracking);
 const getCourierDetail = vi.mocked(couriersService.getCourierDetail);
 const getCourierAssignments = vi.mocked(couriersService.getCourierAssignments);
 const approveVerificationItem = vi.mocked(couriersService.approveVerificationItem);
@@ -113,6 +120,52 @@ function assignmentsPage(overrides: Partial<Page<CourierAssignment>> = {}): Page
   return {items: [ASSIGNMENT], page: 1, pageSize: 7, total: 12, ...overrides};
 }
 
+const TRACK: CourierTrack = {
+  courierId: "PRG-0299",
+  name: "Priscilla Awolowo",
+  photoUrl: null,
+  vehicle: "car",
+  status: "in_transit",
+  motion: "enroute",
+  publicPool: true,
+  type: "bulk",
+  batchId: "B-2281",
+  items: 19,
+  pickup: {name: "Yaba", code: "YB-006", zone: "Yaba", position: [3.38, 6.51]},
+  dropoff: {name: "Super Node", code: "SN-001", zone: "Lekki", position: [3.42, 6.43]},
+  etaMinutes: 35,
+  distanceKm: 35,
+  position: [3.4, 6.47],
+  routePath: [
+    [3.38, 6.51],
+    [3.4, 6.47],
+    [3.42, 6.43],
+  ],
+  lastKnownLocation: "Yaba, Lagos",
+  offlineMinutes: 0,
+  rating: 4.8,
+  serviceTier: "standard",
+  etaAt: "2026-05-19T17:30:00Z",
+  phone: "0801 222 3344",
+};
+
+const TRACK2: CourierTrack = {
+  ...TRACK,
+  courierId: "PRG-0165",
+  name: "Hannah Opuogbo",
+  status: "delayed",
+  publicPool: false,
+  type: "express",
+  batchId: "B-2290",
+};
+
+function tracking(overrides: CourierTrack[] = [TRACK, TRACK2]): CourierTrackingResponse {
+  return {
+    tracks: overrides,
+    filters: {statuses: ["in_transit", "delayed"], types: ["bulk", "node", "express"]},
+  };
+}
+
 function list(overrides: Partial<CourierListResponse["couriers"]> = {}): CourierListResponse {
   return {
     metrics: {total: 343, active: 290, onAssignment: 17, pendingVerify: 16, flagged: 24, suspended: 13},
@@ -139,7 +192,7 @@ describe("CouriersPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getCouriers.mockResolvedValue(list());
-    getCourierMap.mockResolvedValue([ROW, PENDING_ROW]);
+    getCourierTracking.mockResolvedValue(tracking());
     getCourierDetail.mockResolvedValue(DETAIL);
     getCourierAssignments.mockResolvedValue(assignmentsPage());
   });
@@ -371,14 +424,17 @@ describe("CouriersPage", () => {
       await screen.findByTestId("couriers-map-cards");
     }
 
-    it("renders the floating panel with courier cards", async () => {
+    it("renders the floating panel with assignment cards", async () => {
       await openMap();
-      await screen.findByRole("button", {name: /PRG-0299/});
+      await screen.findByRole("button", {name: "Priscilla Awolowo"});
 
       const cards = screen.getByTestId("couriers-map-cards");
       expect(cards.textContent).toContain("PRG-0299");
-      expect(cards.textContent).toContain("PRG-0165");
-      expect(getCourierMap).toHaveBeenCalledWith(expect.objectContaining({}));
+      expect(cards.textContent).toContain("B-2281");
+      expect(cards.textContent).toContain("couriers.track_in_transit");
+      expect(cards.textContent).toContain("couriers.track_public_pool");
+      expect(cards.textContent).toContain("couriers.track_delayed");
+      expect(getCourierTracking).toHaveBeenCalledWith(expect.objectContaining({}));
       expect(screen.getByPlaceholderText("couriers.map_search_placeholder")).toBeTruthy();
     });
 
@@ -386,11 +442,14 @@ describe("CouriersPage", () => {
       await openMap();
 
       fireEvent.change(screen.getByPlaceholderText("couriers.map_search_placeholder"), {target: {value: "PRG-99"}});
-      await waitFor(() => expect(getCourierMap).toHaveBeenCalledWith(expect.objectContaining({query: "PRG-99"})));
+      await waitFor(() => expect(getCourierTracking).toHaveBeenCalledWith(expect.objectContaining({query: "PRG-99"})));
 
       const selects = screen.getAllByRole("combobox");
-      fireEvent.change(selects[0], {target: {value: "suspended"}});
-      await waitFor(() => expect(getCourierMap).toHaveBeenCalledWith(expect.objectContaining({status: "suspended"})));
+      fireEvent.change(selects[0], {target: {value: "delayed"}});
+      await waitFor(() => expect(getCourierTracking).toHaveBeenCalledWith(expect.objectContaining({status: "delayed"})));
+
+      fireEvent.change(selects[1], {target: {value: "bulk"}});
+      await waitFor(() => expect(getCourierTracking).toHaveBeenCalledWith(expect.objectContaining({type: "bulk"})));
     });
 
     it("collapses and expands the panel", async () => {
@@ -403,19 +462,42 @@ describe("CouriersPage", () => {
       expect(await screen.findByTestId("couriers-map-cards")).toBeTruthy();
     });
 
-    it("opens the drawer from a card", async () => {
+    it("marks the selected card without opening the drawer", async () => {
       await openMap();
 
-      fireEvent.click(await screen.findByRole("button", {name: /PRG-0299/}));
-      await waitFor(() => expect(getCourierDetail).toHaveBeenCalledWith("PRG-0299"));
+      const card = await screen.findByRole("button", {name: "Priscilla Awolowo"});
+      fireEvent.click(card);
+      expect(card.getAttribute("aria-pressed")).toBe("true");
+      expect(getCourierDetail).not.toHaveBeenCalled();
     });
 
-    it("shows the map empty state", async () => {
-      getCourierMap.mockResolvedValue([]);
+    it("shows the no-active-assignments empty state", async () => {
+      getCourierTracking.mockResolvedValue(tracking([]));
       await openMap();
 
       expect(await screen.findByText("couriers.map_empty_title")).toBeTruthy();
       expect(screen.getByText("couriers.map_empty_description")).toBeTruthy();
+    });
+
+    it("shows the filtered-empty state and clears filters", async () => {
+      getCourierTracking.mockResolvedValue(tracking([]));
+      await openMap();
+      fireEvent.change(screen.getByPlaceholderText("couriers.map_search_placeholder"), {target: {value: "zzz"}});
+
+      expect(await screen.findByText("couriers.filtered_empty_title")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", {name: "couriers.clear_filter"}));
+      await waitFor(() => expect(getCourierTracking).toHaveBeenLastCalledWith(expect.objectContaining({query: undefined})));
+    });
+
+    it("shows the tracking error state and retries", async () => {
+      getCourierTracking.mockRejectedValueOnce(new Error("down")).mockResolvedValue(tracking());
+      renderRoute(CouriersPage, "/couriers");
+      await screen.findByText("PRG-0299");
+      fireEvent.click(screen.getByRole("tab", {name: "nodes.view_map"}));
+
+      expect(await screen.findByText("couriers.map_error")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", {name: "couriers.retry"}));
+      expect(await screen.findByRole("button", {name: "Priscilla Awolowo"})).toBeTruthy();
     });
   });
 });

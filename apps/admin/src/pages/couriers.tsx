@@ -25,7 +25,7 @@ export function CouriersPage() {
   const suspend = useCourierSuspendFlow(selection.clear);
   const del = useCourierDeleteFlow(overlays.closeDrawer);
   const approve = useCourierApproveFlow();
-  const exporter = useCourierExport(filters.mapParams);
+  const exporter = useCourierExport(filters.exportParams);
 
   return (
     <div className="flex flex-col gap-4">

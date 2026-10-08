@@ -1,70 +1,54 @@
 import {useState} from "react";
-import {Image as ImageIcon} from "lucide-react";
 import {m} from "@/paraglide/messages";
+import wheelIcon from "@/assets/asn-wheel.svg";
 import type {ListMapView} from "@/components/view-tabs";
-import {useCourierMapQuery} from "@/queries/use-courier-map-query";
-import type {CourierMapParams, CourierRow} from "@/types/couriers-types";
-import {courierFilterOptions} from "./courier-labels";
+import {useCourierTrackingQuery} from "@/queries/use-courier-tracking-query";
+import type {CourierTrack} from "@/types/couriers-types";
+import {trackStatusLabel, trackTypeLabel} from "./courier-labels";
 import {CouriersMap} from "./couriers-map";
 import {CouriersMapCard} from "./couriers-map-card";
 import {CouriersMapPanel} from "./couriers-map-panel";
+import {useCourierMapFilters} from "./use-courier-map-filters";
 
-interface CouriersMapViewProps {
-  params: CourierMapParams;
-  filtered: boolean;
-  filters: {statuses: string[]; verifications: string[]; vehicles: string[]};
-  onQuery: (value: string) => void;
-  onStatus: (value: string) => void;
-  onVerification: (value: string) => void;
-  onVehicle: (value: string) => void;
-  onView: (view: ListMapView) => void;
-  onOpen: (id: string) => void;
-  onClearFilters: () => void;
-}
-
-/** The full-bleed map surface: markers under a floating left panel of search, filters, and courier cards. */
-export function CouriersMapView({
-  params,
-  filtered,
-  filters,
-  onQuery,
-  onStatus,
-  onVerification,
-  onVehicle,
-  onView,
-  onOpen,
-  onClearFilters,
-}: CouriersMapViewProps) {
+/** The full-bleed tracking map: courier/node markers under a floating panel of search, filters, and track cards. */
+export function CouriersMapView({onView}: {onView: (view: ListMapView) => void}) {
+  const filters = useCourierMapFilters();
   const [collapsed, setCollapsed] = useState(false);
-  const {data: rows, isPending, isError, refetch} = useCourierMapQuery(params);
-  const options = courierFilterOptions(filters);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const {data, isPending, isError, refetch} = useCourierTrackingQuery(filters.params);
+
+  const tracks = data?.tracks ?? [];
 
   return (
     <div className="relative h-[calc(100dvh-112px)] overflow-clip rounded-lg bg-white">
-      <CouriersMap rows={rows ?? []} onOpen={onOpen} className="size-full min-h-0 rounded-none border-0" />
+      <CouriersMap
+        tracks={tracks}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onClearSelection={() => setSelectedId(null)}
+        className="size-full min-h-0 rounded-none border-0"
+      />
       <CouriersMapPanel
         collapsed={collapsed}
-        query={params.query ?? ""}
-        status={params.status ?? ""}
-        verification={params.verification ?? ""}
-        vehicle={params.vehicle ?? ""}
-        statusOptions={options.statusOptions}
-        verificationOptions={options.verificationOptions}
-        vehicleOptions={options.vehicleOptions}
+        query={filters.filters.query}
+        status={filters.filters.status}
+        type={filters.filters.type}
+        statusOptions={(data?.filters.statuses ?? []).map((id) => ({id, label: trackStatusLabel(id)}))}
+        typeOptions={(data?.filters.types ?? []).map((id) => ({id, label: trackTypeLabel(id)}))}
         onToggleCollapsed={() => setCollapsed((current) => !current)}
         onView={onView}
-        onQuery={onQuery}
-        onStatus={onStatus}
-        onVerification={onVerification}
-        onVehicle={onVehicle}
+        onQuery={filters.onQuery}
+        onStatus={filters.onStatus}
+        onType={filters.onType}
       >
         <PanelContent
           pending={isPending}
           failed={isError}
-          rows={rows ?? []}
-          filtered={filtered}
-          onOpen={onOpen}
-          onClearFilters={onClearFilters}
+          tracks={tracks}
+          selectedId={selectedId}
+          filtered={filters.filtered}
+          onSelect={setSelectedId}
+          onClearFilters={filters.clearFilters}
           onRetry={() => void refetch()}
         />
       </CouriersMapPanel>
@@ -75,17 +59,18 @@ export function CouriersMapView({
 interface PanelContentProps {
   pending: boolean;
   failed: boolean;
-  rows: CourierRow[];
+  tracks: CourierTrack[];
+  selectedId: string | null;
   filtered: boolean;
-  onOpen: (id: string) => void;
+  onSelect: (courierId: string) => void;
   onClearFilters: () => void;
   onRetry: () => void;
 }
 
-/** Loading skeletons, the error retry, empty copy, or the courier cards. */
-function PanelContent({pending, failed, rows, filtered, onOpen, onClearFilters, onRetry}: PanelContentProps) {
+/** Loading skeletons, the error retry, empty copy, or the track cards. */
+function PanelContent({pending, failed, tracks, selectedId, filtered, onSelect, onClearFilters, onRetry}: PanelContentProps) {
   if (pending) {
-    return ["a", "b", "c", "d"].map((key) => <div key={key} className="h-[92px] shrink-0 animate-pulse rounded-xl bg-grey-100" />);
+    return ["a", "b", "c", "d"].map((key) => <div key={key} className="h-[168px] shrink-0 animate-pulse rounded-xl bg-grey-100" />);
   }
   if (failed) {
     return (
@@ -96,7 +81,7 @@ function PanelContent({pending, failed, rows, filtered, onOpen, onClearFilters, 
       </PanelEmpty>
     );
   }
-  if (rows.length === 0) {
+  if (tracks.length === 0) {
     if (filtered) {
       return (
         <PanelEmpty title={m["couriers.filtered_empty_title"]()} description={m["couriers.filtered_empty_description"]()}>
@@ -108,13 +93,15 @@ function PanelContent({pending, failed, rows, filtered, onOpen, onClearFilters, 
     }
     return (
       <PanelEmpty
-        icon={<ImageIcon className="size-10 text-grey-300" aria-hidden="true" />}
+        icon={<img src={wheelIcon} alt="" className="size-12" aria-hidden="true" />}
         title={m["couriers.map_empty_title"]()}
         description={m["couriers.map_empty_description"]()}
       />
     );
   }
-  return rows.map((row) => <CouriersMapCard key={row.id} row={row} onOpen={onOpen} />);
+  return tracks.map((track) => (
+    <CouriersMapCard key={track.courierId} track={track} selected={track.courierId === selectedId} onSelect={onSelect} />
+  ));
 }
 
 /** Centered note inside the cards region — optional icon above the copy and action below it. */

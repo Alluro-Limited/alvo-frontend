@@ -9,21 +9,18 @@ interface CouriersMapPanelProps {
   collapsed: boolean;
   query: string;
   status: string;
-  verification: string;
-  vehicle: string;
+  type: string;
   statusOptions: FilterOption[];
-  verificationOptions: FilterOption[];
-  vehicleOptions: FilterOption[];
+  typeOptions: FilterOption[];
   onToggleCollapsed: () => void;
   onView: (view: ListMapView) => void;
   onQuery: (value: string) => void;
   onStatus: (value: string) => void;
-  onVerification: (value: string) => void;
-  onVehicle: (value: string) => void;
+  onType: (value: string) => void;
   children: React.ReactNode;
 }
 
-/** The floating left column: List/Map pills + collapse toggle, then search/filters and the courier cards. */
+/** The floating left column: List/Map pills + collapse toggle, then search/filters and the track cards. */
 export function CouriersMapPanel({collapsed, onToggleCollapsed, onView, children, ...filters}: CouriersMapPanelProps) {
   const CollapseIcon = collapsed ? PanelLeftOpen : PanelLeftClose;
   return (
@@ -54,64 +51,14 @@ export function CouriersMapPanel({collapsed, onToggleCollapsed, onView, children
 
 type FilterBlockProps = Pick<
   CouriersMapPanelProps,
-  | "query"
-  | "status"
-  | "verification"
-  | "vehicle"
-  | "statusOptions"
-  | "verificationOptions"
-  | "vehicleOptions"
-  | "onQuery"
-  | "onStatus"
-  | "onVerification"
-  | "onVehicle"
+  "query" | "status" | "type" | "statusOptions" | "typeOptions" | "onQuery" | "onStatus" | "onType"
 >;
 
-/** The rounded white block with the search field and the three filter selects. */
-function FilterBlock({query, onQuery, ...selects}: FilterBlockProps) {
+/** The rounded white block with the search field and the two filter selects. */
+function FilterBlock({query, status, type, statusOptions, typeOptions, onQuery, onStatus, onType}: FilterBlockProps) {
   return (
     <div className="flex flex-col gap-2 rounded-3xl border border-grey-200 bg-white p-3">
       <CourierSearchField value={query} placeholder={m["couriers.map_search_placeholder"]()} onQuery={onQuery} />
-      <SelectFilters {...selects} />
-    </div>
-  );
-}
-
-interface FilterSelectSpec {
-  ariaLabel: string;
-  emptyLabel: string;
-  value: string;
-  options: FilterOption[];
-  onChange: (value: string) => void;
-}
-
-function FilterSelect({ariaLabel, emptyLabel, value, options, onChange}: FilterSelectSpec) {
-  return (
-    <SelectShell aria-label={ariaLabel} value={value} onChange={onChange}>
-      <option value="">{emptyLabel}</option>
-      {options.map((option) => (
-        <option key={option.id} value={option.id}>
-          {option.label}
-        </option>
-      ))}
-    </SelectShell>
-  );
-}
-
-/** Status + verification on one row, vehicle on its own row below. */
-function SelectFilters({
-  status,
-  verification,
-  vehicle,
-  statusOptions,
-  verificationOptions,
-  vehicleOptions,
-  onStatus,
-  onVerification,
-  onVehicle,
-}: Omit<FilterBlockProps, "query" | "onQuery">) {
-  return (
-    <>
       <div className="flex items-center gap-2">
         <FilterSelect
           ariaLabel={m["couriers.filter_status"]()}
@@ -121,20 +68,38 @@ function SelectFilters({
           onChange={onStatus}
         />
         <FilterSelect
-          ariaLabel={m["couriers.filter_verification"]()}
-          emptyLabel={m["couriers.map_verification_label"]()}
-          value={verification}
-          options={verificationOptions}
-          onChange={onVerification}
+          ariaLabel={m["couriers.map_type_label"]()}
+          emptyLabel={m["couriers.map_type_label"]()}
+          value={type}
+          options={typeOptions}
+          onChange={onType}
         />
       </div>
-      <FilterSelect
-        ariaLabel={m["couriers.filter_vehicle"]()}
-        emptyLabel={m["couriers.map_vehicle_label"]()}
-        value={vehicle}
-        options={vehicleOptions}
-        onChange={onVehicle}
-      />
-    </>
+    </div>
+  );
+}
+
+function FilterSelect({
+  ariaLabel,
+  emptyLabel,
+  value,
+  options,
+  onChange,
+}: {
+  ariaLabel: string;
+  emptyLabel: string;
+  value: string;
+  options: FilterOption[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <SelectShell aria-label={ariaLabel} value={value} onChange={onChange}>
+      <option value="">{emptyLabel}</option>
+      {options.map((option) => (
+        <option key={option.id} value={option.id}>
+          {option.label}
+        </option>
+      ))}
+    </SelectShell>
   );
 }

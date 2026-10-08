@@ -8,6 +8,7 @@ import type {
   CourierVerificationItemKey,
 } from "@/types/couriers-types";
 import {courierAssignmentsFor, courierDetailFor} from "./mock-courier-detail";
+import {courierTracksFor} from "./mock-courier-tracks";
 import {COURIER_SEEDS} from "./mock-courier-seeds";
 import {mockDelay, mockHttpError} from "./mock-http";
 
@@ -17,6 +18,8 @@ const HISTORY_PAGE_SIZE = 7;
 const STATUS_FILTERS = ["active", "flagged", "suspended"];
 const VERIFICATION_FILTERS = ["verified", "pending"];
 const VEHICLE_FILTERS = ["bicycle", "car", "motorcycle", "van"];
+const TRACK_STATUS_FILTERS = ["in_transit", "delayed"];
+const TRACK_TYPE_FILTERS = ["bulk", "node", "express"];
 const SUSPEND_REASONS = ["gps_tampering", "safety_incident", "policy_violations", "recipient_complaint", "fraud", "other"] as const;
 const DELETE_REASONS = ["account_closed", "policy_violations", "fraud", "inactive", "other"] as const;
 
@@ -100,9 +103,18 @@ export const mockCouriersService: CouriersService = {
     };
   },
 
-  getCourierMap: async (params) => {
+  getCourierTracking: async (params) => {
     await mockDelay();
-    return applyFilters(params).map((row) => ({...row}));
+    const q = params.query?.trim().toLowerCase();
+    let tracks = courierTracksFor(rowsStore, metricsFor(rowsStore).onAssignment);
+    if (params.status) tracks = tracks.filter((track) => track.status === params.status);
+    if (params.type) tracks = tracks.filter((track) => track.type === params.type);
+    if (q) {
+      tracks = tracks.filter((track) =>
+        [track.courierId, track.name, track.batchId, track.pickup.name, track.dropoff.name].some((f) => f.toLowerCase().includes(q))
+      );
+    }
+    return {tracks, filters: {statuses: TRACK_STATUS_FILTERS, types: TRACK_TYPE_FILTERS}};
   },
 
   getCourierDetail: async (id) => {

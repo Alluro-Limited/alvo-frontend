@@ -1,5 +1,5 @@
 import {useCallback, useState} from "react";
-import type {CourierListParams, CourierMapParams} from "@/types/couriers-types";
+import type {CourierExportParams, CourierListParams} from "@/types/couriers-types";
 
 /** Search/status/verification/vehicle/page state for the couriers table — any filter change returns to page 1. */
 export function useCouriersFilters() {
@@ -23,7 +23,8 @@ export function useCouriersFilters() {
     vehicle: vehicle || undefined,
   };
   const listParams: CourierListParams = {...shared, page};
-  const mapParams: CourierMapParams = shared;
+  /** The courier CSV export runs on the same filter set the list shows. */
+  const exportParams: CourierExportParams = shared;
   const filtered =
     shared.query !== undefined || shared.status !== undefined || shared.verification !== undefined || shared.vehicle !== undefined;
   const clearFilters = useCallback(() => {
@@ -38,7 +39,7 @@ export function useCouriersFilters() {
     filters: {query, status, verification, vehicle},
     filtered,
     listParams,
-    mapParams,
+    exportParams,
     onQuery: firstPage(setQuery),
     onStatus: firstPage(setStatus),
     onVerification: firstPage(setVerification),

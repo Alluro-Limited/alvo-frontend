@@ -8,7 +8,7 @@ const PALETTES = [
   "bg-status-fail-subtle text-status-fail-dark",
 ];
 
-function initials(name: string): string {
+export function courierInitials(name: string): string {
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -17,7 +17,7 @@ function initials(name: string): string {
     .join("");
 }
 
-function paletteFor(id: string): string {
+export function courierAvatarPalette(id: string): string {
   const seed = id.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return PALETTES[seed % PALETTES.length];
 }
@@ -29,10 +29,10 @@ export function CourierAvatar({id, name, photoUrl, size = "size-7"}: {id: string
   }
   return (
     <span
-      className={cn("flex shrink-0 items-center justify-center rounded-full text-[11px] font-bold", size, paletteFor(id))}
+      className={cn("flex shrink-0 items-center justify-center rounded-full text-[11px] font-bold", size, courierAvatarPalette(id))}
       aria-hidden="true"
     >
-      {initials(name)}
+      {courierInitials(name)}
     </span>
   );
 }
