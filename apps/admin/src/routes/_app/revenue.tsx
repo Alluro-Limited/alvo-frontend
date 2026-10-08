@@ -1,5 +1,5 @@
 import {createFileRoute} from "@tanstack/react-router";
-import {PlaceholderPage} from "@/pages/placeholder-page";
+import {RevenuePage} from "@/pages/revenue";
 import {m} from "@/paraglide/messages";
 
 export const Route = createFileRoute("/_app/revenue")({
@@ -8,5 +8,5 @@ export const Route = createFileRoute("/_app/revenue")({
 });
 
 function revenuePage() {
-  return <PlaceholderPage title={m["nav.revenue"]()} />;
+  return <RevenuePage />;
 }

@@ -13,6 +13,7 @@ const STUB_PATHS = [
   "/users",
   "/smes",
   "/couriers",
+  "/revenue",
   "/nodes",
   "/nodes/$nodeId",
   "/workloads",
