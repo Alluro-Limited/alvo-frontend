@@ -1,0 +1,19 @@
+import {createRouter} from "@tanstack/react-router";
+import {startSentry} from "@/lib/sentry";
+import {routeTree} from "./routeTree.gen";
+
+export function getRouter() {
+  const router = createRouter({
+    routeTree,
+    scrollRestoration: true,
+    defaultPreload: "intent",
+  });
+  startSentry(router);
+  return router;
+}
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: ReturnType<typeof getRouter>;
+  }
+}

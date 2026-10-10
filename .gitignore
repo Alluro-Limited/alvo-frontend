@@ -10,3 +10,10 @@ dist-ssr
 .DS_Store
 *.tsbuildinfo
 .vitest/
+
+# Paraglide (generated from messages/*.json)
+apps/*/src/paraglide
+coverage
+
+# TanStack Router/Start scratch files
+.tanstack/

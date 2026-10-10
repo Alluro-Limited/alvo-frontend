@@ -1,0 +1,43 @@
+{
+  "name": "@alvo/admin",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp build && vp preview",
+    "test": "vp test",
+    "test:coverage": "vp test run --coverage",
+    "i18n:compile": "paraglide-js compile --project project.inlang --outdir ./src/paraglide --emit-ts-declarations",
+    "machine-translate": "inlang machine translate --project project.inlang"
+  },
+  "dependencies": {
+    "@alvo/design-tokens": "workspace:*",
+    "@alvo/ui": "workspace:*",
+    "@sentry/react": "^11.0.0",
+    "@tanstack/react-query": "^5.104.0",
+    "@tanstack/react-router": "^1.170.41",
+    "@tanstack/react-start": "^1.168.60",
+    "cnfast": "^0.1.0",
+    "ky": "^2.1.0",
+    "lucide-react": "^1.37.0",
+    "maplibre-gl": "6.11.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "valibot": "^1.5.0"
+  },
+  "devDependencies": {
+    "@inlang/cli": "^3.3.8",
+    "@inlang/paraglide-js": "^2.25.4",
+    "@sentry/vite-plugin": "5.4.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~7.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}
