@@ -5,6 +5,7 @@ export * from "./components/ui/dialog";
 export * from "./components/ui/input";
 export * from "./components/ui/menu";
 export * from "./components/ui/pin-input";
+export * from "./components/ui/popover";
 export * from "./components/ui/radio";
 export * from "./components/ui/status-tag";
 export * from "./components/ui/switch";

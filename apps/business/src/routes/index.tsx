@@ -1,6 +1,8 @@
 import {createFileRoute} from "@tanstack/react-router";
-import {HomePage} from "@/pages/home";
+import {LoginPage} from "@/pages/login";
+import {m} from "@/paraglide/messages";
 
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  head: () => ({meta: [{title: m["login.meta_title"]()}]}),
+  component: LoginPage,
 });
