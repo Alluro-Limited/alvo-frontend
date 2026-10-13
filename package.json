@@ -25,7 +25,7 @@
     "test:ct": "playwright test -c playwright-ct.config.ts",
     "react-doctor": "react-doctor -y --verbose",
     "stryker": "stryker run",
-    "prepare": "vp config && bun --filter @alvo/admin i18n:compile && bun --filter @alvo/business i18n:compile"
+    "prepare": "vp config && bun --filter @alvo/admin i18n:compile && bun --filter @alvo/business i18n:compile && bun --filter @alvo/courier-pwa i18n:compile"
   },
   "devDependencies": {
     "@playwright/experimental-ct-react": "^1.62.1",
