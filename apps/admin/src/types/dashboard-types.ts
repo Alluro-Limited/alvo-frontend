@@ -127,4 +127,6 @@ export interface DashboardService {
   getOverview: () => Promise<DashboardOverview>;
   getNodeDetail: (id: string) => Promise<NodeDetail>;
   getCourierDetail: (id: string) => Promise<CourierDetail>;
+  /** The audit feed (v1/admin/audit-events) — same shape as the activity list. */
+  getAuditLog: (page?: number) => Promise<OverviewActivityItem[]>;
 }

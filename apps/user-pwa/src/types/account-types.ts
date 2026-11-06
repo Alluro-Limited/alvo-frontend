@@ -94,11 +94,19 @@ export interface AccountService {
   removeAddress(id: string): Promise<void>;
   /** Step 1 — checks the password and sends the deletion code. Throws `invalid_password` when wrong. */
   requestAccountDeletion(password: string): Promise<void>;
-  /** Resends the code from the Confirm account deletion sheet. */
-  resendDeletionCode(): Promise<void>;
+  /** Resends the code from the Confirm account deletion sheet — the API re-checks the password on every request. */
+  resendDeletionCode(password: string): Promise<void>;
   /** Step 2 — verifies the code and deletes the account. Throws `invalid_code` when wrong. */
   confirmAccountDeletion(code: string): Promise<void>;
   getWallet(): Promise<WalletDetails>;
   /** Creates the virtual funding account; rejections land on the sheet's failure view. */
   generateVirtualAccount(): Promise<VirtualAccount>;
+  /** Starts a hosted top-up — returns the checkout URL to open. */
+  startCheckout(amountKobo: string): Promise<{authorizationUrl: string; reference: string}>;
+  /** Redeems a promo/referral code (POST v1/codes/redeem). */
+  redeemCode(code: string, nodeId?: string): Promise<{trackingNo: string}>;
+  /** Generic freeform addresses (v1/me/addresses) — distinct from favorite-node Saved Addresses. */
+  getUserAddresses(): Promise<SavedAddress[]>;
+  saveUserAddress(address: SavedAddress): Promise<void>;
+  deleteUserAddress(id: string): Promise<void>;
 }

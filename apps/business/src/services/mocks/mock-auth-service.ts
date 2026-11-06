@@ -9,7 +9,7 @@ import {mockSession} from "./mock-session";
  */
 export const MOCK_AUTH = {
   password: "Password123!",
-  otpCode: "12345",
+  otpCode: "123456",
   rateLimitedEmail: "locked@alvo.com",
   unavailableEmail: "unavailable@alvo.com",
   takenEmail: "taken@alvo.com",

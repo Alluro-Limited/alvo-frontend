@@ -1,112 +1,151 @@
-import * as v from "valibot";
 import {apiClient} from "@/services/api-client";
-import type {ChangeNodeStatusInput, NodesService, RegisterNodeInput} from "@/types/nodes-types";
+import type {NodeDetail, NodeRow, NodesService, NodeStatus} from "@/types/nodes-types";
 
-const NodeStatusSchema = v.picklist(["online", "offline", "warning", "maintenance", "full", "decommissioned"]);
-const ConnectivitySchema = v.picklist(["4g_lte", "3g", "unstable", "no_signal"]);
-const LngLatSchema = v.tuple([v.number(), v.number()]);
-const CapacitySchema = v.object({used: v.number(), total: v.number()});
+interface ApiNode {
+  id: string;
+  code: string;
+  name: string;
+  lat: number;
+  lng: number;
+  status: string;
+  capacity?: {small: number; medium: number; large: number};
+  available?: {small: number; medium: number; large: number};
+}
 
-const NodeRowSchema = v.object({
-  id: v.string(),
-  name: v.string(),
-  partner: v.string(),
-  zone: v.string(),
-  capacity: CapacitySchema,
-  connectivity: ConnectivitySchema,
-  status: NodeStatusSchema,
-  position: LngLatSchema,
+interface ApiNodeDetails {
+  name?: string;
+  partnerName?: string;
+  region?: string;
+  zone?: string;
+  address?: string;
+  accessNotes?: string;
+  hours?: string;
+  dropoffCapacityKg?: number;
+  installedAt?: string;
+}
+
+const STATUS: Record<string, NodeStatus> = {NODE_STATUS_AVAILABLE: "online", NODE_STATUS_OFFLINE: "offline"};
+
+const cap = (c?: {small: number; medium: number; large: number}) => (c ? c.small + c.medium + c.large : 0);
+
+const toRow = (n: ApiNode): NodeRow => ({
+  id: n.id,
+  name: n.name,
+  partner: "",
+  zone: "",
+  capacity: {used: Math.max(cap(n.capacity) - cap(n.available), 0), total: cap(n.capacity)},
+  connectivity: "4g_lte",
+  status: STATUS[n.status] ?? "offline",
+  position: [n.lng, n.lat],
 });
 
-const ListResponseSchema = v.object({
-  metrics: v.partial(
-    v.object({
-      total: v.number(),
-      online: v.number(),
-      offline: v.number(),
-      warning: v.number(),
-      maintenance: v.number(),
-      fullCapacity: v.number(),
-    })
-  ),
-  nodes: v.object({items: v.array(NodeRowSchema), page: v.number(), pageSize: v.number(), total: v.number()}),
-  filters: v.object({statuses: v.array(v.string())}),
+const field = (d: ApiNodeDetails | null, key: keyof ApiNodeDetails) => String(d?.[key] ?? "");
+
+const toDetail = (n: ApiNode, d: ApiNodeDetails | null): NodeDetail => ({
+  id: n.id,
+  code: n.code,
+  name: field(d, "name") || n.name,
+  status: STATUS[n.status] ?? "offline",
+  partner: field(d, "partnerName"),
+  zone: field(d, "zone"),
+  region: field(d, "region"),
+  address: field(d, "address"),
+  installedAt: field(d, "installedAt"),
+  uptimeToday: 0,
+  lastHeartbeatAt: "",
+  connectivity: "4g_lte",
+  pickupOccupancy: {used: Math.max(cap(n.capacity) - cap(n.available), 0), total: cap(n.capacity)},
+  compartments: [],
+  sensors: [],
+  contents: [],
+  maintenance: [],
+  statusOptions: [
+    {status: "online", reasons: null},
+    {status: "offline", reasons: ["maintenance", "decommissioned"]},
+  ],
+  position: [n.lng, n.lat],
 });
 
-const CompartmentGroupSchema = v.object({
-  key: v.picklist(["pickup", "dropoff"]),
-  used: v.number(),
-  total: v.number(),
-  unit: v.picklist(["slots", "kg"]),
-  breakdown: v.array(v.object({size: v.picklist(["small", "medium", "large"]), count: v.number(), unit: v.picklist(["slots", "items"])})),
-});
+const codeFor = (name: string) =>
+  name
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 6)
+    .toUpperCase() || "NODE01";
 
-const NodeDetailSchema = v.object({
-  id: v.string(),
-  code: v.string(),
-  name: v.string(),
-  status: NodeStatusSchema,
-  partner: v.string(),
-  zone: v.string(),
-  region: v.string(),
-  address: v.string(),
-  installedAt: v.string(),
-  uptimeToday: v.number(),
-  lastHeartbeatAt: v.string(),
-  connectivity: ConnectivitySchema,
-  pickupOccupancy: CapacitySchema,
-  compartments: v.array(CompartmentGroupSchema),
-  sensors: v.array(
-    v.object({
-      key: v.picklist(["network", "power", "door", "tamper"]),
-      label: v.string(),
-      value: v.string(),
-      tone: v.picklist(["ok", "warn"]),
-    })
-  ),
-  contents: v.array(
-    v.object({
-      id: v.string(),
-      kind: v.picklist(["parcel", "safe"]),
-      owner: v.string(),
-      slot: v.string(),
-      sinceAt: v.string(),
-      label: v.string(),
-    })
-  ),
-  maintenance: v.array(
-    v.object({
-      id: v.string(),
-      title: v.string(),
-      at: v.string(),
-      vendor: v.string(),
-      status: v.picklist(["completed", "scheduled", "in_progress"]),
-    })
-  ),
-  statusOptions: v.array(v.object({status: NodeStatusSchema, reasons: v.nullable(v.array(v.string()))})),
-  position: LngLatSchema,
-});
-
-/** Nodes over the real backend. The endpoint paths are placeholders until the API exists. */
+/**
+ * Nodes against `v1/admin/nodes/**`. The wire carries only AVAILABLE/OFFLINE statuses and
+ * no connectivity/sensors/contents/maintenance-telemetry — those stay empty until the API
+ * grows them. `registerNode` needs a code the form never collects, so one is derived from
+ * the name for now.
+ */
 export const httpNodesService: NodesService = {
   getNodes: async (params) => {
-    const body = await apiClient
-      .get("nodes", {
-        searchParams: {page: params.page, ...(params.query ? {q: params.query} : {}), ...(params.status ? {status: params.status} : {})},
-      })
-      .json();
-    return v.parse(ListResponseSchema, body);
+    const searchParams = new URLSearchParams({pageSize: "100"});
+    if (params.query) searchParams.set("query", params.query);
+    if (params.status) searchParams.set("status", params.status);
+    const res = await apiClient.get("v1/admin/nodes", {searchParams}).json<{nodes: ApiNode[]; total?: string}>();
+    const items = res.nodes.map(toRow);
+    return {
+      metrics: {
+        total: items.length,
+        online: items.filter((n) => n.status === "online").length,
+        offline: items.filter((n) => n.status === "offline").length,
+      },
+      nodes: {items, page: params.page, pageSize: items.length, total: Number(res.total ?? items.length)},
+      filters: {statuses: ["online", "offline"]},
+    };
   },
   getNodeDetail: async (id) => {
-    const body = await apiClient.get(`nodes/${id}`).json();
-    return v.parse(NodeDetailSchema, body);
+    const res = await apiClient.get(`v1/admin/nodes/${id}`).json<{node: ApiNode; details?: ApiNodeDetails}>();
+    return toDetail(res.node, res.details ?? null);
   },
-  registerNode: async (input: RegisterNodeInput) => {
-    const body = await apiClient.post("nodes", {json: input}).json();
-    return v.parse(NodeRowSchema, body);
+  registerNode: async (input) => {
+    const res = await apiClient
+      .post("v1/admin/nodes", {
+        json: {
+          code: codeFor(input.name),
+          details: {
+            name: input.name,
+            partnerName: input.partner,
+            region: input.region,
+            zone: input.zone,
+            address: input.address,
+            dropoffCapacityKg: input.capacity.dropoffKg,
+          },
+          lat: input.latitude,
+          lng: input.longitude,
+          capacity: {small: input.capacity.small, medium: input.capacity.medium, large: input.capacity.large},
+          adapterType: "NODE_ADAPTER_TYPE_SMART_LOCKER",
+        },
+      })
+      .json<{node: ApiNode}>();
+    return toRow(res.node);
   },
-  changeNodeStatus: async (id, input: ChangeNodeStatusInput) => {
-    const body = await apiClient.patch(`nodes/${id}/status`, {json: input}).json();
-    return v.parse(v.object({id: v.string(), status: NodeStatusSchema}), body);
+  changeNodeStatus: async (id, input) => {
+    await apiClient.post(`v1/admin/nodes/${id}/status`, {
+      json: {status: input.status === "offline" ? "NODE_STATUS_OFFLINE" : "NODE_STATUS_AVAILABLE", notes: input.notes ?? ""},
+    });
+    return {id, status: input.status};
+  },
+  updateNode: async (id, input) => {
+    const res = await apiClient
+      .put(`v1/admin/nodes/${id}`, {
+        json: {details: {name: input.name, partnerName: input.partner, region: input.region, zone: input.zone, address: input.address}},
+      })
+      .json<{node: ApiNode}>();
+    return toRow(res.node);
+  },
+  scheduleMaintenance: async (nodeId, input) => {
+    const res = await apiClient.post(`v1/admin/nodes/${nodeId}/maintenance`, {json: input}).json<{maintenance?: {id?: string}}>();
+    return {id: res.maintenance?.id ?? ""};
+  },
+  completeMaintenance: async (nodeId, maintenanceId) => {
+    await apiClient.post(`v1/admin/nodes/${nodeId}/maintenance/${maintenanceId}/complete`, {json: {}});
+  },
+  assignOperator: async (nodeId, userId) => {
+    await apiClient.put(`v1/admin/nodes/${nodeId}/operators/${userId}`);
+  },
+  unassignOperator: async (nodeId, userId) => {
+    await apiClient.delete(`v1/admin/nodes/${nodeId}/operators/${userId}`);
   },
 };

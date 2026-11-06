@@ -59,16 +59,16 @@ describe("DeleteAccountPage", () => {
 
   it("confirms deletion with a complete code and lands on sign-in", async () => {
     await openSheet();
-    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "12345"}});
+    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "123456"}});
     fireEvent.click(screen.getByRole("button", {name: "del.confirm"}));
-    await waitFor(() => expect(deleteAccount).toHaveBeenCalledWith("12345"));
+    await waitFor(() => expect(deleteAccount).toHaveBeenCalledWith("123456"));
     expect(await screen.findByText("stub:/sign-in")).toBeTruthy();
   });
 
   it("flags a wrong code instead of deleting", async () => {
     deleteAccount.mockRejectedValue(createHttpError(400));
     await openSheet();
-    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "00000"}});
+    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "000000"}});
     fireEvent.click(screen.getByRole("button", {name: "del.confirm"}));
     expect(await screen.findByText("del.err_code")).toBeTruthy();
     expect(screen.queryByText("stub:/sign-in")).toBeNull();

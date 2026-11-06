@@ -1,20 +1,20 @@
 import {useEffect, useState} from "react";
 import {m} from "@/paraglide/messages";
 
-const RESEND_SECONDS = 30;
-
 function formatCountdown(seconds: number): string {
-  return `00:${String(seconds).padStart(2, "0")}`;
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 interface ResendRowProps {
+  /** Cooldown from the API's `resendAfterSeconds`. */
+  seconds: number;
   onResend: () => void;
   onChangeMethod: () => void;
 }
 
-/** "Resend code in 00:xx" countdown that flips to the resend link at zero, plus "Try another method". */
-export function ResendRow({onResend, onChangeMethod}: ResendRowProps) {
-  const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
+/** "Resend code in mm:ss" countdown that flips to the resend link at zero, plus "Try another method". */
+export function ResendRow({seconds, onResend, onChangeMethod}: ResendRowProps) {
+  const [secondsLeft, setSecondsLeft] = useState(seconds);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -34,7 +34,7 @@ export function ResendRow({onResend, onChangeMethod}: ResendRowProps) {
           <button
             type="button"
             onClick={() => {
-              setSecondsLeft(RESEND_SECONDS);
+              setSecondsLeft(seconds);
               onResend();
             }}
             className="font-medium text-primary-500"

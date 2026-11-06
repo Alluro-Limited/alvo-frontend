@@ -64,5 +64,12 @@ export const mockActivityService: ActivityService = {
     if (!detail) throw mockHttpError(`deliveries/${id}/pickup/verify`, 404, {code: "not_found"});
     if (code !== "555555") throw mockHttpError(`deliveries/${id}/pickup/verify`, 400, {code: "invalid_code"});
     if (detail.pickupAccess) detail.pickupAccess.protected = false;
+    return detail.pickupAccess?.code ?? "P-8823";
+  },
+  trackParcel: async (trackingNo) => {
+    await mockDelay();
+    const detail = DETAILS[trackingNo] ?? Object.values(DETAILS)[0];
+    if (!detail) throw mockHttpError(`track/${trackingNo}`, 404, {code: "not_found"});
+    return detail;
   },
 };

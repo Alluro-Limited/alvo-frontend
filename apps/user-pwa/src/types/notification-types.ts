@@ -18,4 +18,7 @@ export interface NotificationGroup {
 
 export interface UserNotificationService {
   getNotifications: () => Promise<NotificationGroup[]>;
+  getUnreadCount: () => Promise<number>;
+  markRead: (id: string) => Promise<void>;
+  markAllRead: () => Promise<void>;
 }

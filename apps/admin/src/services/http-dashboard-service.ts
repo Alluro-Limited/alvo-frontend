@@ -1,91 +1,136 @@
-import * as v from "valibot";
 import {apiClient} from "@/services/api-client";
-import type {DashboardService} from "@/types/dashboard-types";
+import type {AlertSeverity, DashboardService, NodeDetail, OverviewAlert, OverviewMapNode} from "@/types/dashboard-types";
 
-const LngLatSchema = v.tuple([v.number(), v.number()]);
+interface ApiOverview {
+  parcelsToday: string;
+  inTransit: string;
+  deliveredToday: string;
+  deliveryRate?: {onTime?: string; late?: string; failed?: string};
+  activeNodes: string;
+  registeredNodes: string;
+  onlineCouriers: string;
+  slaAtRisk: string;
+}
 
-const OverviewResponseSchema = v.object({
-  firstRun: v.boolean(),
-  kpis: v.object({
-    activeParcels: v.number(),
-    parcelsDeltaPct: v.optional(v.number()),
-    nodesOnline: v.number(),
-    nodesTotal: v.number(),
-    nodesUptimePct: v.optional(v.number()),
-    couriersActive: v.number(),
-    couriersRegistered: v.number(),
-    couriersOffline: v.optional(v.number()),
-    revenueToday: v.number(),
-    revenueDeltaPct: v.optional(v.number()),
-  }),
-  deliveryRate: v.object({today: v.number(), onTime: v.number(), late: v.number(), failed: v.number()}),
-  map: v.object({
-    nodes: v.array(v.object({id: v.string(), status: v.picklist(["online", "offline", "warning"]), position: LngLatSchema})),
-    couriers: v.array(v.object({id: v.string(), position: LngLatSchema})),
-    route: v.array(LngLatSchema),
-    routeCompleted: v.optional(v.array(LngLatSchema)),
-  }),
-  alerts: v.array(
-    v.object({
-      id: v.string(),
-      severity: v.picklist(["success", "warning", "error"]),
-      title: v.string(),
-      description: v.string(),
-      at: v.string(),
-    })
-  ),
-  activity: v.array(
-    v.object({
-      id: v.string(),
-      tone: v.picklist(["success", "fail"]),
-      title: v.string(),
-      detail: v.string(),
-      at: v.string(),
-    })
-  ),
+interface ApiAlert {
+  kind: string;
+  targetId: string;
+  targetRef: string;
+  raisedAt: string;
+  parcelsAffected: string;
+}
+
+interface ApiActivity {
+  id: string;
+  actorRole: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  createdAt: string;
+}
+
+interface ApiNode {
+  id: string;
+  code: string;
+  name: string;
+  lat: number;
+  lng: number;
+  status: string;
+  capacity?: {small: number; medium: number; large: number};
+  available?: {small: number; medium: number; large: number};
+}
+
+const cap = (c?: {small: number; medium: number; large: number}) => (c ? c.small + c.medium + c.large : 0);
+
+const ALERT_TONE: Record<string, AlertSeverity> = {
+  ALERT_KIND_NODE_OFFLINE: "error",
+  ALERT_KIND_SLA_AT_RISK: "warning",
+};
+
+const toAlert = (a: ApiAlert): OverviewAlert => ({
+  id: a.targetId,
+  severity: ALERT_TONE[a.kind] ?? "warning",
+  title: a.targetRef,
+  description: a.kind.replace("ALERT_KIND_", "").replaceAll("_", " ").toLowerCase(),
+  at: a.raisedAt,
 });
 
-const NodeDetailSchema = v.object({
-  id: v.string(),
-  status: v.picklist(["online", "offline", "warning"]),
-  location: v.string(),
-  capacityUsed: v.number(),
-  capacityTotal: v.number(),
-  partnerHost: v.string(),
-  lastHeartbeatAt: v.string(),
-  uptimePct: v.number(),
-  parcelsToday: v.number(),
-  network: v.string(),
-});
-
-const CourierDetailSchema = v.object({
-  id: v.string(),
-  name: v.string(),
-  avatarUrl: v.optional(v.string()),
-  status: v.picklist(["enroute", "idle", "offline"]),
-  deliveriesDone: v.number(),
-  deliveriesTotal: v.number(),
-  lastLocation: v.string(),
-  offlineSinceAt: v.optional(v.string()),
-  rating: v.number(),
-  pickupNode: v.string(),
-  dropoffNode: v.string(),
-  deliveryType: v.string(),
-  etaAt: v.string(),
-});
-
-/** Dashboard over the real backend. The endpoint paths are placeholders until the API exists. */
+/**
+ * Dashboard against `v1/admin/overview{,/activity,/alerts}` and `v1/admin/nodes` for the
+ * map markers. There are no courier-position/route feeds and no courier popover endpoint —
+ * those stay empty or throw.
+ */
 export const httpDashboardService: DashboardService = {
   getOverview: async () => {
-    const body = await apiClient.get("dashboard/overview").json();
-    return v.parse(OverviewResponseSchema, body);
+    const [overview, alerts, activity, nodes] = await Promise.all([
+      apiClient.get("v1/admin/overview").json<ApiOverview>(),
+      apiClient.get("v1/admin/overview/alerts", {searchParams: {pageSize: 10}}).json<{alerts: ApiAlert[]}>(),
+      apiClient.get("v1/admin/overview/activity", {searchParams: {pageSize: 10}}).json<{activity: ApiActivity[]}>(),
+      apiClient.get("v1/admin/nodes").json<{nodes: ApiNode[]}>(),
+    ]);
+    const nodesTotal = Number(overview.registeredNodes);
+    const nodesOnline = Number(overview.activeNodes);
+    const mapNodes: OverviewMapNode[] = nodes.nodes.map((n) => ({
+      id: n.id,
+      status: n.status === "NODE_STATUS_AVAILABLE" ? "online" : "offline",
+      position: [n.lng, n.lat],
+    }));
+    return {
+      firstRun: false,
+      kpis: {
+        activeParcels: Number(overview.inTransit),
+        nodesOnline,
+        nodesTotal,
+        nodesUptimePct: nodesTotal ? Math.round((nodesOnline / nodesTotal) * 100) : undefined,
+        couriersActive: Number(overview.onlineCouriers),
+        couriersRegistered: Number(overview.onlineCouriers),
+        revenueToday: 0,
+      },
+      deliveryRate: {
+        today: Number(overview.deliveredToday),
+        onTime: Number(overview.deliveryRate?.onTime ?? 0),
+        late: Number(overview.deliveryRate?.late ?? 0),
+        failed: Number(overview.deliveryRate?.failed ?? 0),
+      },
+      map: {nodes: mapNodes, couriers: [], route: []},
+      alerts: alerts.alerts.map(toAlert),
+      activity: activity.activity.map((a) => ({
+        id: a.id,
+        tone: "success" as const,
+        title: a.action,
+        detail: `${a.actorRole || "system"} · ${a.targetId}`,
+        at: a.createdAt,
+      })),
+    };
   },
-  getNodeDetail: async (id) => {
-    const body = await apiClient.get(`dashboard/nodes/${id}`).json();
-    return v.parse(NodeDetailSchema, body);
+  getNodeDetail: async (id): Promise<NodeDetail> => {
+    const res = await apiClient.get(`v1/admin/nodes/${id}`).json<{node: ApiNode}>();
+    const {node} = res;
+    const total = cap(node.capacity);
+    return {
+      id: node.id,
+      status: node.status === "NODE_STATUS_AVAILABLE" ? "online" : "offline",
+      location: node.name,
+      capacityUsed: Math.max(total - cap(node.available), 0),
+      capacityTotal: total,
+      partnerHost: "",
+      lastHeartbeatAt: "",
+      uptimePct: 0,
+      parcelsToday: 0,
+      network: "",
+    };
   },
-  getCourierDetail: async (id) => {
-    const body = await apiClient.get(`dashboard/couriers/${id}`).json();
-    return v.parse(CourierDetailSchema, body);
+  getCourierDetail: async () => {
+    throw new Error("courier position detail is not supported by the API yet");
+  },
+  getAuditLog: async () => {
+    const res = await apiClient.get("v1/admin/audit-events", {searchParams: {pageSize: 50}}).json<{activity: ApiActivity[]}>();
+    return res.activity.map((a) => ({
+      id: a.id,
+      tone: "success" as const,
+      title: a.action,
+      detail: `${a.actorRole || "system"} · ${a.targetId}`,
+      at: a.createdAt,
+    }));
   },
 };

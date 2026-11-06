@@ -1,5 +1,5 @@
-/** The five boxes in the verification screen — the backend sends a 5-digit SMS code. */
-export const OTP_LENGTH = 5;
+/** The six boxes in the verification screen — the backend sends a 6-digit SMS code. */
+export const OTP_LENGTH = 6;
 
 /** Phone-number + OTP sign-in for couriers; implemented over HTTP and by the local mock. */
 export interface CourierAuthService {

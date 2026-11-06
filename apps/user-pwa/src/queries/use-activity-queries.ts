@@ -1,5 +1,6 @@
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {activityService} from "@/services/activity-service";
+import type {DeliveryDetail} from "@/types/activity-types";
 
 export const activityKeys = {
   list: ["activities"] as const,
@@ -77,11 +78,16 @@ export function useSendPickupVerification(id: string) {
   return useMutation({mutationFn: () => activityService.sendPickupVerification(id)});
 }
 
-/** Wrong codes reject with `invalid_code`; success invalidates the detail so the masked code reveals itself. */
+/** Wrong codes reject with `invalid_code`; success drops the revealed code into the cached detail. */
 export function useVerifyPickup(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (code: string) => activityService.verifyPickup(id, code),
-    onSuccess: () => queryClient.invalidateQueries({queryKey: activityKeys.detail(id)}),
+    onSuccess: (pickupCode) => {
+      queryClient.setQueryData<DeliveryDetail>(activityKeys.detail(id), (old) =>
+        old?.pickupAccess ? {...old, pickupAccess: {...old.pickupAccess, code: pickupCode, protected: false}} : old
+      );
+      void queryClient.invalidateQueries({queryKey: activityKeys.detail(id)});
+    },
   });
 }

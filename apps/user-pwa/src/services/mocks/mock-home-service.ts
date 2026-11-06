@@ -49,4 +49,14 @@ export const mockHomeService: HomeService = {
     if (q === "lekki" || q === "ikorodu" || q === "lagos") return AREAS;
     return [];
   },
+  getWatches: async () => {
+    await mockDelay();
+    return [];
+  },
+  watchNode: async () => {
+    await mockDelay();
+  },
+  unwatchNode: async () => {
+    await mockDelay();
+  },
 };

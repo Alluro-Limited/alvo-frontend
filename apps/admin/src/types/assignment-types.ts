@@ -150,4 +150,6 @@ export interface AssignmentsService {
   getIdleCouriers: (query?: string) => Promise<IdleCourier[]>;
   assignCourier: (input: AssignCourierInput) => Promise<{id: string; courier: string}>;
   flagAssignment: (id: string, input: FlagAssignmentInput) => Promise<{id: string; status: AssignmentStatus}>;
+  /** Resolves an open review flag (POST v1/admin/flags/{id}/resolve). */
+  resolveFlag: (flagId: string, resolution: string) => Promise<void>;
 }

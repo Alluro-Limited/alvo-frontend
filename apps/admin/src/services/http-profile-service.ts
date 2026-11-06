@@ -1,43 +1,87 @@
-import * as v from "valibot";
 import {apiClient} from "@/services/api-client";
-import type {ProfileService} from "@/types/profile-types";
+import type {AdminProfile, ProfileService} from "@/types/profile-types";
+import type {AdminRole} from "@/types/admins-types";
 
-const RoleSchema = v.picklist(["super_admin", "operational_admin", "finance_admin", "support_admin", "viewer"]);
+interface ApiAdminProfile {
+  id: string;
+  code: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  totpEnabled: boolean;
+  lastActiveAt?: string;
+  createdAt: string;
+}
 
-const ProfileSchema = v.object({
-  id: v.string(),
-  firstName: v.string(),
-  lastName: v.string(),
-  email: v.string(),
-  phone: v.string(),
-  role: RoleSchema,
-  roleLabel: v.string(),
-  status: v.picklist(["active", "suspended"]),
-  memberSince: v.string(),
-  lastLogin: v.string(),
-  passwordChangedDaysAgo: v.number(),
-  twoFactorEnabled: v.boolean(),
-  timezone: v.string(),
-  dateFormat: v.string(),
-  notifications: v.object({email: v.boolean(), push: v.boolean(), sms: v.boolean()}),
-  sessions: v.array(v.object({id: v.string(), device: v.string(), location: v.string(), lastActive: v.string(), current: v.boolean()})),
+interface ApiSessionRow {
+  id: string;
+  device: string;
+  location: string;
+  lastActiveAt: string;
+  current: boolean;
+}
+
+const nameParts = (name: string) => {
+  const [first = "", ...rest] = name.split(" ");
+  return {firstName: first, lastName: rest.join(" ")};
+};
+
+const toProfile = (p: ApiAdminProfile, sessions: ApiSessionRow[]): AdminProfile => ({
+  id: p.id,
+  ...nameParts(p.name),
+  email: p.email,
+  phone: "",
+  role: (p.role as AdminRole) ?? "viewer",
+  roleLabel: p.role,
+  status: p.status === "SUSPENDED" ? "suspended" : "active",
+  memberSince: p.createdAt,
+  lastLogin: p.lastActiveAt ?? "",
+  passwordChangedDaysAgo: 0,
+  twoFactorEnabled: p.totpEnabled,
+  timezone: "",
+  dateFormat: "",
+  notifications: {email: true, push: true, sms: false},
+  sessions: sessions.map((s) => ({id: s.id, device: s.device, location: s.location, lastActive: s.lastActiveAt, current: s.current})),
 });
 
-const OptionsSchema = v.object({timezones: v.array(v.string()), dateFormats: v.array(v.string())});
-
-/** Ky adapter for the signed-in admin's profile API — active when `VITE_API_URL` is set. */
+/**
+ * Profile against `v1/admin/me` (+PUT name only), `me/password`, and `me/sessions`.
+ * The wire profile has no phone/timezone/date-format/notification-pref fields, and
+ * 2FA toggling rides the TOTP enroll/confirm pair the screens don't drive yet —
+ * `updateProfile`/`toggleTwoFactor`/`updateNotificationPrefs` only write what exists.
+ */
 export const httpProfileService: ProfileService = {
-  getProfile: async () => v.parse(ProfileSchema, await apiClient.get("profile").json()),
-
-  getProfileOptions: async () => v.parse(OptionsSchema, await apiClient.get("profile/options").json()),
-
-  updateProfile: async (input) => v.parse(ProfileSchema, await apiClient.put("profile", {json: input}).json()),
-
-  changePassword: async (input) => v.parse(v.object({id: v.string()}), await apiClient.post("profile/password", {json: input}).json()),
-
-  updateNotificationPrefs: async (prefs) => v.parse(ProfileSchema, await apiClient.put("profile/notifications", {json: prefs}).json()),
-
-  toggleTwoFactor: async (enabled) => v.parse(ProfileSchema, await apiClient.post("profile/two-factor", {json: {enabled}}).json()),
-
-  revokeSession: async (sessionId) => v.parse(v.object({id: v.string()}), await apiClient.delete(`profile/sessions/${sessionId}`).json()),
+  getProfile: async () => {
+    const [me, sessions] = await Promise.all([
+      apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>(),
+      apiClient
+        .get("v1/admin/me/sessions")
+        .json<{sessions: ApiSessionRow[]}>()
+        .catch(() => ({sessions: [] as ApiSessionRow[]})),
+    ]);
+    return toProfile(me.admin, sessions.sessions);
+  },
+  getProfileOptions: async () => ({timezones: [], dateFormats: []}),
+  updateProfile: async (input) => {
+    await apiClient.put("v1/admin/me", {json: {firstName: input.firstName, lastName: input.lastName}});
+    const res = await apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>();
+    return toProfile(res.admin, []);
+  },
+  changePassword: async (input) => {
+    await apiClient.post("v1/admin/me/password", {json: {currentPassword: input.currentPassword, newPassword: input.newPassword}});
+    return {id: "password"};
+  },
+  updateNotificationPrefs: async () => {
+    const me = await apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>();
+    return toProfile(me.admin, []);
+  },
+  toggleTwoFactor: async () => {
+    const me = await apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>();
+    return toProfile(me.admin, []);
+  },
+  revokeSession: async (sessionId) => {
+    await apiClient.delete(`v1/admin/me/sessions/${sessionId}`);
+    return {id: sessionId};
+  },
 };

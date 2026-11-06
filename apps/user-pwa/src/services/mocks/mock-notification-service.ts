@@ -61,4 +61,14 @@ export const mockNotificationService: UserNotificationService = {
     await mockDelay();
     return GROUPS;
   },
+  getUnreadCount: async () => {
+    await mockDelay();
+    return 0;
+  },
+  markRead: async () => {
+    await mockDelay();
+  },
+  markAllRead: async () => {
+    await mockDelay();
+  },
 };

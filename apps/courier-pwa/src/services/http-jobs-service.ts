@@ -1,22 +1,34 @@
+import {koboToNaira} from "@/lib/money";
 import {apiClient} from "@/services/api-client";
-import type {DeliveryDetail, DeliveryService, DeliveryStatus, JobOffer, JobsService} from "@/types/delivery-types";
+import type {ApiListJobsResponse} from "@/types/api-types";
+import type {JobOffer, JobsService} from "@/types/delivery-types";
 
-/** Jobs marketplace over the real backend. Endpoint paths are placeholders until the API exists. */
+/**
+ * The jobs marketplace against `v1/courier/jobs?state=OFFERED`. The wire job carries no
+ * route names, codes, distance, or deadlines — those fields stay empty until the API
+ * returns them.
+ */
 export const httpJobsService: JobsService = {
-  getJobs: async () => apiClient.get("courier/jobs").json<JobOffer[]>(),
+  getJobs: async () => {
+    const res = await apiClient.get("v1/courier/jobs", {searchParams: {state: "JOB_STATE_OFFERED"}}).json<ApiListJobsResponse>();
+    return res.jobs.map((job): JobOffer => ({
+      id: job.id,
+      kind: "regular",
+      origin: "",
+      originCode: "",
+      destination: "",
+      destinationCode: "",
+      payout: koboToNaira(job.earningsKobo),
+      packages: 0,
+      distanceKm: 0,
+      pickupBy: "",
+      deliverBy: "",
+    }));
+  },
   acceptJob: async (jobId) => {
-    await apiClient.post(`courier/jobs/${jobId}/accept`);
+    await apiClient.post(`v1/courier/jobs/${jobId}/accept`);
   },
   declineJob: async (jobId) => {
-    await apiClient.post(`courier/jobs/${jobId}/decline`);
+    await apiClient.post(`v1/courier/jobs/${jobId}/decline`);
   },
-};
-
-/** The delivery detail over the real backend. Endpoint paths are placeholders until the API exists. */
-export const httpDeliveryService: DeliveryService = {
-  getDelivery: async (jobId) => apiClient.get(`courier/deliveries/${jobId}`).json<DeliveryDetail>(),
-  scanNextPackage: async (jobId) => apiClient.post(`courier/deliveries/${jobId}/scan`).json<DeliveryDetail>(),
-  scanPackage: async (jobId, code) => apiClient.post(`courier/deliveries/${jobId}/scan`, {json: {code}}).json<DeliveryDetail>(),
-  updateStatus: async (jobId, status: DeliveryStatus) =>
-    apiClient.post(`courier/deliveries/${jobId}/status`, {json: {status}}).json<DeliveryDetail>(),
 };
