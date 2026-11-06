@@ -23,6 +23,9 @@ export interface QuoteInput {
   size: PackageSize;
   fragile: boolean;
   speed: DeliverySpeed;
+  /** Both nodes set → the quote carries an ETA window. */
+  originNodeId?: string;
+  destinationNodeId?: string;
 }
 
 export interface CostLine {

@@ -13,8 +13,8 @@ vi.mock("@/services/auth-service", () => ({
     completeRegistration: vi.fn(),
     signIn: vi.fn(),
     requestPasswordReset: vi.fn(),
-    verifyResetCode: vi.fn(),
-    resetPassword: vi.fn(),
+    confirmPasswordReset: vi.fn(),
+    signOut: vi.fn(),
   },
 }));
 
@@ -50,7 +50,8 @@ async function reachCodeStep() {
 
 describe("SignUpPage", () => {
   beforeEach(() => {
-    for (const fn of [createAccount, requestCode, verifyCode, complete]) fn.mockReset().mockResolvedValue(undefined);
+    for (const fn of [createAccount, verifyCode, complete]) fn.mockReset().mockResolvedValue(undefined);
+    requestCode.mockReset().mockResolvedValue(30);
   });
 
   it("keeps Next disabled until the details are valid", async () => {
@@ -93,7 +94,7 @@ describe("SignUpPage", () => {
 
     fireEvent.click(screen.getByRole("radio", {name: "su.via_sms"}));
     fireEvent.click(screen.getByRole("button", {name: "su.continue"}));
-    await waitFor(() => expect(requestCode).toHaveBeenCalledWith("sms"));
+    await waitFor(() => expect(requestCode).toHaveBeenCalledWith("8012345678", "sms"));
     expect(await screen.findByRole("heading", {name: "su.code_title"})).toBeTruthy();
     expect(screen.getByText("su.code_sms")).toBeTruthy();
   });
@@ -101,7 +102,7 @@ describe("SignUpPage", () => {
   it("shows the wrong-code error when verification fails", async () => {
     verifyCode.mockRejectedValue(createHttpError(400));
     await reachCodeStep();
-    fireEvent.change(otpField(), {target: {value: "00001"}});
+    fireEvent.change(otpField(), {target: {value: "000000"}});
     expect(await screen.findByText("su.code_wrong")).toBeTruthy();
     expect(screen.queryByRole("heading", {name: "su.pw_title"})).toBeNull();
   });
@@ -110,12 +111,12 @@ describe("SignUpPage", () => {
     await reachCodeStep();
     fireEvent.click(screen.getByRole("button", {name: "su.try_another"}));
     fireEvent.click(await screen.findByRole("button", {name: /su.method_whatsapp/}));
-    await waitFor(() => expect(requestCode).toHaveBeenCalledWith("whatsapp"));
+    await waitFor(() => expect(requestCode).toHaveBeenCalledWith("8012345678", "whatsapp"));
   });
 
   it("completes the wizard to the You're All Set screen", async () => {
     await reachCodeStep();
-    fireEvent.change(otpField(), {target: {value: "12345"}});
+    fireEvent.change(otpField(), {target: {value: "123456"}});
     await screen.findByRole("heading", {name: "su.pw_title"});
 
     fireEvent.click(screen.getByRole("button", {name: "su.complete"}));
@@ -130,7 +131,7 @@ describe("SignUpPage", () => {
 
   it("opens the location sheet from Find Nearby Lockers", async () => {
     await reachCodeStep();
-    fireEvent.change(otpField(), {target: {value: "12345"}});
+    fireEvent.change(otpField(), {target: {value: "123456"}});
     await screen.findByRole("heading", {name: "su.pw_title"});
     fireEvent.change(screen.getByLabelText("su.pw_label"), {target: {value: "Password1"}});
     fireEvent.click(screen.getByRole("checkbox", {name: /su.agree_label/}));

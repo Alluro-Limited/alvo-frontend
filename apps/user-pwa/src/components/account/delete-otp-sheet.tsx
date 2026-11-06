@@ -11,6 +11,8 @@ import {m} from "@/paraglide/messages";
 
 interface DeleteOtpSheetProps {
   open: boolean;
+  /** The API re-checks the password on resend, so the sheet needs the one the form collected. */
+  password: string;
   onClose: () => void;
   /** Fired once the code verifies — the page navigates back to sign-in. */
   onDeleted: () => void;
@@ -20,8 +22,8 @@ function failed(err: Error) {
   return err instanceof HTTPError && (err.data as {code?: string} | undefined)?.code === "invalid_code";
 }
 
-/** "Confirm account deletion" sheet — the 5-digit code sent to the registered email/phone. */
-export function DeleteOtpSheet({open, onClose, onDeleted}: DeleteOtpSheetProps) {
+/** "Confirm account deletion" sheet — the 6-digit code sent to the registered email/phone. */
+export function DeleteOtpSheet({open, password, onClose, onDeleted}: DeleteOtpSheetProps) {
   const [code, setCode] = useState("");
   const resend = useResendDeletionCode();
   const confirm = useConfirmAccountDeletion();
@@ -46,7 +48,7 @@ export function DeleteOtpSheet({open, onClose, onDeleted}: DeleteOtpSheetProps) 
             setCode(v);
             confirm.reset();
           }}
-          onResend={() => resend.mutate()}
+          onResend={() => resend.mutate(password)}
           onSubmit={() => confirm.mutate(code, {onSuccess: onDeleted})}
           onClose={close}
         />

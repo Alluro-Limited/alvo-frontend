@@ -19,6 +19,7 @@ function useSignUpState() {
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(30);
 
   const back = () => {
     if (step === "details") void navigate({to: "/onboarding"});
@@ -39,9 +40,11 @@ function useSignUpState() {
     password,
     agreed,
     busy,
+    resendSeconds,
     back,
     setStep,
     setMethod,
+    setResendSeconds,
     setConfirmOpen,
     setSheetOpen,
     setCodeError,
@@ -60,6 +63,9 @@ function useSignUpActions(s: State) {
     void task.finally(() => s.setBusy(false));
   };
 
+  /** The destination the code goes to — email for the email channel, phone for sms/whatsapp. */
+  const identifierFor = (channel: VerificationMethod) => (channel === "email" ? s.details.email : s.details.phone);
+
   const confirmDetails = () =>
     run(
       authService.createAccount(s.details).then(() => {
@@ -70,17 +76,19 @@ function useSignUpActions(s: State) {
 
   const sendCode = (channel: VerificationMethod) =>
     run(
-      authService.requestVerificationCode(channel).then(() => {
+      authService.requestVerificationCode(identifierFor(channel), channel).then((seconds) => {
         s.setMethod(channel);
+        s.setResendSeconds(seconds);
         s.setStep("code");
       })
     );
 
   const verify = (code: string) => {
     s.setCodeError(false);
+    const method = s.method ?? "email";
     run(
       authService
-        .verifyCode(code)
+        .verifyCode(identifierFor(method), method, code)
         .then(() => s.setStep("password"))
         .catch(() => s.setCodeError(true))
     );
@@ -93,7 +101,7 @@ function useSignUpActions(s: State) {
   };
 
   const resend = () => {
-    if (s.method) void authService.requestVerificationCode(s.method);
+    if (s.method) void authService.requestVerificationCode(identifierFor(s.method), s.method);
   };
 
   const complete = () => run(authService.completeRegistration(s.password).then(() => s.setStep("done")));

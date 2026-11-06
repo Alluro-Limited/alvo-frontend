@@ -38,6 +38,7 @@ export function StepContent({flow}: {flow: Flow}) {
         destination={flow.method === "email" ? flow.emailDest : flow.phoneDest}
         error={flow.codeError}
         busy={flow.busy}
+        resendSeconds={flow.resendSeconds}
         onVerify={flow.verify}
         onResend={flow.resend}
         onChangeMethod={() => flow.setSheetOpen(true)}

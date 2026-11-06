@@ -10,13 +10,15 @@ interface CodeStepProps {
   destination: string;
   error: boolean;
   busy: boolean;
+  /** Resend cooldown from the API's `resendAfterSeconds`. */
+  resendSeconds: number;
   onVerify: (code: string) => void;
   onResend: () => void;
   onChangeMethod: () => void;
 }
 
-/** Step 2b — the five-box code entry; verifies automatically once all digits are in. */
-export function CodeStep({method, destination, error, busy, onVerify, onResend, onChangeMethod}: CodeStepProps) {
+/** Step 2b — the six-box code entry; verifies automatically once all digits are in. */
+export function CodeStep({method, destination, error, busy, resendSeconds, onVerify, onResend, onChangeMethod}: CodeStepProps) {
   const [code, setCode] = useState("");
 
   const subtitle =
@@ -42,6 +44,7 @@ export function CodeStep({method, destination, error, busy, onVerify, onResend, 
         <p className="w-full text-center text-[14px] leading-[1.4] tracking-[0.14px] text-status-fail">{m["su.code_wrong"]()}</p>
       ) : null}
       <ResendRow
+        seconds={resendSeconds}
         onResend={() => {
           setCode("");
           onResend();

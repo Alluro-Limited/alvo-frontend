@@ -2,10 +2,13 @@ import {useNavigate} from "@tanstack/react-router";
 import {Trash2} from "lucide-react";
 import {Dialog, DialogBackdrop, DialogPopup, DialogPortal, DialogTitle} from "@alvo/ui";
 import {m} from "@/paraglide/messages";
+import {authService} from "@/services/auth-service";
 
-/** Centered "Signing out?" confirmation — Sign Out returns to the sign-in screen. */
+/** Centered "Signing out?" confirmation — Sign Out ends the session and returns to the sign-in screen. */
 export function SignOutDialog({onClose}: {onClose: () => void}) {
   const navigate = useNavigate();
+
+  const signOut = () => void authService.signOut().finally(() => navigate({to: "/sign-in"}));
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -23,7 +26,7 @@ export function SignOutDialog({onClose}: {onClose: () => void}) {
             <div className="flex w-full flex-col gap-3">
               <button
                 type="button"
-                onClick={() => void navigate({to: "/sign-in"})}
+                onClick={signOut}
                 className="flex h-[50px] w-full items-center justify-center rounded-[12px] bg-status-fail text-[16px] font-medium leading-[1.4] text-white"
               >
                 {m["out.confirm"]()}

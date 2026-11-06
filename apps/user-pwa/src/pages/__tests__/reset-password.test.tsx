@@ -13,14 +13,13 @@ vi.mock("@/services/auth-service", () => ({
     completeRegistration: vi.fn(),
     signIn: vi.fn(),
     requestPasswordReset: vi.fn(),
-    verifyResetCode: vi.fn(),
-    resetPassword: vi.fn(),
+    confirmPasswordReset: vi.fn(),
+    signOut: vi.fn(),
   },
 }));
 
 const requestReset = vi.mocked(authService.requestPasswordReset);
-const verifyCode = vi.mocked(authService.verifyResetCode);
-const resetPassword = vi.mocked(authService.resetPassword);
+const confirmReset = vi.mocked(authService.confirmPasswordReset);
 
 const otpField = () => screen.getByLabelText("auth.code_label");
 
@@ -34,7 +33,8 @@ async function reachCodeStep() {
 
 describe("ResetPasswordPage", () => {
   beforeEach(() => {
-    for (const fn of [requestReset, verifyCode, resetPassword]) fn.mockReset().mockResolvedValue(undefined);
+    requestReset.mockReset().mockResolvedValue(30);
+    confirmReset.mockReset().mockResolvedValue(undefined);
   });
 
   it("keeps Send Code disabled until the email is valid", async () => {
@@ -58,27 +58,30 @@ describe("ResetPasswordPage", () => {
     expect(await screen.findByRole("button", {name: "rp.resent"})).toBeTruthy();
   });
 
-  it("shows the wrong-code error and keeps the code step", async () => {
-    verifyCode.mockRejectedValue(createHttpError(400));
+  it("returns to the code step with an error when the code is rejected", async () => {
+    confirmReset.mockRejectedValue(createHttpError(400));
     await reachCodeStep();
-    fireEvent.change(otpField(), {target: {value: "00001"}});
+    fireEvent.change(otpField(), {target: {value: "000000"}});
     fireEvent.click(screen.getByRole("button", {name: "rp.verify"}));
+    await screen.findByRole("heading", {name: "rp.new_title"});
+    fireEvent.change(screen.getByLabelText("rp.new_label"), {target: {value: "NewPassword1"}});
+    fireEvent.click(screen.getByRole("button", {name: "rp.update"}));
     expect(await screen.findByText("su.code_wrong")).toBeTruthy();
-    expect(screen.getByRole("heading", {name: "rp.check_title"})).toBeTruthy();
+    expect(await screen.findByRole("heading", {name: "rp.check_title"})).toBeTruthy();
   });
 
   it("walks the whole flow to Password Updated and back to sign-in", async () => {
     await reachCodeStep();
-    fireEvent.change(otpField(), {target: {value: "12345"}});
+    fireEvent.change(otpField(), {target: {value: "123456"}});
     fireEvent.click(screen.getByRole("button", {name: "rp.verify"}));
     await screen.findByRole("heading", {name: "rp.new_title"});
 
     fireEvent.click(screen.getByRole("button", {name: "rp.update"}));
-    expect(resetPassword).not.toHaveBeenCalled();
+    expect(confirmReset).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("rp.new_label"), {target: {value: "NewPassword1"}});
     fireEvent.click(screen.getByRole("button", {name: "rp.update"}));
-    await waitFor(() => expect(resetPassword).toHaveBeenCalledWith("NewPassword1"));
+    await waitFor(() => expect(confirmReset).toHaveBeenCalledWith("ola@example.com", "123456", "NewPassword1"));
 
     expect(await screen.findByText("rp.done")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", {name: "rp.back_signin"}));

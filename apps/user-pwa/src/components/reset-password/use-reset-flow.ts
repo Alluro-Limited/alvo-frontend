@@ -48,19 +48,24 @@ function useResetActions(s: State) {
 
   const sendCode = () => run(authService.requestPasswordReset(s.email).then(() => s.setStep("code")));
 
+  /** The API confirms code + new password together, so Verify only advances; a wrong code lands back here from `update`. */
   const verify = () => {
     s.setError(false);
-    run(
-      authService
-        .verifyResetCode(s.code)
-        .then(() => s.setStep("password"))
-        .catch(() => s.setError(true))
-    );
+    s.setStep("password");
   };
 
   const resend = () => void authService.requestPasswordReset(s.email);
 
-  const update = () => run(authService.resetPassword(s.password).then(() => s.setStep("done")));
+  const update = () =>
+    run(
+      authService
+        .confirmPasswordReset(s.email, s.code, s.password)
+        .then(() => s.setStep("done"))
+        .catch(() => {
+          s.setError(true);
+          s.setStep("code");
+        })
+    );
 
   return {sendCode, verify, resend, update};
 }

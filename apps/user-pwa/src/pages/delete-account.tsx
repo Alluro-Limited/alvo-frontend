@@ -39,7 +39,12 @@ export function DeleteAccountPage() {
         onConsent={(i, checked) => setConsents((prev) => prev.map((v, j) => (j === i ? checked : v)))}
         onSubmit={() => request.mutate(password, {onSuccess: () => setOtpOpen(true)})}
       />
-      <DeleteOtpSheet open={otpOpen} onClose={() => setOtpOpen(false)} onDeleted={() => void navigate({to: "/sign-in"})} />
+      <DeleteOtpSheet
+        open={otpOpen}
+        password={password}
+        onClose={() => setOtpOpen(false)}
+        onDeleted={() => void navigate({to: "/sign-in"})}
+      />
     </main>
   );
 }

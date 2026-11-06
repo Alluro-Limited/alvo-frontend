@@ -189,6 +189,8 @@ export interface ActivityService {
   cancelShipment(id: string): Promise<void>;
   /** Sends the 6-digit pickup verification code to the owner's email (safe storage). */
   sendPickupVerification(id: string): Promise<void>;
-  /** Verifies the OTP and reveals the one-time safe pickup code. Throws `invalid_code` on a wrong code. */
-  verifyPickup(id: string, code: string): Promise<void>;
+  /** Verifies the OTP and reveals the one-time pickup code. Throws `invalid_code` on a wrong code. */
+  verifyPickup(id: string, code: string): Promise<string>;
+  /** Public tracking lookup by tracking number — same detail shape as getDelivery. */
+  trackParcel(trackingNo: string): Promise<DeliveryDetail>;
 }

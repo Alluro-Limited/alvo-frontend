@@ -36,4 +36,8 @@ export interface HomeService {
   getLocker: (id: string) => Promise<LockerDetail>;
   /** Change Location sheet search; empty array when nothing matches. */
   searchAreas: (query: string) => Promise<AreaResult[]>;
+  /** Node watches (v1/me/node-watches) — notify when a locker frees a slot. */
+  getWatches: () => Promise<LockerPin[]>;
+  watchNode: (nodeId: string) => Promise<void>;
+  unwatchNode: (nodeId: string) => Promise<void>;
 }

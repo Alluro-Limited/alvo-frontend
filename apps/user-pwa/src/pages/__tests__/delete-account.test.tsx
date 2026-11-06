@@ -60,7 +60,7 @@ describe("DeleteAccountPage", () => {
     expect(await screen.findByRole("heading", {name: "del.otp_title"})).toBeTruthy();
   });
 
-  it("confirms deletion through the 5-digit code", async () => {
+  it("confirms deletion through the 6-digit code", async () => {
     renderRoute(DeleteAccountPage, "/account/delete");
     expect(await screen.findByText("del.includes")).toBeTruthy();
     completeForm();
@@ -69,12 +69,12 @@ describe("DeleteAccountPage", () => {
     fireEvent.click(screen.getByRole("button", {name: "del.otp_resend"}));
     await vi.waitFor(() => expect(resendCode).toHaveBeenCalled());
     confirmDeletion.mockRejectedValueOnce(createHttpError(400, {code: "invalid_code"}));
-    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "11111"}});
+    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "111111"}});
     fireEvent.click(screen.getByRole("button", {name: "del.otp_confirm"}));
     expect(await screen.findByText("del.otp_err")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "55555"}});
+    fireEvent.change(screen.getByLabelText("auth.code_label"), {target: {value: "555555"}});
     fireEvent.click(screen.getByRole("button", {name: "del.otp_confirm"}));
-    await vi.waitFor(() => expect(confirmDeletion).toHaveBeenCalledWith("55555"));
+    await vi.waitFor(() => expect(confirmDeletion).toHaveBeenCalledWith("555555"));
     expect(await screen.findByText("stub:/sign-in")).toBeTruthy();
   });
 });

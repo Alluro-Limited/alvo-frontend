@@ -15,7 +15,7 @@ export function useSendSelection() {
   const [recipient, setRecipient] = useState<RecipientDetails>(EMPTY_RECIPIENT);
   const [picker, setPicker] = useState<NodeRole | null>(null);
 
-  const quoteInput: QuoteInput | null = size ? {size, fragile, speed} : null;
+  const quoteInput: QuoteInput | null = size ? {size, fragile, speed, originNodeId: origin?.id, destinationNodeId: destination?.id} : null;
   const nodesReady = origin !== null && destination !== null && origin.status === "available" && destination.status === "available";
 
   const pickNode = (node: LockerNode) => {

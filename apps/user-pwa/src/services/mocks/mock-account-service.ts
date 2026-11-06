@@ -8,8 +8,8 @@ export const MOCK_ACCOUNT = {
   phoneInUse: "08012345678",
   /** The only SMS code that verifies. */
   phoneCode: "555555",
-  /** The only code that confirms account deletion (5 digits, matching the design). */
-  deleteCode: "55555",
+  /** The only code that confirms account deletion. */
+  deleteCode: "555555",
 } as const;
 
 const ADDRESSES: SavedAddress[] = [
@@ -100,8 +100,11 @@ export const mockAccountService: AccountService = {
       throw mockHttpError("users/account/delete/request", 400, {code: "invalid_password"});
     }
   },
-  resendDeletionCode: async () => {
+  resendDeletionCode: async (password) => {
     await mockDelay();
+    if (password !== MOCK_AUTH.password) {
+      throw mockHttpError("v1/me/delete/request", 400, {code: "invalid_password"});
+    }
   },
   confirmAccountDeletion: async (code) => {
     await mockDelay();
@@ -117,5 +120,23 @@ export const mockAccountService: AccountService = {
     await mockDelay();
     WALLET.virtualAccount = {number: "8716282918", bankName: "Paystack", accountName: "Paystack Titans • Olanrewaju Quadri"};
     return WALLET.virtualAccount;
+  },
+  startCheckout: async () => {
+    await mockDelay();
+    return {authorizationUrl: "https://checkout.example.com/session", reference: "CHK-DEMO"};
+  },
+  redeemCode: async () => {
+    await mockDelay();
+    return {trackingNo: "ALV-0001"};
+  },
+  getUserAddresses: async () => {
+    await mockDelay();
+    return ADDRESSES;
+  },
+  saveUserAddress: async () => {
+    await mockDelay();
+  },
+  deleteUserAddress: async () => {
+    await mockDelay();
   },
 };

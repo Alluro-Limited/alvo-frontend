@@ -13,8 +13,8 @@ vi.mock("@/services/auth-service", () => ({
     completeRegistration: vi.fn(),
     signIn: vi.fn(),
     requestPasswordReset: vi.fn(),
-    verifyResetCode: vi.fn(),
-    resetPassword: vi.fn(),
+    confirmPasswordReset: vi.fn(),
+    signOut: vi.fn(),
   },
 }));
 

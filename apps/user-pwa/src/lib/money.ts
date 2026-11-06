@@ -7,3 +7,8 @@ export function naira(amount: number): string {
 export function nairaExact(amount: number): string {
   return `₦${amount.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
+
+/** The API's int64 `*_kobo` strings → naira amount. */
+export function koboToNaira(kobo?: string): number {
+  return Number(kobo ?? "0") / 100;
+}

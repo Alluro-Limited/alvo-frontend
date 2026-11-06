@@ -77,7 +77,7 @@ export function useRequestAccountDeletion() {
 
 export function useResendDeletionCode() {
   // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- resending the code changes no cached data
-  return useMutation({mutationFn: () => accountService.resendDeletionCode()});
+  return useMutation({mutationFn: (password: string) => accountService.resendDeletionCode(password)});
 }
 
 /** Delete step 2 — `invalid_code` rejections surface on the OTP boxes; success drops the stale profile. */
