@@ -166,7 +166,7 @@ describe("SignUpPage", () => {
       email: "ada@loopearls.com",
       password: "Password123!",
     });
-    expect(codeInputs()).toHaveLength(5);
+    expect(codeInputs()).toHaveLength(6);
     expect(screen.getByText("sign_up.no_code")).toBeTruthy();
   });
 
@@ -193,7 +193,7 @@ describe("SignUpPage", () => {
     const button = screen.getByRole("button", {name: "sign_up.verify_submit"}) as HTMLButtonElement;
     expect(button.disabled).toBe(true);
 
-    fillCode("12345");
+    fillCode("123456");
     expect(button.disabled).toBe(false);
   });
 
@@ -204,7 +204,7 @@ describe("SignUpPage", () => {
     await advanceToPersonal();
     await advanceToVerify();
 
-    fillCode("99999");
+    fillCode("999999");
     fireEvent.click(screen.getByRole("button", {name: "sign_up.verify_submit"}));
 
     const banner = await screen.findByRole("alert");
@@ -221,11 +221,11 @@ describe("SignUpPage", () => {
     await advanceToPersonal();
     await advanceToVerify();
 
-    fillCode("12345");
+    fillCode("123456");
     fireEvent.click(screen.getByRole("button", {name: "sign_up.verify_submit"}));
 
     expect((await screen.findByRole("status")).textContent).toBe("sign_up.verify_success");
-    expect(verifyEmail.mock.calls[0]?.[0]).toBe("12345");
+    expect(verifyEmail.mock.calls[0]?.[0]).toBe("123456");
   });
 
   it("resends the code and reports it was sent", async () => {

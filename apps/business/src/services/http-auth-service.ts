@@ -1,24 +1,50 @@
 import {apiClient} from "@/services/api-client";
+import {clearSession, getRefreshToken, setSession} from "@/services/session";
+import type {
+  ApiRegisterSmeRequest,
+  ApiRequestOtpRequest,
+  ApiSignInSmeRequest,
+  ApiSmeAuthResponse,
+  ApiVerifyOtpRequest,
+  AuthTokensResponse,
+} from "@/types/api-types";
 import type {AuthService} from "@/types/auth-types";
 
+/** `verifyEmail`/`resendVerificationCode` take no identifier — the sign-up email rides along here. */
+const PENDING_KEY = "alvo.business.pending-email";
+
+const pendingEmail = () => localStorage.getItem(PENDING_KEY) ?? "";
+
 /**
- * Auth over the real backend. Endpoint paths and bodies are placeholders until the API exists.
- * The session is set as an httpOnly cookie, so nothing is read back from the response.
+ * SME auth: `v1/sme/register` sends the emailed code, `v1/auth/verify` confirms it and
+ * starts the session; sign-in takes `workEmail` + `password`. The wire register call
+ * carries only businessName/workEmail/password — business type, phones, and the owner's
+ * name have no fields yet.
  */
 export const httpAuthService: AuthService = {
-  signIn: async (credentials) => {
-    await apiClient.post("auth/login", {json: credentials});
+  signIn: async ({email, password}) => {
+    const body: ApiSignInSmeRequest = {workEmail: email, password};
+    const res = await apiClient.post("v1/sme/sign-in", {json: body}).json<ApiSmeAuthResponse>();
+    setSession({accessToken: res.accessToken, refreshToken: res.refreshToken, sme: res.sme});
   },
   signUp: async (input) => {
-    await apiClient.post("auth/sign-up", {json: input});
+    const body: ApiRegisterSmeRequest = {businessName: input.businessName, workEmail: input.email, password: input.password};
+    await apiClient.post("v1/sme/register", {json: body});
+    localStorage.setItem(PENDING_KEY, input.email);
   },
   verifyEmail: async (code) => {
-    await apiClient.post("auth/verify-email", {json: {code}});
+    const body: ApiVerifyOtpRequest = {identifier: pendingEmail(), code};
+    const res = await apiClient.post("v1/auth/verify", {json: body}).json<AuthTokensResponse>();
+    setSession(res);
   },
   resendVerificationCode: async () => {
-    await apiClient.post("auth/verify-email/resend");
+    const body: ApiRequestOtpRequest = {identifier: pendingEmail(), channel: "OTP_CHANNEL_EMAIL"};
+    await apiClient.post("v1/auth/otp", {json: body});
   },
   signOut: async () => {
-    await apiClient.post("auth/logout");
+    const refreshToken = getRefreshToken();
+    if (refreshToken) await apiClient.post("v1/auth/logout", {json: {refreshToken}}).catch(() => {});
+    clearSession();
+    localStorage.removeItem(PENDING_KEY);
   },
 };
