@@ -9,7 +9,7 @@ import {mockSession} from "./mock-session";
  * codes lock the number out with a 429 ("Too Many Attempts" alert).
  */
 export const MOCK_AUTH = {
-  otpCode: "12345",
+  otpCode: "123456",
   unknownPhone: "0000000000",
   maxAttempts: 3,
 } as const;

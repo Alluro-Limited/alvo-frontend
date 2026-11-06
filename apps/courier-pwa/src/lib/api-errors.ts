@@ -16,3 +16,18 @@ export type ApiErrorCode = (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES
 export function getErrorCode(error: Error | null | undefined): number | null {
   return error instanceof HTTPError ? error.response.status : null;
 }
+
+/**
+ * Rewrites a failed call's `HTTPError.data` to the `{code: "snake_case"}` shape the
+ * screens inspect, keyed on the HTTP status. Use as `.catch(mapError({400: "invalid_code"}))`;
+ * non-HTTP errors rethrow untouched.
+ */
+export function mapError(codes: Record<number, string>, fallback?: string) {
+  return (err: Error): never => {
+    if (err instanceof HTTPError) {
+      const code = codes[err.response.status] ?? fallback;
+      if (code) err.data = {code};
+    }
+    throw err;
+  };
+}

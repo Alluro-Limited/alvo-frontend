@@ -45,8 +45,8 @@ const NOTIFICATION_PREFS: NotificationPrefs = {
   admin: true,
 };
 
-/** Same convention as the sign-in mock — 12345 is the valid one-time code. */
-const DELETE_CODE = "12345";
+/** Same convention as the sign-in mock — 123456 is the valid one-time code. */
+const DELETE_CODE = "123456";
 
 /** In-memory stand-in for the profile/support backend while it does not exist. */
 export const mockAccountService: AccountService = {

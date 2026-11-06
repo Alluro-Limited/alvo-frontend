@@ -54,22 +54,22 @@ describe("SignInPage", () => {
 
   it("auto-submits the fifth digit and lands on /home", async () => {
     await reachVerifyStep();
-    fireEvent.change(otpField(), {target: {value: "12345"}});
-    await waitFor(() => expect(verify).toHaveBeenCalledWith("8012345678", "12345"));
+    fireEvent.change(otpField(), {target: {value: "123456"}});
+    await waitFor(() => expect(verify).toHaveBeenCalledWith("8012345678", "123456"));
     expect(await screen.findByText("stub:/home", {}, {timeout: 4000})).toBeTruthy();
   });
 
   it("shows the wrong-code error on a 400", async () => {
     verify.mockRejectedValue(createHttpError(400));
     await reachVerifyStep();
-    fireEvent.change(otpField(), {target: {value: "00001"}});
+    fireEvent.change(otpField(), {target: {value: "000001"}});
     expect(await screen.findByText("auth.err_code")).toBeTruthy();
   });
 
   it("shows the lockout alert on a 429", async () => {
     verify.mockRejectedValue(createHttpError(429));
     await reachVerifyStep();
-    fireEvent.change(otpField(), {target: {value: "00001"}});
+    fireEvent.change(otpField(), {target: {value: "000001"}});
     expect(await screen.findByText("auth.too_many")).toBeTruthy();
   });
 
