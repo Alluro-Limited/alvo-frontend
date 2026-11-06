@@ -60,4 +60,26 @@ export const mockNodesService: NodesService = {
     nodeRowsStore[index] = {...nodeRowsStore[index], status: input.status};
     return {id, status: input.status};
   },
+  updateNode: async (id, input) => {
+    await mockDelay();
+    const row = nodeRowsStore.find((n) => n.id === id);
+    if (!row) throw mockHttpError(`nodes/${id}`, API_ERROR_CODES.NOT_FOUND);
+    if (input.name) row.name = input.name;
+    if (input.partner) row.partner = input.partner;
+    if (input.zone) row.zone = input.zone;
+    return row;
+  },
+  scheduleMaintenance: async () => {
+    await mockDelay();
+    return {id: `mt-${Date.now()}`};
+  },
+  completeMaintenance: async () => {
+    await mockDelay();
+  },
+  assignOperator: async () => {
+    await mockDelay();
+  },
+  unassignOperator: async () => {
+    await mockDelay();
+  },
 };

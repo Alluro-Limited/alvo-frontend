@@ -130,4 +130,8 @@ export interface AdminsService {
   suspendAdmin: (id: string) => Promise<{id: string; status: AdminStatus}>;
   reactivateAdmin: (id: string) => Promise<{id: string; status: AdminStatus}>;
   deleteAdmin: (id: string) => Promise<{id: string}>;
+  /** Resends the invitation email to an invited admin. */
+  resendInvite: (id: string) => Promise<void>;
+  /** Revokes a pending invitation. */
+  revokeInvite: (id: string) => Promise<void>;
 }

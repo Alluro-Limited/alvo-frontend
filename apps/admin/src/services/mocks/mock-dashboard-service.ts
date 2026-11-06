@@ -28,4 +28,8 @@ export const mockDashboardService: DashboardService = {
     if (!detail) throw mockHttpError("dashboard/couriers", API_ERROR_CODES.NOT_FOUND);
     return detail;
   },
+  getAuditLog: async () => {
+    await mockDelay();
+    return [];
+  },
 };

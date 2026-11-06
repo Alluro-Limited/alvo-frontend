@@ -1,6 +1,5 @@
 import type {RevenueService} from "@/types/revenue-types";
-import {httpRevenueService} from "./http-revenue-service";
 import {mockRevenueService} from "./mocks/mock-revenue-service";
 
-/** Same mock/HTTP split as the other services: no `VITE_API_URL` means the local mock serves revenue. */
-export const revenueService: RevenueService = import.meta.env.VITE_API_URL ? httpRevenueService : mockRevenueService;
+/** No revenue endpoints in the API yet — always the local mock for now, even when `VITE_API_URL` is set. */
+export const revenueService: RevenueService = mockRevenueService;

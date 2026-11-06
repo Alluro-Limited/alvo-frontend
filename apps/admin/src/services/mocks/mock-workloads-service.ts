@@ -220,6 +220,10 @@ export const mockWorkloadsService: WorkloadsService = {
     if (params.tab === "safe") return safeCsv(applySafeFilters(params));
     return parcelsCsv(applyParcelFilters(params));
   },
+  revealParcel: async () => {
+    await mockDelay();
+    return {sender: "Kunle Adebayo", recipient: "Tobi Martins"};
+  },
 };
 
 /** Batch parcels get the two-leg route timelines from the batch context. */

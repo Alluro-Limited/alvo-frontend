@@ -139,4 +139,13 @@ export const mockAdminsService: AdminsService = {
     permissionStore.delete(id);
     return {id};
   },
+  resendInvite: async (id) => {
+    await mockDelay();
+    void id;
+  },
+  revokeInvite: async (id) => {
+    await mockDelay();
+    const index = rowStore?.findIndex((a) => a.id === id) ?? -1;
+    if (index >= 0) rowStore?.splice(index, 1);
+  },
 };

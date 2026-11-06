@@ -115,4 +115,7 @@ export const mockAssignmentsService: AssignmentsService = {
     flagsStore.set(id, {reason: input.reason, notes: input.notes, at: new Date().toISOString()});
     return {id, status: "flagged"};
   },
+  resolveFlag: async () => {
+    await mockDelay();
+  },
 };

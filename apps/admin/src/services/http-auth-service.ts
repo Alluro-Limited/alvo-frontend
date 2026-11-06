@@ -1,43 +1,60 @@
-import * as v from "valibot";
 import {apiClient} from "@/services/api-client";
+import {clearSession, getRefreshToken, setSession} from "@/services/session";
 import type {AuthService} from "@/types/auth-types";
 
-const SignInResponseSchema = v.object({accountStatus: v.picklist(["active", "setup_required"])});
-const AccountSetupResponseSchema = v.object({invitedBy: v.string(), roleLabel: v.string()});
-const ResendResetLinkResponseSchema = v.object({maskedEmail: v.string()});
-const CurrentUserResponseSchema = v.object({name: v.string()});
+interface AdminAuthResponse {
+  admin?: {id: string; name: string; status?: string; totpEnabled?: boolean};
+  accessToken?: string;
+  refreshToken: string;
+  /** Present instead of tokens when the admin still needs its TOTP second factor. */
+  totpRequired?: boolean;
+}
+
+/** The invitation link's `?token=` — the service interface predates URL plumbing. */
+const inviteToken = () => new URLSearchParams(window.location.search).get("token") ?? "";
 
 /**
- * Auth over the real backend. Endpoint paths and bodies are placeholders until the API exists.
- * The session is set as an httpOnly cookie, so only the fields the screens need are read back.
+ * Admin auth: `v1/admin/auth/sign-in` (+ refresh/logout), `invitations/lookup|accept`
+ * for setup, and `auth/recovery|recovery/complete` for reset. TOTP second-factor and
+ * step-up tokens have no UI yet — a `totpRequired` response surfaces as a failure.
  */
 export const httpAuthService: AuthService = {
   signIn: async (credentials) => {
-    const body = await apiClient.post("auth/login", {json: credentials}).json();
-    return v.parse(SignInResponseSchema, body);
+    const res = await apiClient.post("v1/admin/auth/sign-in", {json: credentials}).json<AdminAuthResponse>();
+    if (res.totpRequired || !res.accessToken) {
+      throw new Error("admin sign-in requires TOTP, which is not supported by this app yet");
+    }
+    setSession({accessToken: res.accessToken, refreshToken: res.refreshToken});
+    return {accountStatus: res.admin?.status === "INVITED" ? "setup_required" : "active"};
   },
   getAccountSetup: async () => {
-    const body = await apiClient.get("auth/account-setup").json();
-    return v.parse(AccountSetupResponseSchema, body);
+    const res = await apiClient
+      .post("v1/admin/invitations/lookup", {json: {token: inviteToken()}})
+      .json<{invitedBy?: string; roleLabel?: string}>();
+    return {invitedBy: res.invitedBy ?? "", roleLabel: res.roleLabel ?? ""};
   },
   completeAccountSetup: async (input) => {
-    await apiClient.post("auth/account-setup", {json: input});
+    await apiClient.post("v1/admin/invitations/accept", {
+      json: {token: inviteToken(), firstName: input.firstName, lastName: input.lastName, password: input.password},
+    });
   },
   requestPasswordReset: async (email) => {
-    await apiClient.post("auth/forgot-password", {json: {email}});
+    await apiClient.post("v1/admin/auth/recovery", {json: {email}});
   },
-  resetPassword: async (input) => {
-    await apiClient.post("auth/reset-password", {json: input});
+  resetPassword: async ({token, password}) => {
+    await apiClient.post("v1/admin/auth/recovery/complete", {json: {token, password}});
   },
   resendResetLink: async (token) => {
-    const body = await apiClient.post("auth/reset-password/resend", {json: {token}}).json();
-    return v.parse(ResendResetLinkResponseSchema, body);
+    const res = await apiClient.post("v1/admin/auth/recovery", {json: {token}}).json<{maskedEmail?: string}>();
+    return {maskedEmail: res.maskedEmail ?? ""};
   },
   getCurrentUser: async () => {
-    const body = await apiClient.get("auth/me").json();
-    return v.parse(CurrentUserResponseSchema, body);
+    const res = await apiClient.get("v1/admin/me").json<{admin?: {name?: string}}>();
+    return {name: res.admin?.name ?? ""};
   },
   signOut: async () => {
-    await apiClient.post("auth/logout");
+    const refreshToken = getRefreshToken();
+    if (refreshToken) await apiClient.post("v1/admin/auth/logout", {json: {refreshToken}}).catch(() => {});
+    clearSession();
   },
 };

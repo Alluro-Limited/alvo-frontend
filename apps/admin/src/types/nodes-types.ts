@@ -145,4 +145,16 @@ export interface NodesService {
   getNodeDetail: (id: string) => Promise<NodeDetail>;
   registerNode: (input: RegisterNodeInput) => Promise<NodeRow>;
   changeNodeStatus: (id: string, input: ChangeNodeStatusInput) => Promise<{id: string; status: NodeStatus}>;
+  /** Edits a node's business details (PUT v1/admin/nodes/{id}). */
+  updateNode: (id: string, input: Partial<RegisterNodeInput>) => Promise<NodeRow>;
+  /** Schedules a maintenance window on a node. */
+  scheduleMaintenance: (
+    nodeId: string,
+    input: {startsAt: string; endsAt: string; reasonCode: string; notes?: string}
+  ) => Promise<{id: string}>;
+  /** Closes an open maintenance window. */
+  completeMaintenance: (nodeId: string, maintenanceId: string) => Promise<void>;
+  /** Assigns/unassigns a node operator. */
+  assignOperator: (nodeId: string, userId: string) => Promise<void>;
+  unassignOperator: (nodeId: string, userId: string) => Promise<void>;
 }

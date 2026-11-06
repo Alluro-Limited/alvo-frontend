@@ -1,90 +1,160 @@
-import * as v from "valibot";
 import {apiClient} from "@/services/api-client";
-import type {AdminsService, PermissionCatalog} from "@/types/admins-types";
+import type {AdminDetail, AdminsService, AdminRole, AdminRow, AdminStatus, PermissionCatalog} from "@/types/admins-types";
 
-const StatusSchema = v.picklist(["active", "suspended", "invited"]);
-const RoleSchema = v.picklist(["super_admin", "operational_admin", "finance_admin", "support_admin", "viewer"]);
-const IconSchema = v.picklist([
-  "home",
-  "package",
-  "nodes",
-  "assignment",
-  "users",
-  "smes",
-  "couriers",
-  "revenue",
-  "payout",
-  "admins",
-  "settings",
-  "audit",
-]);
+interface ApiAdmin {
+  id: string;
+  code: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  grants: string[];
+  totpEnabled?: boolean;
+  lastActiveAt?: string;
+  invitedBy?: string;
+  version: number;
+  createdAt: string;
+}
 
-const PageSchema = <T extends v.GenericSchema>(item: T) =>
-  v.object({items: v.array(item), page: v.number(), pageSize: v.number(), total: v.number()});
+interface ApiListAdminsResponse {
+  admins: ApiAdmin[];
+  nextPageToken: string;
+  total: string;
+}
 
-const RowSchema = v.object({
-  id: v.string(),
-  name: v.string(),
-  email: v.string(),
-  role: RoleSchema,
-  lastActive: v.string(),
-  addedAt: v.string(),
-  status: StatusSchema,
+interface ApiRole {
+  id: string;
+  label: string;
+  permissions?: string[];
+}
+
+interface ApiPermission {
+  key: string;
+  label?: string;
+}
+
+const STATUS: Record<string, AdminStatus> = {
+  ADMIN_STATUS_ACTIVE: "active",
+  ADMIN_STATUS_SUSPENDED: "suspended",
+  ADMIN_STATUS_INVITED: "invited",
+};
+
+const roleOf = (role: string): AdminRole => (role as AdminRole) || "viewer";
+
+const toRow = (a: ApiAdmin): AdminRow => ({
+  id: a.id,
+  name: a.name,
+  email: a.email,
+  role: roleOf(a.role),
+  lastActive: a.lastActiveAt ?? "",
+  addedAt: a.createdAt,
+  status: STATUS[a.status] ?? "invited",
 });
 
-const RoleOptionSchema = v.object({id: RoleSchema, label: v.string(), hint: v.string()});
+const nameParts = (name: string) => {
+  const [first = "", ...rest] = name.split(" ");
+  return {firstName: first, lastName: rest.join(" ")};
+};
 
-const ModuleSchema = v.object({
-  key: v.string(),
-  label: v.string(),
-  subtitle: v.string(),
-  icon: IconSchema,
-  permissions: v.array(v.object({key: v.string(), label: v.string()})),
+const toDetail = (a: ApiAdmin): AdminDetail => ({
+  ...toRow(a),
+  ...nameParts(a.name),
+  addedBy: a.invitedBy ?? "System",
+  moduleAccess: [],
+  roleHint: "",
+  permissions: a.grants ?? [],
 });
 
-const DetailSchema = v.object({
-  ...RowSchema.entries,
-  firstName: v.string(),
-  lastName: v.string(),
-  addedBy: v.string(),
-  moduleAccess: v.array(v.object({key: v.string(), label: v.string(), granted: v.number(), total: v.number()})),
-  roleHint: v.string(),
-  permissions: v.array(v.string()),
-});
+const EMPTY_CATALOG: PermissionCatalog = {modules: [], presets: {} as PermissionCatalog["presets"]};
 
-const ListSchema = v.object({
-  metrics: v.object({total: v.number(), active: v.number(), suspended: v.number(), invited: v.number()}),
-  admins: PageSchema(RowSchema),
-  filters: v.object({statuses: v.array(StatusSchema), roles: v.array(RoleSchema)}),
-  roles: v.array(RoleOptionSchema),
-});
-
-const StatusResultSchema = v.object({id: v.string(), status: StatusSchema});
-
-/** Ky adapter for the admin management API — active when `VITE_API_URL` is set. */
+/**
+ * Admins against `v1/admin/admins/**` + `v1/admin/{roles,permissions}` for the invite
+ * catalog. `suspendAdmin` takes no reason field on the wire; resend/revoke exist but the
+ * interface doesn't expose them yet.
+ */
 export const httpAdminsService: AdminsService = {
   getAdmins: async (params) => {
-    const body = await apiClient
-      .get("admins", {searchParams: {query: params.query ?? "", status: params.status ?? "", role: params.role ?? "", page: params.page}})
-      .json();
-    return v.parse(ListSchema, body);
+    const searchParams = new URLSearchParams({pageSize: "50"});
+    if (params.query) searchParams.set("query", params.query);
+    if (params.status) searchParams.set("status", params.status);
+    if (params.role) searchParams.set("role", params.role);
+    const res = await apiClient.get("v1/admin/admins", {searchParams}).json<ApiListAdminsResponse>();
+    const items = res.admins.map(toRow);
+    return {
+      metrics: {
+        total: Number(res.total),
+        active: items.filter((a) => a.status === "active").length,
+        suspended: items.filter((a) => a.status === "suspended").length,
+        invited: items.filter((a) => a.status === "invited").length,
+      },
+      admins: {items, page: params.page, pageSize: 50, total: Number(res.total)},
+      filters: {
+        statuses: ["active", "suspended", "invited"],
+        roles: ["super_admin", "operational_admin", "finance_admin", "support_admin", "viewer"],
+      },
+      roles: [],
+    };
   },
-
-  getPermissionCatalog: async () =>
-    v.parse(
-      v.object({modules: v.array(ModuleSchema), presets: v.record(RoleSchema, v.array(v.string()))}),
-      await apiClient.get("admins/permission-catalog").json()
-    ) as PermissionCatalog,
-
-  getAdminDetail: async (id) => v.parse(DetailSchema, await apiClient.get(`admins/${id}`).json()),
-
-  inviteAdmin: async (input) => v.parse(DetailSchema, await apiClient.post("admins/invite", {json: input}).json()),
-
-  updateAdmin: async (id, input) => v.parse(DetailSchema, await apiClient.put(`admins/${id}`, {json: input}).json()),
-
-  suspendAdmin: async (id) => v.parse(StatusResultSchema, await apiClient.post(`admins/${id}/suspend`).json()),
-
-  reactivateAdmin: async (id) => v.parse(StatusResultSchema, await apiClient.post(`admins/${id}/reactivate`).json()),
-
-  deleteAdmin: async (id) => v.parse(v.object({id: v.string()}), await apiClient.delete(`admins/${id}`).json()),
+  getPermissionCatalog: async () => {
+    const [roles, permissions] = await Promise.all([
+      apiClient
+        .get("v1/admin/roles")
+        .json<{roles: ApiRole[]}>()
+        .catch(() => ({roles: [] as ApiRole[]})),
+      apiClient
+        .get("v1/admin/permissions")
+        .json<{permissions: ApiPermission[]}>()
+        .catch(() => ({permissions: [] as ApiPermission[]})),
+    ]);
+    return {
+      modules: permissions.permissions.map((p) => ({
+        key: p.key,
+        label: p.label ?? p.key,
+        subtitle: "",
+        icon: "settings" as const,
+        permissions: [{key: p.key, label: p.label ?? p.key}],
+      })),
+      presets: Object.fromEntries(roles.roles.map((r) => [r.id as AdminRole, r.permissions ?? []])) as PermissionCatalog["presets"],
+    };
+  },
+  getAdminDetail: async (id) => {
+    const res = await apiClient.get(`v1/admin/admins/${id}`).json<{admin: ApiAdmin}>();
+    return toDetail(res.admin);
+  },
+  inviteAdmin: async (input) => {
+    const res = await apiClient
+      .post("v1/admin/admins", {
+        json: {email: input.email, firstName: input.firstName, lastName: input.lastName, role: input.role, grants: input.permissions},
+      })
+      .json<{admin: ApiAdmin}>();
+    return toDetail(res.admin);
+  },
+  updateAdmin: async (id, input) => {
+    const res = await apiClient
+      .put(`v1/admin/admins/${id}`, {
+        json: {email: input.email, firstName: input.firstName, lastName: input.lastName, role: input.role, grants: input.permissions},
+      })
+      .json<{admin: ApiAdmin}>();
+    return toDetail(res.admin);
+  },
+  suspendAdmin: async (id) => {
+    await apiClient.post(`v1/admin/admins/${id}/suspend`, {json: {}});
+    return {id, status: "suspended"};
+  },
+  reactivateAdmin: async (id) => {
+    await apiClient.post(`v1/admin/admins/${id}/reactivate`, {json: {}});
+    return {id, status: "active"};
+  },
+  deleteAdmin: async (id) => {
+    await apiClient.post(`v1/admin/admins/${id}/delete`, {json: {}});
+    return {id};
+  },
+  resendInvite: async (id) => {
+    await apiClient.post(`v1/admin/admins/${id}/resend`, {json: {}});
+  },
+  revokeInvite: async (id) => {
+    await apiClient.post(`v1/admin/admins/${id}/revoke`, {json: {}});
+  },
 };
+
+export {EMPTY_CATALOG};
