@@ -1,5 +1,5 @@
 import {Button} from "@alvo/ui";
-import {ChevronsDown, SquarePlus, Upload, X} from "lucide-react";
+import {ChevronsDown, CircleEllipsis, SquarePlus, Upload, X} from "lucide-react";
 import {iosBrowser as browser, useInstallPrompt} from "@/lib/install-prompt";
 import {m} from "@/paraglide/messages";
 
@@ -29,12 +29,16 @@ export function InstallPrompt() {
                 <span>1. {m[`install_prompt.ios_${browser() ?? "other"}`]()}</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <ChevronsDown className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+                <CircleEllipsis className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
                 <span>2. {m["install_prompt.ios_step2"]()}</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <SquarePlus className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+                <ChevronsDown className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
                 <span>3. {m["install_prompt.ios_step3"]()}</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <SquarePlus className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+                <span>4. {m["install_prompt.ios_step4"]()}</span>
               </li>
             </ol>
           ) : (
