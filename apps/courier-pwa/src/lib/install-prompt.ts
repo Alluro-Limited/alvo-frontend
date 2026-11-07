@@ -55,11 +55,17 @@ export function useInstallPrompt() {
 
   const install = async () => {
     if (!deferred) return;
-    await deferred.prompt();
-    const {outcome} = await deferred.userChoice;
-    if (outcome === "accepted") setInstalled(true);
-    setDeferred(null);
-    deferredPrompt = null;
+    try {
+      await deferred.prompt();
+      const {outcome} = await deferred.userChoice;
+      if (outcome === "accepted") setInstalled(true);
+    } catch {
+      // The event is single-use; a consumed/invalid prompt just re-arms on the
+      // next beforeinstallprompt firing.
+    } finally {
+      setDeferred(null);
+      deferredPrompt = null;
+    }
   };
 
   const dismiss = () => {
