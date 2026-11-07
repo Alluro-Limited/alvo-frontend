@@ -1,5 +1,5 @@
 import {Button} from "@alvo/ui";
-import {X} from "lucide-react";
+import {Upload, X} from "lucide-react";
 import {useInstallPrompt} from "@/lib/install-prompt";
 import {m} from "@/paraglide/messages";
 
@@ -22,9 +22,14 @@ export function InstallPrompt() {
         <img src="/pwa-logo.svg" alt="" aria-hidden="true" className="size-10 shrink-0" />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="text-[14px] font-medium leading-[1.4]">{m["install_prompt.title"]()}</p>
-          <p className="text-[12px] leading-[1.4] text-grey-600">
-            {ios ? m["install_prompt.ios_instructions"]() : m["install_prompt.body"]()}
-          </p>
+          {ios ? (
+            <p className="flex items-center gap-1.5 text-[12px] leading-[1.4] text-grey-600">
+              <Upload className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+              {m["install_prompt.ios_instructions"]()}
+            </p>
+          ) : (
+            <p className="text-[12px] leading-[1.4] text-grey-600">{m["install_prompt.body"]()}</p>
+          )}
         </div>
         <button type="button" onClick={dismiss} aria-label={m["install_prompt.dismiss"]()} className="shrink-0 text-grey-500">
           <X className="size-4" />
