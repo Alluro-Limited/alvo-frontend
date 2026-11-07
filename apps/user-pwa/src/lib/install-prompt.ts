@@ -25,8 +25,20 @@ if (typeof window !== "undefined") {
 const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches || ("standalone" in navigator && Boolean(navigator.standalone));
 
-/** iOS Safari never fires beforeinstallprompt — it needs manual instructions instead. */
-export const isIosSafari = () => typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone();
+export type IosBrowser = "safari" | "chrome" | "firefox" | "edge" | "other";
+
+/** Which iOS browser is showing the page — each has a different manual install path. */
+export function iosBrowser(): IosBrowser | null {
+  if (typeof navigator === "undefined" || !/iphone|ipad|ipod/i.test(navigator.userAgent) || isStandalone()) return null;
+  const ua = navigator.userAgent;
+  if (/CriOS/i.test(ua)) return "chrome";
+  if (/FxiOS/i.test(ua)) return "firefox";
+  if (/EdgiOS/i.test(ua)) return "edge";
+  return /Safari/i.test(ua) ? "safari" : "other";
+}
+
+/** iOS never fires beforeinstallprompt — it needs manual instructions instead. */
+export const isIosSafari = () => iosBrowser() !== null;
 
 /**
  * Add-to-home-screen state. The banner pops on every visit until the app is

@@ -1,6 +1,6 @@
 import {Button} from "@alvo/ui";
 import {Upload, X} from "lucide-react";
-import {useInstallPrompt} from "@/lib/install-prompt";
+import {iosBrowser as browser, useInstallPrompt} from "@/lib/install-prompt";
 import {m} from "@/paraglide/messages";
 
 /**
@@ -25,7 +25,7 @@ export function InstallPrompt() {
           {ios ? (
             <p className="flex items-center gap-1.5 text-[12px] leading-[1.4] text-grey-600">
               <Upload className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
-              {m["install_prompt.ios_instructions"]()}
+              {m[`install_prompt.ios_${browser() ?? "other"}`]()}
             </p>
           ) : (
             <p className="text-[12px] leading-[1.4] text-grey-600">{m["install_prompt.body"]()}</p>
