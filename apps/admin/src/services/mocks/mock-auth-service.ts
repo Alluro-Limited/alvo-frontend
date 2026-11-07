@@ -1,6 +1,7 @@
 import {API_ERROR_CODES} from "@/lib/api-errors";
 import type {AuthService} from "@/types/auth-types";
 import {mockDelay, mockHttpError} from "./mock-http";
+import {clearSession, setSession} from "@/services/session";
 import {mockSession} from "./mock-session";
 
 /**
@@ -50,6 +51,7 @@ export const mockAuthService: AuthService = {
     const isInvited = normalized.startsWith("invited");
     mockSession.email = normalized;
     mockSession.pendingSetupEmail = isInvited ? normalized : null;
+    setSession({accessToken: "mock-access", refreshToken: "mock-refresh"});
     return {accountStatus: isInvited ? "setup_required" : "active"};
   },
   getAccountSetup: async () => {
@@ -84,5 +86,6 @@ export const mockAuthService: AuthService = {
     mockSession.email = null;
     mockSession.pendingSetupEmail = null;
     mockSession.justActivated = false;
+    clearSession();
   },
 };

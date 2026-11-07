@@ -1,5 +1,6 @@
 import {useEffect, type ReactNode} from "react";
-import {HeadContent, Outlet, Scripts, createRootRoute} from "@tanstack/react-router";
+import {HeadContent, Outlet, Scripts, createRootRoute, redirect} from "@tanstack/react-router";
+import {isSignedIn} from "@/services/session";
 import {startChunkRecovery} from "@/lib/chunk-recovery";
 import {startServiceWorker} from "@/lib/pwa";
 import {m} from "@/paraglide/messages";
@@ -8,7 +9,15 @@ import {QueryProvider} from "@/providers/query-provider";
 
 import appCss from "../index.css?url";
 
+const PUBLIC_PATHS = new Set(["/", "/onboarding", "/sign-in", "/sign-up"]);
+
 export const Route = createRootRoute({
+  beforeLoad: ({location}) => {
+    const public_ = PUBLIC_PATHS.has(location.pathname) || location.pathname.startsWith("/legal");
+    if (!public_ && !isSignedIn()) {
+      throw redirect({to: "/sign-in"});
+    }
+  },
   head: () => ({
     meta: [
       {charSet: "utf-8"},
