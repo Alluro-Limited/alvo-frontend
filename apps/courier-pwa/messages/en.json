@@ -141,7 +141,7 @@
   "install_prompt.body": "Add it to your home screen for quick access and a smoother experience.",
   "install_prompt.cta": "Install app",
   "install_prompt.dismiss": "Not now",
-  "install_prompt.ios_instructions": "Tap Share, then 'Add to Home Screen'.",
+  "install_prompt.ios_instructions": "Tap the Share icon at the bottom of Safari, then 'Add to Home Screen'.",
   "install_prompt.title": "Install Alvo Courier",
   "job.access_code": "Locker Access Code",
   "job.added": "Added",
