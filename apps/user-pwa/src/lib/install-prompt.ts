@@ -8,11 +8,25 @@ interface BeforeInstallPromptEvent extends Event {
 
 const DISMISS_KEY = "alvo.install-dismissed";
 
+/**
+ * Capture beforeinstallprompt the moment this module loads — Chrome can fire it
+ * before React mounts effects, so listening inside useEffect misses it.
+ */
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+const listeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e as BeforeInstallPromptEvent;
+    listeners.forEach((fn) => fn());
+  });
+}
+
 const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches || ("standalone" in navigator && Boolean(navigator.standalone));
 
 /** iOS Safari never fires beforeinstallprompt — it needs manual instructions instead. */
-export const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone();
+export const isIosSafari = () => typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone();
 
 /**
  * Add-to-home-screen state. The banner pops on every visit until the app is
@@ -20,23 +34,20 @@ export const isIosSafari = () => /iphone|ipad|ipod/i.test(navigator.userAgent) &
  * open prompts again. `appinstalled` and display-mode changes hide it for good.
  */
 export function useInstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferred, setDeferred] = useState(deferredPrompt);
   const [installed, setInstalled] = useState(() => typeof window !== "undefined" && isStandalone());
   const [dismissed, setDismissed] = useState(() => typeof sessionStorage !== "undefined" && sessionStorage.getItem(DISMISS_KEY) === "1");
 
   useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-    };
+    const sync = () => setDeferred(deferredPrompt);
+    listeners.add(sync);
     const onInstalled = () => setInstalled(true);
     const mq = window.matchMedia("(display-mode: standalone)");
     const onMode = () => setInstalled(isStandalone());
-    window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     mq.addEventListener("change", onMode);
     return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
+      listeners.delete(sync);
       window.removeEventListener("appinstalled", onInstalled);
       mq.removeEventListener("change", onMode);
     };
@@ -48,6 +59,7 @@ export function useInstallPrompt() {
     const {outcome} = await deferred.userChoice;
     if (outcome === "accepted") setInstalled(true);
     setDeferred(null);
+    deferredPrompt = null;
   };
 
   const dismiss = () => {
