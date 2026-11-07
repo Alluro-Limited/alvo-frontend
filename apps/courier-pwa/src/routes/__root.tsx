@@ -5,6 +5,7 @@ import {startChunkRecovery} from "@/lib/chunk-recovery";
 import {startServiceWorker} from "@/lib/pwa";
 import {m} from "@/paraglide/messages";
 import {getLocale} from "@/paraglide/runtime";
+import {InstallPrompt} from "@/components/install-prompt";
 import {QueryProvider} from "@/providers/query-provider";
 
 import appCss from "../index.css?url";
@@ -60,6 +61,7 @@ function RootApp() {
   return (
     <QueryProvider>
       <Outlet />
+      <InstallPrompt />
     </QueryProvider>
   );
 }
