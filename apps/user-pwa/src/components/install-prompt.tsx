@@ -1,5 +1,5 @@
 import {Button} from "@alvo/ui";
-import {Upload, X} from "lucide-react";
+import {ChevronsDown, SquarePlus, Upload, X} from "lucide-react";
 import {iosBrowser as browser, useInstallPrompt} from "@/lib/install-prompt";
 import {m} from "@/paraglide/messages";
 
@@ -23,10 +23,20 @@ export function InstallPrompt() {
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="text-[14px] font-medium leading-[1.4]">{m["install_prompt.title"]()}</p>
           {ios ? (
-            <p className="flex items-center gap-1.5 text-[12px] leading-[1.4] text-grey-600">
-              <Upload className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
-              {m[`install_prompt.ios_${browser() ?? "other"}`]()}
-            </p>
+            <ol className="flex flex-col gap-1.5 text-[12px] leading-[1.4] text-grey-600">
+              <li className="flex items-center gap-1.5">
+                <Upload className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+                <span>1. {m[`install_prompt.ios_${browser() ?? "other"}`]()}</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <ChevronsDown className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+                <span>2. {m["install_prompt.ios_step2"]()}</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <SquarePlus className="size-3.5 shrink-0 text-primary-500" aria-hidden="true" />
+                <span>3. {m["install_prompt.ios_step3"]()}</span>
+              </li>
+            </ol>
           ) : (
             <p className="text-[12px] leading-[1.4] text-grey-600">{m["install_prompt.body"]()}</p>
           )}
