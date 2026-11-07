@@ -1,6 +1,7 @@
 import {API_ERROR_CODES} from "@/lib/api-errors";
 import type {CourierAuthService} from "@/types/auth-types";
 import {mockDelay, mockHttpError} from "./mock-http";
+import {setSession} from "@/services/session";
 import {mockSession} from "./mock-session";
 
 /**
@@ -36,6 +37,7 @@ export const mockAuthService: CourierAuthService = {
     if (code === MOCK_AUTH.otpCode) {
       failedAttempts.delete(phone);
       mockSession.phone = phone;
+      setSession({accessToken: "mock-access", refreshToken: "mock-refresh"});
       return;
     }
     const attempts = (failedAttempts.get(phone) ?? 0) + 1;

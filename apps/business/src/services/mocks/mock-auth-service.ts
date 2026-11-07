@@ -1,6 +1,7 @@
 import {API_ERROR_CODES} from "@/lib/api-errors";
 import type {AuthService} from "@/types/auth-types";
 import {mockDelay, mockHttpError} from "./mock-http";
+import {clearSession, setSession} from "@/services/session";
 import {mockSession} from "./mock-session";
 
 /**
@@ -36,6 +37,7 @@ export const mockAuthService: AuthService = {
     if (password !== MOCK_AUTH.password) throw mockHttpError("auth/login", API_ERROR_CODES.UNAUTHORIZED);
     mockSession.email = normalized;
     mockSession.firstName = normalized === MOCK_AUTH.demoEmail ? "Quadri" : null;
+    setSession({accessToken: "mock-access", refreshToken: "mock-refresh"});
   },
   signUp: async (input) => {
     await mockDelay();
@@ -54,5 +56,6 @@ export const mockAuthService: AuthService = {
     mockSession.email = null;
     mockSession.firstName = null;
     mockSession.walletBalance = null;
+    clearSession();
   },
 };
