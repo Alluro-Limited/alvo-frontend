@@ -63,7 +63,7 @@ Each app uses the same `src/` layout: `routes/`, `pages/`, `components/`, `servi
 ## Data
 
 - All HTTP calls live in `src/services/**`.
-- All HTTP calls go through the real API: each `src/services/*-service.ts` re-exports its `http-*` implementation. `VITE_API_URL` supplies the base URL.
+- All HTTP calls go through the real API: each `src/services/*-service.ts` re-exports its `http-*` implementation. `VITE_API_URL` supplies the base URL — set it in each app's `.env.local` (e.g. `VITE_API_URL=https://alvo-b23v.onrender.com`); the apps have no offline fallback.
 - Handle errors by code, not message text.
 - Keep loading, empty, error, and success states explicit.
 
