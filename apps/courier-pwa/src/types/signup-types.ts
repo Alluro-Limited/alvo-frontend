@@ -22,7 +22,7 @@ export interface VehicleDetails {
   type: string;
   brand: string;
   plate: string;
-  /** Selected file names — uploads are mocked until the backend exists. */
+  /** Selected file names — the onboard endpoint takes vehicle/plate/areas only, so files are names-only for now. */
   vehiclePhotoName: string;
   licensePhotoName: string;
 }

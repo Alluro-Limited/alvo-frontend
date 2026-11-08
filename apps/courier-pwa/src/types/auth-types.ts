@@ -1,7 +1,7 @@
 /** The six boxes in the verification screen — the backend sends a 6-digit SMS code. */
 export const OTP_LENGTH = 6;
 
-/** Phone-number + OTP sign-in for couriers; implemented over HTTP and by the local mock. */
+/** Auth service contract against the real API. */
 export interface CourierAuthService {
   /** Sends the SMS code to `phone` (local digits, e.g. "8012345678"). 404 = no courier account. */
   requestLoginOtp: (phone: string) => Promise<void>;

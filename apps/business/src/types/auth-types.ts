@@ -22,7 +22,7 @@ export interface PersonalDetailsInput {
 
 export type SignUpInput = BusinessInfoInput & PersonalDetailsInput;
 
-/** Everything the auth screens need from the backend; implemented over HTTP and by the local mock. */
+/** Auth service contract against the real API. */
 export interface AuthService {
   signIn: (credentials: SignInCredentials) => Promise<void>;
   /** Creates the account and sends the verification code to `input.email`. */

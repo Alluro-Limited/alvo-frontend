@@ -34,7 +34,7 @@ export interface DeliveryArea {
   address: string;
 }
 
-/** Everything the home tab needs; implemented over HTTP and by the local mock. */
+/** Home service contract against the real API. */
 export interface CourierHomeService {
   getHome: () => Promise<CourierHome>;
   setAvailability: (live: boolean) => Promise<void>;

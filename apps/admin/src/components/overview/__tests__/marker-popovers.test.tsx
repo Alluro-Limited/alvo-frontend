@@ -3,7 +3,7 @@ import {fireEvent, render, screen} from "@testing-library/react";
 import type {ReactElement} from "react";
 import {beforeEach, describe, expect, it, vi} from "vite-plus/test";
 import {dashboardService} from "@/services/dashboard-service";
-import {COURIER_DETAILS, NODE_DETAILS} from "@/services/mocks/mock-overview-data";
+import type {CourierDetail, NodeDetail} from "@/types/dashboard-types";
 import {CourierPopover} from "../courier-popover";
 import {NodePopover} from "../node-popover";
 
@@ -13,6 +13,38 @@ vi.mock("@/services/dashboard-service", () => ({
 
 const getNodeDetail = vi.mocked(dashboardService.getNodeDetail);
 const getCourierDetail = vi.mocked(dashboardService.getCourierDetail);
+
+const NODE_DETAILS: Record<string, NodeDetail> = {
+  "LK-022": {
+    id: "LK-022",
+    status: "online",
+    location: "Victoria Island, Lagos",
+    capacityUsed: 21,
+    capacityTotal: 28,
+    partnerHost: "Total Energies, VI",
+    lastHeartbeatAt: new Date(Date.now() - 8_000).toISOString(),
+    uptimePct: 99.8,
+    parcelsToday: 47,
+    network: "4G LTE",
+  },
+};
+
+const COURIER_DETAILS: Record<string, CourierDetail> = {
+  "PRG-03": {
+    id: "PRG-03",
+    name: "Ajadi Johnson",
+    status: "enroute",
+    deliveriesDone: 21,
+    deliveriesTotal: 28,
+    lastLocation: "Surulere, Lagos",
+    offlineSinceAt: new Date().toISOString(),
+    rating: 4.8,
+    pickupNode: "Lekki Node (LK-123)",
+    dropoffNode: "Super Node (SN-001)",
+    deliveryType: "Standard",
+    etaAt: new Date(new Date().setHours(17, 30, 0, 0)).toISOString(),
+  },
+};
 
 function renderPopover(ui: ReactElement) {
   const queryClient = new QueryClient({defaultOptions: {queries: {retry: false}}});

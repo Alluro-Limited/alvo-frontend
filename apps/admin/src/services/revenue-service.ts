@@ -1,5 +1,5 @@
 import type {RevenueService} from "@/types/revenue-types";
-import {mockRevenueService} from "./mocks/mock-revenue-service";
+import {httpRevenueService} from "./http-revenue-service";
 
-/** No revenue endpoints in the API yet — always the local mock for now, even when `VITE_API_URL` is set. */
-export const revenueService: RevenueService = mockRevenueService;
+/** Revenue analytics against the real admin API. */
+export const revenueService: RevenueService = httpRevenueService;

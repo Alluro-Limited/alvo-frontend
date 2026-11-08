@@ -38,7 +38,7 @@ export interface CurrentUser {
   name: string;
 }
 
-/** Everything the auth screens need from the backend; implemented over HTTP and by the local mock. */
+/** Auth service contract against the real API. */
 export interface AuthService {
   signIn: (credentials: SignInCredentials) => Promise<SignInResult>;
   getAccountSetup: () => Promise<AccountSetupDetails>;
