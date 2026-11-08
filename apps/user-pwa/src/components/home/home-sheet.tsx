@@ -24,7 +24,7 @@ export function HomeSheet({expanded, area, onToggle, onOpenLocation, onSend, onS
     <section
       className={cn(
         "absolute inset-x-0 bottom-0 flex flex-col gap-6 overflow-clip rounded-t-[32px] bg-white px-6 pt-3 pb-[86px] shadow-[0px_-2px_39px_11px_rgba(150,150,150,0.25)] transition-[height] duration-300",
-        expanded ? "h-[calc(100dvh-107px)]" : "h-[168px]"
+        expanded ? "h-[calc(100dvh-107px)]" : "h-fit max-h-[55dvh]"
       )}
       aria-label={m["home.sheet"]()}
     >
@@ -36,13 +36,15 @@ export function HomeSheet({expanded, area, onToggle, onOpenLocation, onSend, onS
       />
       <HomeHeader area={area} onOpenLocation={onOpenLocation} />
       <TrackInput />
-      {expanded ? (
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto">
-          <ActionTiles onSend={onSend} onStore={onStore} />
-          <PromoBanner />
-          <RecentActivity />
-        </div>
-      ) : null}
+      <div className="flex flex-1 flex-col gap-6 overflow-y-auto">
+        <ActionTiles onSend={onSend} onStore={onStore} />
+        {expanded ? (
+          <>
+            <PromoBanner />
+            <RecentActivity />
+          </>
+        ) : null}
+      </div>
     </section>
   );
 }
