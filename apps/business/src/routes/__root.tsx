@@ -11,7 +11,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       {charSet: "utf-8"},
-      {name: "viewport", content: "width=device-width, initial-scale=1.0"},
+      {name: "viewport", content: "width=device-width, initial-scale=1.0, maximum-scale=1.0"},
       {title: m["app.title"]()},
       {name: "description", content: m["app.description"]()},
       // Internal tool: keep it out of search results.

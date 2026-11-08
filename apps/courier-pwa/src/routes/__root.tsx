@@ -23,7 +23,7 @@ export const Route = createRootRoute({
     meta: [
       {charSet: "utf-8"},
       // viewport-fit=cover lets the app draw under the notch in standalone mode.
-      {name: "viewport", content: "width=device-width, initial-scale=1.0, viewport-fit=cover"},
+      {name: "viewport", content: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"},
       {title: m["app.title"]()},
       {name: "description", content: m["app.description"]()},
       // Internal tool: keep it out of search results.
