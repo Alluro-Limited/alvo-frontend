@@ -9,7 +9,7 @@ export function SignOutDialog({open, onClose}: {open: boolean; onClose: () => vo
   const navigate = useNavigate();
   const mutation = useSignOutMutation();
 
-  const confirm = () => mutation.mutate(undefined, {onSuccess: () => void navigate({to: "/"})});
+  const confirm = () => mutation.mutate(undefined, {onSettled: () => void navigate({to: "/"})});
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? undefined : onClose())}>

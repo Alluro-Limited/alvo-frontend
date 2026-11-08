@@ -6,6 +6,7 @@ import {downloadCsv} from "./workloads-format";
 /** CSV export: the service returns the file body, this hook downloads it. */
 export function useParcelExport(params: WorkloadListParams & {batchId?: string}) {
   const [exporting, setExporting] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const exportParcels = async (ids?: string[]) => {
     setExporting(true);
@@ -16,5 +17,5 @@ export function useParcelExport(params: WorkloadListParams & {batchId?: string})
     }
   };
 
-  return {exporting, exportParcels};
+  return {exporting, failed, dismissFailed: () => setFailed(false), exportParcels};
 }

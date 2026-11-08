@@ -1,6 +1,8 @@
 import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
+import {AppToast} from "@/components/app-toast";
 import {AreaOption} from "@/components/delivery-area/area-option";
+import {PageError} from "@/components/page-error";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {areaToast} from "@/lib/area-toast";
 import {m} from "@/paraglide/messages";
@@ -15,6 +17,7 @@ export function DeliveryAreaPage() {
   const areas = useAreasQuery();
   const setArea = useSetDeliveryAreaMutation();
   const [selected, setSelected] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   const confirm = () => {
     if (!selected) return;
@@ -23,6 +26,7 @@ export function DeliveryAreaPage() {
         areaToast.pending = true;
         void navigate({to: "/home"});
       },
+      onError: () => setFailed(true),
     });
   };
 
@@ -32,7 +36,9 @@ export function DeliveryAreaPage() {
       <h1 className="mt-9 text-[28px] leading-[34px] font-bold tracking-[-0.02em]">{m["area.title"]()}</h1>
       <p className="mt-2 text-[14px] leading-[22px] text-grey-600">{m["area.subtitle"]()}</p>
       <div className="mt-8 flex-1 overflow-y-auto">
-        {areas.isPending || !areas.data ? (
+        {areas.isError ? (
+          <PageError onRetry={() => void areas.refetch()} isRetrying={areas.isRefetching} />
+        ) : areas.isPending || !areas.data ? (
           <div className="flex flex-col gap-3">
             {[0, 1, 2, 3, 4].map((i) => (
               <div key={i} className="h-14 animate-pulse rounded-[10px] bg-grey-100" />
@@ -52,6 +58,7 @@ export function DeliveryAreaPage() {
       >
         {m["area.confirm"]()}
       </button>
+      {failed && <AppToast message={m["area.change_failed"]()} variant="destructive" onDismiss={() => setFailed(false)} />}
     </main>
   );
 }

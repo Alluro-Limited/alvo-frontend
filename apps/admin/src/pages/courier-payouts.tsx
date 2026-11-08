@@ -1,4 +1,6 @@
 import {useParcelSelection} from "@/components/workloads/use-parcel-selection";
+import {m} from "@/paraglide/messages";
+import {AppToast} from "@/components/app-toast";
 import {PayoutsContent} from "@/components/payouts/payouts-content";
 import {PayoutsHeader} from "@/components/payouts/payouts-header";
 import {PayoutsOverlays} from "@/components/payouts/payouts-overlays";
@@ -30,6 +32,7 @@ export function CourierPayoutsPage() {
       />
       <PayoutsContent filters={filters} selection={selection} list={list} overlays={overlays} />
       <PayoutsOverlays overlays={overlays} selection={selection} data={list.data} cycle={filters.cycle} />
+      {exporter.failed && <AppToast message={m["export.failed"]()} variant="destructive" onDismiss={exporter.dismissFailed} />}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {SafeBody} from "./safe-body";
 import {SendHeader} from "@/components/send/send-header";
 import type {useSafeFlow} from "./use-safe-flow";
 import type {SafeNode} from "@/types/safe-types";
+import {m} from "@/paraglide/messages";
 
 type Flow = ReturnType<typeof useSafeFlow>;
 
@@ -41,6 +42,11 @@ export function SafeWizard({flow}: {flow: Flow}) {
       </div>
       <SafeBody flow={flow} options={options.data} quote={quote.data ?? null} quoteLoading={quote.isFetching} />
       <div className="px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-4">
+        {reserve.isError && (
+          <p role="alert" className="pb-2 text-center text-[12px] leading-[1.4] text-status-fail">
+            {m["safe.reserve_failed"]()}
+          </p>
+        )}
         <SafeAction flow={flow} quote={quote.data ?? null} busy={reserve.isPending} onSubmit={submit} />
       </div>
       <NodeSheet

@@ -70,7 +70,10 @@ export const httpActivityService: ActivityService = {
     return parcels.map(toActivityItem);
   },
   getDelivery: async (id) => {
-    const detail = await apiClient.get(`v1/parcels/${id}`).json<ApiGetParcelResponse>();
+    const detail = await apiClient
+      .get(`v1/parcels/${id}`)
+      .json<ApiGetParcelResponse>()
+      .catch(mapError({404: "not_found"}));
     const [origin, dest, pickupQuote, dropoffQuote] = await Promise.all([
       getNode(detail.parcel.originNodeId),
       getNode(detail.parcel.destNodeId),

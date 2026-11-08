@@ -525,5 +525,18 @@
   "signout.title": "Sign out",
   "signout.subtitle": "You'll need to sign back in to access your batches, wallet and shipment history.",
   "signout.confirm": "Yes, Sign out",
-  "signout.working": "Signing out…"
+  "signout.working": "Signing out…",
+  "toast.dismiss": "Dismiss",
+  "errors.load_title": "Something went wrong",
+  "errors.load_desc": "We couldn't load this page. Please check your connection and try again.",
+  "errors.retry": "Try again",
+  "errors.action_failed": "The action failed. Please try again.",
+  "batches.deleted": "Batch deleted",
+  "batches.delete_failed": "Couldn't delete the batch. Please try again.",
+  "notifications.mark_read_failed": "Couldn't mark notifications as read. Please try again.",
+  "wallet.topup_failed": "Top-up failed. Please try again.",
+  "settings.profile_saved": "Profile updated",
+  "settings.business_saved": "Business profile updated",
+  "settings.notify_save_failed": "Couldn't save notification preferences. Please try again.",
+  "sign_up.resend_failed": "Couldn't resend the code. Please try again."
 }

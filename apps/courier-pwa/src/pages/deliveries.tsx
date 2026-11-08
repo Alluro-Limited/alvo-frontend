@@ -1,8 +1,10 @@
 import {Link} from "@tanstack/react-router";
+import {AppToast} from "@/components/app-toast";
 import {ActiveDelivery} from "@/components/deliveries/active-delivery";
 import {CompletedSection} from "@/components/deliveries/completed-section";
 import {useDeliveries} from "@/components/deliveries/use-deliveries";
 import {AcceptDialog} from "@/components/home/accept-dialog";
+import {PageError} from "@/components/page-error";
 import {m} from "@/paraglide/messages";
 
 /**
@@ -22,6 +24,8 @@ export function DeliveriesPage() {
       </div>
       {deliveries.loading ? (
         <DeliveriesSkeleton />
+      ) : deliveries.error ? (
+        <PageError onRetry={() => void deliveries.retry()} isRetrying={deliveries.retrying} />
       ) : (
         <>
           <div className="mt-6">
@@ -41,6 +45,13 @@ export function DeliveriesPage() {
         onConfirm={deliveries.confirmAccept}
         onClose={deliveries.closeConfirm}
       />
+      {deliveries.toast && (
+        <AppToast
+          message={deliveries.toast === "accept" ? m["job.accept_failed"]() : m["job.decline_failed"]()}
+          variant="destructive"
+          onDismiss={deliveries.dismissToast}
+        />
+      )}
     </main>
   );
 }

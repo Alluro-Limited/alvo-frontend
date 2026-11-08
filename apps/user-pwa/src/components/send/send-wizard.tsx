@@ -4,6 +4,7 @@ import {SendBody} from "./send-body";
 import {SendHeader} from "./send-header";
 import type {useSendFlow} from "./use-send-flow";
 import {useSendBookingMutation, useSendNodesQuery, useSendQuoteQuery} from "@/queries/use-send-queries";
+import {m} from "@/paraglide/messages";
 
 type Flow = ReturnType<typeof useSendFlow>;
 
@@ -25,6 +26,11 @@ export function SendWizard({flow}: {flow: Flow}) {
         <SendBody flow={flow} quote={quote.data ?? null} quoteLoading={quote.isFetching} />
       </div>
       <div className="px-6 pb-[max(24px,env(safe-area-inset-bottom))]">
+        {booking.isError && (
+          <p role="alert" className="pb-2 text-center text-[12px] leading-[1.4] text-status-fail">
+            {m["send.booking_failed"]()}
+          </p>
+        )}
         <SendAction flow={flow} quote={quote.data ?? null} busy={booking.isPending} onSubmit={() => submit(flow, booking)} />
       </div>
       <NodePicker flow={flow} nodes={nodes.data ?? []} />

@@ -1,5 +1,6 @@
 import {m} from "@/paraglide/messages";
 import {useBatchDetailQuery, useShipmentTrackingQuery} from "@/queries/use-batch-queries";
+import {PageError} from "@/components/page-error";
 import {useSetPageTitle} from "@/components/app-shell/page-title";
 import {BatchInfoCard} from "@/components/batch-detail/batch-info-card";
 import {BatchShipmentsTable} from "@/components/batch-detail/batch-shipments-table";
@@ -20,8 +21,9 @@ function DetailSkeleton() {
 }
 
 function BatchDetailContent({batchId}: {batchId: string}) {
-  const {data: batch, isLoading} = useBatchDetailQuery(batchId);
+  const {data: batch, isLoading, isError, refetch, isRefetching} = useBatchDetailQuery(batchId);
   useSetPageTitle(batch?.name ?? null);
+  if (isError) return <PageError onRetry={() => void refetch()} isRetrying={isRefetching} />;
   if (isLoading || !batch) return <DetailSkeleton />;
   return <BatchDetailView batch={batch} />;
 }

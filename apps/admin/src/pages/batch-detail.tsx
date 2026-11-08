@@ -1,3 +1,5 @@
+import {m} from "@/paraglide/messages";
+import {AppToast} from "@/components/app-toast";
 import {useState} from "react";
 import {useBatchParcelFilters} from "@/components/workloads/use-batch-parcel-filters";
 import {useFlagFlow} from "@/components/workloads/use-flag-flow";
@@ -81,7 +83,7 @@ export function BatchDetailPage({batchId}: {batchId: string}) {
   const [drawerId, setDrawerId] = useState<string | null>(null);
   const {selected, toggleRow, toggleAll, clear} = useParcelSelection();
   const flag = useFlagFlow(clear);
-  const {exporting, exportParcels} = useParcelExport({...params, batchId});
+  const {exporting, failed, dismissFailed, exportParcels} = useParcelExport({...params, batchId});
   const detail = useBatchDetailQuery(batchId);
   const parcels = useBatchParcelsQuery(batchId, params);
 
@@ -116,6 +118,7 @@ export function BatchDetailPage({batchId}: {batchId: string}) {
         drawer={<ParcelDetailDrawer parcelId={drawerId} onClose={() => setDrawerId(null)} onFlag={(id) => flag.openFlag([id])} />}
         flag={flag}
       />
+      {failed && <AppToast message={m["export.failed"]()} variant="destructive" onDismiss={dismissFailed} />}
     </div>
   );
 }

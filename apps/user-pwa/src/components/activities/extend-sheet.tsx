@@ -43,6 +43,7 @@ export function ExtendSheet({open, deliveryId, remaining, onClose}: ExtendSheetP
           onHours={setHours}
           remaining={remaining}
           preview={preview.data ?? null}
+          failed={extend.isError}
           onConfirm={() => hours !== null && extend.mutate(hours, {onSuccess: setResult})}
           onClose={close}
         />
@@ -66,11 +67,12 @@ interface ExtendFormProps {
   onHours: (h: number) => void;
   remaining: number;
   preview: ExtendPreview | null;
+  failed: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
 
-function ExtendForm({hours, onHours, remaining, preview, onConfirm, onClose}: ExtendFormProps) {
+function ExtendForm({hours, onHours, remaining, preview, failed, onConfirm, onClose}: ExtendFormProps) {
   return (
     <div className="mt-2 flex w-full flex-col pb-4">
       <div className="flex w-full items-center justify-between">
@@ -83,6 +85,11 @@ function ExtendForm({hours, onHours, remaining, preview, onConfirm, onClose}: Ex
         <DurationSelect value={hours} onChange={onHours} />
         <p className="text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">{m["acc.ext_left"]({count: remaining})}</p>
         {preview ? <ScheduleCard addedTime={preview.addedTime} newDeadline={preview.newDeadline} fee={preview.fee} /> : null}
+        {failed && (
+          <p role="alert" className="text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">
+            {m["acc.extend_failed"]()}
+          </p>
+        )}
         <Button className="w-full text-[16px] font-medium" disabled={hours === null} onClick={onConfirm}>
           {preview ? m["acc.confirm"]() : m["acc.extend"]()}
         </Button>

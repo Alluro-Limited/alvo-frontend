@@ -6,6 +6,7 @@ import {downloadCsv} from "@/components/workloads/workloads-format";
 /** CSV export: the service returns the file body, this hook downloads it. */
 export function useUserExport(params: UserExportParams) {
   const [exporting, setExporting] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const exportUsers = async (ids?: string[]) => {
     setExporting(true);
@@ -16,5 +17,5 @@ export function useUserExport(params: UserExportParams) {
     }
   };
 
-  return {exporting, exportUsers};
+  return {exporting, failed, dismissFailed: () => setFailed(false), exportUsers};
 }

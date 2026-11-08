@@ -5,6 +5,7 @@ import {PasswordForm} from "@/components/settings/password-form";
 import {SettingsTabs} from "@/components/settings/settings-tabs";
 import {UserProfileForm} from "@/components/settings/user-profile-form";
 import {useSetPageTitle} from "@/components/app-shell/page-title";
+import {PageError} from "@/components/page-error";
 import {m} from "@/paraglide/messages";
 import {useSettingsQuery} from "@/queries/use-settings-queries";
 import type {SettingsTab} from "@/types/settings-types";
@@ -21,9 +22,10 @@ function SettingsSkeleton() {
 /** `/settings` — the 4-tab account settings page. */
 export function SettingsPage() {
   useSetPageTitle(m["nav.settings"]());
-  const {data: settings, isLoading} = useSettingsQuery();
+  const {data: settings, isLoading, isError, refetch, isRefetching} = useSettingsQuery();
   const [tab, setTab] = useState<SettingsTab>("user");
 
+  if (isError) return <PageError onRetry={() => void refetch()} isRetrying={isRefetching} />;
   if (isLoading || !settings) return <SettingsSkeleton />;
 
   return (

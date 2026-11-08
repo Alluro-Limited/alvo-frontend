@@ -75,7 +75,7 @@ export function UpdatePhoneSheet({open, phone, onClose}: UpdatePhoneSheetProps) 
           phone={nextPhone}
           onCancel={close}
           onVerified={() => setStep("done")}
-          onResend={() => send.mutate(nextPhone.replace(/\D/g, ""))}
+          onResend={() => send.mutate(nextPhone.replace(/\D/g, ""), {onError: () => setError("pi.resend_failed")})}
           verify={verify}
         />
       ) : (

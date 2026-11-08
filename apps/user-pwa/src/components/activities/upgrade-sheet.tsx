@@ -30,7 +30,7 @@ export function UpgradeSheet({deliveryId, onClose, onCancel}: UpgradeSheetProps)
   const pay = () => {
     if (!channel) return;
     if (channel === "online") setGatewayOpen(true);
-    upgrade.mutate(channel, {onSuccess: () => setDone(true)});
+    upgrade.mutate(channel, {onSuccess: () => setDone(true), onError: () => setGatewayOpen(false)});
   };
 
   return (
@@ -44,6 +44,7 @@ export function UpgradeSheet({deliveryId, onClose, onCancel}: UpgradeSheetProps)
           <UpgradeForm
             upgrade={detail.data?.lockerUpgrade ?? null}
             channel={channel}
+            failed={upgrade.isError}
             onChannel={setChannel}
             onPay={pay}
             onCancel={onCancel}
@@ -68,12 +69,13 @@ function UpgradeLoading() {
 interface UpgradeFormProps {
   upgrade: LockerUpgrade | null;
   channel: PaymentChannel | null;
-  onChannel: (c: PaymentChannel) => void;
+  failed: boolean;
+  onChannel: (c: PaymentChannel | null) => void;
   onPay: () => void;
   onCancel: () => void;
 }
 
-function UpgradeForm({upgrade, channel, onChannel, onPay, onCancel}: UpgradeFormProps) {
+function UpgradeForm({upgrade, channel, failed, onChannel, onPay, onCancel}: UpgradeFormProps) {
   if (!upgrade) return <UpgradeLoading />;
   return (
     <div className="mt-2 flex w-full flex-col gap-6 pb-4">
@@ -103,6 +105,11 @@ function UpgradeForm({upgrade, channel, onChannel, onPay, onCancel}: UpgradeForm
           />
         </div>
       </div>
+      {failed && (
+        <p role="alert" className="text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">
+          {m["upg.failed"]()}
+        </p>
+      )}
       <div className="flex w-full flex-col gap-3">
         <Button className="w-full text-[16px] font-medium" variant={channel ? "default" : "disabled"} onClick={onPay}>
           {m["upg.pay"]()}

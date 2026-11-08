@@ -3,6 +3,7 @@ import {EarningFeed} from "@/components/earnings/earning-feed";
 import {MonthTiles} from "@/components/earnings/month-tiles";
 import {PayoutBanner} from "@/components/earnings/payout-banner";
 import {WalletCard} from "@/components/earnings/wallet-card";
+import {PageError} from "@/components/page-error";
 import {m} from "@/paraglide/messages";
 import {useEarningsQuery} from "@/queries/use-earnings-queries";
 
@@ -13,7 +14,9 @@ export function EarningsPage() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-[430px] bg-white px-6 pt-[max(24px,env(safe-area-inset-top))] pb-[max(24px,env(safe-area-inset-bottom))]">
       <h1 className="text-[32px] leading-[36px] font-bold tracking-[-0.01em]">{m["nav.earnings"]()}</h1>
-      {query.isPending || !query.data ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isPending || !query.data ? (
         <div className="mt-6 flex flex-col gap-4">
           <div className="h-[103px] animate-pulse rounded-[8px] bg-grey-100" />
           <div className="grid grid-cols-2 gap-3">

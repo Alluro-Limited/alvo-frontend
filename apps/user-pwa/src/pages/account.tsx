@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
 import {CircleHelp, Copy, CreditCard, Headset, History, IdCard, MapPinned, ScrollText, Wallet} from "lucide-react";
 import {AccountRow} from "@/components/account/account-row";
+import {PageError} from "@/components/page-error";
 import {FaqSheet} from "@/components/account/faq-sheet";
 import {useAccountQuery} from "@/queries/use-account-queries";
 import type {WalletOverview} from "@/types/account-types";
@@ -38,6 +39,8 @@ export function AccountPage() {
       <Section caption={m["acct.financial"]()}>
         {query.isLoading ? (
           <div className="skeleton h-24 w-full rounded-[12px]" />
+        ) : query.isError ? (
+          <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
         ) : wallet ? (
           <WalletCard wallet={wallet} onOpen={() => void navigate({to: "/account/wallet"})} />
         ) : null}

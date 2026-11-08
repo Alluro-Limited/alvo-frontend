@@ -1,5 +1,6 @@
 import {useNavigate} from "@tanstack/react-router";
 import {EarningRow} from "@/components/earnings/earning-row";
+import {PageError} from "@/components/page-error";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {m} from "@/paraglide/messages";
 import {useEarningsHistoryQuery} from "@/queries/use-earnings-queries";
@@ -14,7 +15,9 @@ export function EarningsHistoryPage() {
     <main className="mx-auto min-h-dvh w-full max-w-[430px] bg-white px-6 pt-[max(24px,env(safe-area-inset-top))] pb-[max(24px,env(safe-area-inset-bottom))]">
       <WizardHeader step={0} onBack={() => void navigate({to: "/earnings"})} />
       <h1 className="mt-9 text-[24px] leading-[30px] font-medium tracking-[-0.01em]">{m["earnings.history_title"]()}</h1>
-      {query.isPending || !query.data ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isPending || !query.data ? (
         <div className="mt-6 flex flex-col gap-3">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="h-20 animate-pulse rounded-[8px] bg-grey-100" />

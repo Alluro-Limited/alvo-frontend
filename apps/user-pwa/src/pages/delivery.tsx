@@ -13,9 +13,18 @@ import {StorageSheet} from "@/components/activities/storage-sheet";
 import {SummaryCard} from "@/components/activities/summary-card";
 import {TimelineSheet} from "@/components/activities/timeline-sheet";
 import {NotFoundPage} from "@/pages/not-found";
+import {PageError} from "@/components/page-error";
+import {isNotFoundError} from "@/lib/api-errors";
 import {useDeliveryQuery} from "@/queries/use-activity-queries";
 import type {ActivityKind, DeliveryDetail} from "@/types/activity-types";
 import {m} from "@/paraglide/messages";
+
+/** Maps a failed delivery fetch: real 404 → not-found screen, anything else → retryable error. */
+function deliveryErrorView(query: ReturnType<typeof useDeliveryQuery>) {
+  if (!query.isError) return null;
+  if (isNotFoundError(query.error)) return <NotFoundPage />;
+  return <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />;
+}
 
 /** Delivery details — status + summary with Details/Access/Timeline tiles, and collected layout for done states. */
 export function DeliveryPage() {
@@ -27,6 +36,8 @@ export function DeliveryPage() {
   const [extendOpen, setExtendOpen] = useState(false);
 
   const delivery = query.data;
+  const errorView = deliveryErrorView(query);
+  if (errorView) return errorView;
   if (!query.isLoading && !delivery) return <NotFoundPage />;
   if (delivery && codeView) return <AccessScreen delivery={delivery} isFetching={query.isFetching} onBack={() => setCodeView(false)} />;
 

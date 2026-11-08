@@ -2,6 +2,7 @@ import {Banknote, Bell, Car, ClipboardList, MessageCircle, Settings, SlidersHori
 import {MenuCard} from "@/components/account/menu-card";
 import {OptionItem} from "@/components/account/option-item";
 import {ProfileCard} from "@/components/account/profile-card";
+import {PageError} from "@/components/page-error";
 import {m} from "@/paraglide/messages";
 import {useProfileQuery} from "@/queries/use-earnings-queries";
 
@@ -14,7 +15,9 @@ export function AccountPage() {
       <h1 className="text-[32px] leading-[36px] font-bold tracking-[-0.01em]">{m["account.title"]()}</h1>
       <div className="mt-9 flex flex-col gap-8">
         <div className="flex flex-col gap-6">
-          {profile.isPending || !profile.data ? (
+          {profile.isError ? (
+            <PageError onRetry={() => void profile.refetch()} isRetrying={profile.isRefetching} />
+          ) : profile.isPending || !profile.data ? (
             <div className="h-[68px] animate-pulse rounded-[12px] bg-grey-100" />
           ) : (
             <ProfileCard profile={profile.data} />

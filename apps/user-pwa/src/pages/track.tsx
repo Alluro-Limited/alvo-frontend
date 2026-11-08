@@ -2,6 +2,8 @@ import {useNavigate, useParams} from "@tanstack/react-router";
 import {ChevronLeft} from "lucide-react";
 import {TrackSheet} from "@/components/activities/track-sheet";
 import {NotFoundPage} from "@/pages/not-found";
+import {PageError} from "@/components/page-error";
+import {isNotFoundError} from "@/lib/api-errors";
 import {useDeliveryQuery} from "@/queries/use-activity-queries";
 import {m} from "@/paraglide/messages";
 import trackMapUrl from "@/assets/track-map.png";
@@ -13,6 +15,9 @@ export function TrackPage() {
   const query = useDeliveryQuery(id);
 
   const delivery = query.data;
+  if (query.isError && !isNotFoundError(query.error)) {
+    return <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />;
+  }
   if (!query.isLoading && !delivery) return <NotFoundPage />;
 
   return (

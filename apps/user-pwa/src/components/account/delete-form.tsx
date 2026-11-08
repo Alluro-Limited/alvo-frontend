@@ -10,6 +10,7 @@ const CONSENTS: SimpleMessage[] = ["del.c1", "del.c2"];
 interface DeleteFormProps {
   password: string;
   badPassword: boolean;
+  failed: boolean;
   consents: boolean[];
   pending: boolean;
   /** Password entered + both consent boxes ticked + no request in flight. */
@@ -20,7 +21,7 @@ interface DeleteFormProps {
 }
 
 /** The Confirm Password field, consent checkboxes, and the Cancel / Delete account buttons. */
-export function DeleteForm({password, badPassword, consents, pending, ready, onPassword, onConsent, onSubmit}: DeleteFormProps) {
+export function DeleteForm({password, badPassword, failed, consents, pending, ready, onPassword, onConsent, onSubmit}: DeleteFormProps) {
   const router = useRouter();
 
   return (
@@ -29,6 +30,8 @@ export function DeleteForm({password, badPassword, consents, pending, ready, onP
         <PasswordField id="delete-password" label={m["del.password"]()} value={password} onChange={onPassword} error={badPassword} />
         {badPassword ? (
           <p className="text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">{m["del.err_password"]()}</p>
+        ) : failed ? (
+          <p className="text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">{m["del.request_failed"]()}</p>
         ) : (
           <p className="text-[12px] leading-[1.4] tracking-[0.12px] text-grey-500">{m["del.password_help"]()}</p>
         )}

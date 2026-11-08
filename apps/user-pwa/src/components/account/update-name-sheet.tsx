@@ -27,6 +27,7 @@ export function UpdateNameSheet({open, firstName, lastName, onClose}: UpdateName
   const [first, setFirst] = useState(firstName);
   const [last, setLast] = useState(lastName);
   const [errors, setErrors] = useState<NameErrors>({});
+  const [failed, setFailed] = useState(false);
   const [saved, setSaved] = useState(false);
   const update = useUpdateName();
 
@@ -46,7 +47,7 @@ export function UpdateNameSheet({open, firstName, lastName, onClose}: UpdateName
     else if (!NAME_CHARS.test(last)) next.last = "pi.last_invalid";
     setErrors(next);
     if (next.first || next.last) return;
-    update.mutate({firstName: first.trim(), lastName: last.trim()}, {onSuccess: () => setSaved(true)});
+    update.mutate({firstName: first.trim(), lastName: last.trim()}, {onSuccess: () => setSaved(true), onError: () => setFailed(true)});
   };
 
   return (
@@ -60,6 +61,7 @@ export function UpdateNameSheet({open, firstName, lastName, onClose}: UpdateName
           first={first}
           last={last}
           errors={errors}
+          failed={failed}
           current={`${lastName} ${firstName}`}
           onFirst={setFirst}
           onLast={setLast}
@@ -85,6 +87,7 @@ interface NameFormProps {
   first: string;
   last: string;
   errors: NameErrors;
+  failed: boolean;
   current: string;
   onFirst: (v: string) => void;
   onLast: (v: string) => void;
@@ -92,7 +95,7 @@ interface NameFormProps {
   onSubmit: () => void;
 }
 
-function NameForm({first, last, errors, current, onFirst, onLast, onCancel, onSubmit}: NameFormProps) {
+function NameForm({first, last, errors, failed, current, onFirst, onLast, onCancel, onSubmit}: NameFormProps) {
   return (
     <div className="mt-2 flex w-full flex-col pb-4">
       <div className="flex w-full items-center justify-between">
@@ -109,6 +112,11 @@ function NameForm({first, last, errors, current, onFirst, onLast, onCancel, onSu
         <Field id="pi-first" label={m["pi.first"]()} value={first} onChange={onFirst} error={errors.first} />
         <Field id="pi-last" label={m["pi.last"]()} value={last} onChange={onLast} error={errors.last} />
       </div>
+      {failed && (
+        <p role="alert" className="mt-4 text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">
+          {m["pi.save_failed"]()}
+        </p>
+      )}
       <div className="mt-6 flex w-full gap-3">
         <button
           type="button"

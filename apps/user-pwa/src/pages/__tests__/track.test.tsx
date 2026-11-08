@@ -59,7 +59,7 @@ describe("TrackPage", () => {
   });
 
   it("shows the not-found page for an unknown delivery", async () => {
-    getDelivery.mockRejectedValue(new Error("not_found"));
+    getDelivery.mockRejectedValue(Object.assign(new Error("not_found"), {data: {code: "not_found"}}));
     renderRoute(TrackPage, "/delivery/$id/track", "/delivery/nope/track");
     expect(await screen.findByText("not_found.title")).toBeTruthy();
   });

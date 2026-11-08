@@ -374,5 +374,21 @@
   "vehd.s2": "An appointment is scheduled at a convenient time.",
   "vehd.s3": "Vehicle is inspected and verified in person.",
   "vehd.s4": "Your vehicle type is updated once approved.",
-  "vehd.title": "Request Submitted"
+  "vehd.title": "Request Submitted",
+  "errors.load_title": "Something went wrong",
+  "errors.load_desc": "We couldn't load this page. Please check your connection and try again.",
+  "errors.retry": "Try again",
+  "errors.retrying": "Retrying…",
+  "errors.action_failed": "The action failed. Please try again.",
+  "home.availability_failed": "Couldn't update your availability. Please try again.",
+  "job.accept_failed": "Couldn't accept the job. Please try again.",
+  "job.decline_failed": "Couldn't decline the job. Please try again.",
+  "job.status_failed": "Couldn't update the delivery status. Please try again.",
+  "area.change_failed": "Couldn't change your delivery area. Please try again.",
+  "bank.change_failed": "Couldn't submit your bank details. Please try again.",
+  "vehc.change_failed": "Couldn't submit your vehicle change. Please try again.",
+  "notif.pref_failed": "Couldn't save your preference. Please try again.",
+  "del.request_failed": "Couldn't process your request. Please try again.",
+  "del.code_resent": "Code resent",
+  "auth.err_resend": "Couldn't resend the code. Please try again."
 }

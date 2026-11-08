@@ -23,6 +23,8 @@ export function useCourierApproveFlow() {
   return {
     approve,
     approving: mutation.isPending,
+    failed: mutation.isError,
+    dismissFailed: () => mutation.reset(),
     toast,
     dismissToast: () => setToast(null),
   };

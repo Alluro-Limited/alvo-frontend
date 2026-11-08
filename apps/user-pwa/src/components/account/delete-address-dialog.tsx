@@ -38,6 +38,11 @@ export function DeleteAddressDialog({addressId, onClose, onDeleted}: DeleteAddre
                 {remove.isPending ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : null}
                 {m["adr.del_confirm"]()}
               </button>
+              {remove.isError && (
+                <p role="alert" className="text-center text-[12px] leading-[1.4] text-status-fail">
+                  {m["adr.del_failed"]()}
+                </p>
+              )}
               <button
                 type="button"
                 onClick={onClose}

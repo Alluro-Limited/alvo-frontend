@@ -68,6 +68,11 @@ export function ConfirmStep({wizard}: {wizard: ReturnType<typeof useBatchWizard>
         </a>
         {m["wiz.terms_post"]()}
       </p>
+      {payment.payFailed && (
+        <p role="alert" className="text-xs leading-[1.4] font-medium tracking-[0.12px] text-status-fail">
+          {m["pay.failed"]()}
+        </p>
+      )}
     </div>
   );
 }

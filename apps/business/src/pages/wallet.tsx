@@ -1,6 +1,7 @@
 import {useCallback, useRef, useState} from "react";
 import {useSetHeaderAction} from "@/components/app-shell/header-action";
 import {useSetPageTitle} from "@/components/app-shell/page-title";
+import {PageError} from "@/components/page-error";
 import {BalanceCard} from "@/components/wallet/balance-card";
 import {GenerateAccountDialog} from "@/components/wallet/generate-account-dialog";
 import {QuickTopupCard} from "@/components/wallet/quick-topup-card";
@@ -24,7 +25,7 @@ function WalletSkeleton() {
 /** `/wallet` — balance banner, quick bank top-up, and the transaction history. */
 export function WalletPage() {
   useSetPageTitle(m["nav.wallet"]());
-  const {data: overview, isLoading} = useWalletOverview();
+  const {data: overview, isLoading, isError, refetch, isRefetching} = useWalletOverview();
   const [topupOpen, setTopupOpen] = useState(false);
   const [generateOpen, setGenerateOpen] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,7 @@ export function WalletPage() {
   const openTopup = useCallback(() => setTopupOpen(true), []);
   useSetHeaderAction(openTopup);
 
+  if (isError) return <PageError onRetry={() => void refetch()} isRetrying={isRefetching} />;
   if (isLoading || !overview) return <WalletSkeleton />;
 
   return (

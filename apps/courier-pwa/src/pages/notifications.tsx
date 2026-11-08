@@ -2,6 +2,7 @@ import {useMemo, useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
 import {ChipRow} from "@/components/app/chip-row";
 import {NotificationFeed} from "@/components/notifications/notification-feed";
+import {PageError} from "@/components/page-error";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {m} from "@/paraglide/messages";
 import {useNotificationsQuery} from "@/queries/use-notifications-queries";
@@ -41,6 +42,8 @@ export function NotificationsPage() {
             <div key={i} className="h-20 animate-pulse rounded-[12px] bg-grey-100" />
           ))}
         </div>
+      ) : query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
       ) : (
         <NotificationFeed groups={groups} />
       )}

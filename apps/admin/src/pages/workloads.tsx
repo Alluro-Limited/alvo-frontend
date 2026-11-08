@@ -1,3 +1,5 @@
+import {m} from "@/paraglide/messages";
+import {AppToast} from "@/components/app-toast";
 import {useState} from "react";
 import {BatchList} from "@/components/workloads/batch-list";
 import {ParcelDetailDrawer} from "@/components/workloads/parcel-detail-drawer";
@@ -98,7 +100,7 @@ export function WorkloadsPage() {
   const [drawerId, setDrawerId] = useState<string | null>(null);
   const {selected, toggleRow, toggleAll, clear} = useParcelSelection();
   const flag = useFlagFlow(clear);
-  const {exporting, exportParcels} = useParcelExport(params);
+  const {exporting, failed, dismissFailed, exportParcels} = useParcelExport(params);
   const {data, isPending, isError, refetch, isRefetching} = useWorkloadsQuery(params);
 
   const handlers = {
@@ -136,6 +138,7 @@ export function WorkloadsPage() {
         noun={filters.tab === "safe" ? "item" : "parcel"}
         flag={flag}
       />
+      {failed && <AppToast message={m["export.failed"]()} variant="destructive" onDismiss={dismissFailed} />}
     </div>
   );
 }

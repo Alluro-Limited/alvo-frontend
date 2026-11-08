@@ -1,11 +1,14 @@
 import {useNavigate} from "@tanstack/react-router";
+import {AppToast} from "@/components/app-toast";
 import {CompleteSheet} from "@/components/delivery/complete-sheet";
 import {DeliveryHeader} from "@/components/delivery/delivery-header";
 import {DeliverySkeleton} from "@/components/delivery/delivery-skeleton";
 import {OverviewTab} from "@/components/delivery/overview-tab";
 import {PackagesTab} from "@/components/delivery/packages-tab";
+import {PageError} from "@/components/page-error";
 import {StatusTab} from "@/components/delivery/status-tab";
 import {useDelivery} from "@/components/delivery/use-delivery";
+import {m} from "@/paraglide/messages";
 
 /**
  * The job-flow screen behind View Details / an accepted marketplace offer.
@@ -15,7 +18,8 @@ export function DeliveryPage({jobId}: {jobId: string}) {
   const navigate = useNavigate();
   const job = useDelivery(jobId);
 
-  if (job.loading || !job.delivery) return <DeliverySkeleton />;
+  if (job.loading || !job.delivery)
+    return job.error ? <PageError onRetry={() => void job.retry()} isRetrying={job.retrying} /> : <DeliverySkeleton />;
 
   const d = job.delivery;
   return (
@@ -36,6 +40,7 @@ export function DeliveryPage({jobId}: {jobId: string}) {
         <StatusTab delivery={d} selected={job.selected} pending={job.confirming} onSelect={job.setSelected} onConfirm={job.confirmStatus} />
       )}
       <CompleteSheet jobId={d.id} payout={d.payout} open={job.sheetOpen} onClose={job.closeSheet} />
+      {job.statusFailed && <AppToast message={m["job.status_failed"]()} variant="destructive" onDismiss={job.dismissStatusError} />}
     </main>
   );
 }

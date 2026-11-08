@@ -9,11 +9,19 @@ export function useDeliveries() {
   const decline = useDeclineActiveMutation();
   const [filter, setFilter] = useState<"all" | JobKind>("all");
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const completed = (query.data?.completed ?? []).filter((d) => filter === "all" || d.kind === filter);
 
   const confirmAccept = () => {
-    if (confirming) accept.mutate(confirming, {onSuccess: () => setConfirming(null)});
+    if (confirming)
+      accept.mutate(confirming, {
+        onSuccess: () => setConfirming(null),
+        onError: () => {
+          setConfirming(null);
+          setToast("accept");
+        },
+      });
   };
 
   return {
@@ -22,11 +30,16 @@ export function useDeliveries() {
     filter,
     setFilter,
     loading: query.isPending,
+    error: query.isError,
+    retry: query.refetch,
+    retrying: query.isRefetching,
     confirming,
     mutating: accept.isPending,
     askAccept: setConfirming,
     confirmAccept,
     closeConfirm: () => setConfirming(null),
-    declineJob: (id: string) => decline.mutate(id),
+    declineJob: (id: string) => decline.mutate(id, {onError: () => setToast("decline")}),
+    toast,
+    dismissToast: () => setToast(null),
   };
 }

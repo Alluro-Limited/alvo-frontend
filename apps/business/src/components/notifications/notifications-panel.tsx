@@ -1,6 +1,8 @@
+import {useState} from "react";
 import {PopoverClose} from "@alvo/ui";
 import {cn} from "cnfast";
 import {useMarkAllNotificationsRead} from "@/queries/use-dashboard-queries";
+import {AppToast} from "@/components/app-toast";
 import {m} from "@/paraglide/messages";
 import type {AppNotification} from "@/types/dashboard-types";
 import notifCloseUrl from "@/assets/notif-close.svg";
@@ -15,6 +17,7 @@ interface NotificationsPanelProps {
 /** The 400px dropdown under the bell: header, grouped rows or empty state, and a mark-all-read footer. */
 export function NotificationsPanel({notifications, isLoading}: NotificationsPanelProps) {
   const markAllRead = useMarkAllNotificationsRead();
+  const [failed, setFailed] = useState(false);
   const hasUnread = notifications.some((notification) => !notification.read);
 
   return (
@@ -31,7 +34,7 @@ export function NotificationsPanel({notifications, isLoading}: NotificationsPane
       <div className="border-t border-grey-300 p-6">
         <button
           type="button"
-          onClick={() => markAllRead.mutate()}
+          onClick={() => markAllRead.mutate(undefined, {onError: () => setFailed(true)})}
           disabled={!hasUnread || markAllRead.isPending}
           className={cn(
             "flex w-full cursor-pointer items-center justify-center gap-2 rounded-md px-4 py-2 text-sm leading-[1.4] font-medium tracking-[0.28px] text-primary-800 hover:bg-primary-800/5",
@@ -42,6 +45,7 @@ export function NotificationsPanel({notifications, isLoading}: NotificationsPane
           {m["notifications.mark_all_read"]()}
         </button>
       </div>
+      {failed && <AppToast message={m["notifications.mark_read_failed"]()} variant="destructive" onDismiss={() => setFailed(false)} />}
     </div>
   );
 }
