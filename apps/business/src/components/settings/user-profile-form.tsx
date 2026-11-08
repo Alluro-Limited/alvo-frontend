@@ -1,5 +1,6 @@
 import {useState, type FormEvent} from "react";
 import {AuthAlert} from "@/components/auth/auth-alert";
+import {AppToast} from "@/components/app-toast";
 import {m} from "@/paraglide/messages";
 import {useUpdateUserProfileMutation} from "@/queries/use-settings-queries";
 import type {UserProfile} from "@/types/settings-types";
@@ -29,6 +30,7 @@ export function UserProfileForm({initial}: UserProfileFormProps) {
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failed, setFailed] = useState(false);
+  const [saved, setSaved] = useState(false);
   const mutation = useUpdateUserProfileMutation();
 
   const submit = (event: FormEvent) => {
@@ -37,7 +39,7 @@ export function UserProfileForm({initial}: UserProfileFormProps) {
     setErrors(fieldErrors);
     if (Object.keys(fieldErrors).length > 0) return;
     setFailed(false);
-    mutation.mutate(values, {onError: () => setFailed(true)});
+    mutation.mutate(values, {onSuccess: () => setSaved(true), onError: () => setFailed(true)});
   };
 
   return (
@@ -61,6 +63,7 @@ export function UserProfileForm({initial}: UserProfileFormProps) {
         {failed && <AuthAlert tone="error">{m["settings.errors.save_failed"]()}</AuthAlert>}
         <UserProfileFields values={values} errors={errors} onChange={(key, value) => setValues((prev) => ({...prev, [key]: value}))} />
       </SettingsCard>
+      {saved && <AppToast message={m["settings.profile_saved"]()} variant="success" onDismiss={() => setSaved(false)} />}
     </form>
   );
 }

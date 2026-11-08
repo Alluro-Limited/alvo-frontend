@@ -2,6 +2,7 @@ import {Button} from "@alvo/ui";
 import {Link} from "@tanstack/react-router";
 import {m} from "@/paraglide/messages";
 import {useDashboardOverview} from "@/queries/use-dashboard-queries";
+import {PageError} from "@/components/page-error";
 import {DashboardBanner} from "@/components/dashboard/dashboard-banner";
 import {RecentShipments} from "@/components/dashboard/recent-shipments";
 import {StatsGrid} from "@/components/dashboard/stats-grid";
@@ -18,7 +19,9 @@ function StatsSkeleton() {
 }
 
 export function DashboardPage() {
-  const {data: overview, isLoading} = useDashboardOverview();
+  const {data: overview, isLoading, isError, refetch, isRefetching} = useDashboardOverview();
+
+  if (isError) return <PageError onRetry={() => void refetch()} isRetrying={isRefetching} />;
 
   return (
     <section className="mx-auto flex w-full max-w-[1100px] flex-col items-start gap-8">

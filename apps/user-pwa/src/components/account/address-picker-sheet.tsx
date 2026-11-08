@@ -54,6 +54,11 @@ export function AddressPickerSheet({open, onClose, onAdded}: AddressPickerSheetP
           />
         </div>
         <PickerResults nodes={nodes.data ?? []} loading={nodes.isLoading} pending={add.isPending} query={query} onPick={pick} />
+        {(add.isError || nodes.isError) && (
+          <p role="alert" className="mt-2 text-center text-[12px] leading-[1.4] text-status-fail">
+            {add.isError ? m["adr.add_failed"]() : m["errors.action_failed"]()}
+          </p>
+        )}
       </div>
     </AuthSheet>
   );

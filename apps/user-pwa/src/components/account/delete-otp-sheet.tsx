@@ -27,7 +27,9 @@ export function DeleteOtpSheet({open, password, onClose, onDeleted}: DeleteOtpSh
   const [code, setCode] = useState("");
   const resend = useResendDeletionCode();
   const confirm = useConfirmAccountDeletion();
+  const [resendFailed, setResendFailed] = useState(false);
   const wrongCode = confirm.isError && failed(confirm.error);
+  const genericFailed = confirm.isError && !failed(confirm.error);
 
   const close = () => {
     setCode("");
@@ -43,12 +45,13 @@ export function DeleteOtpSheet({open, password, onClose, onDeleted}: DeleteOtpSh
         <OtpForm
           code={code}
           wrongCode={wrongCode}
+          failed={genericFailed || resendFailed}
           resending={resend.isPending}
           onCode={(v) => {
             setCode(v);
             confirm.reset();
           }}
-          onResend={() => resend.mutate(password)}
+          onResend={() => resend.mutate(password, {onError: () => setResendFailed(true)})}
           onSubmit={() => confirm.mutate(code, {onSuccess: onDeleted})}
           onClose={close}
         />
@@ -60,6 +63,7 @@ export function DeleteOtpSheet({open, password, onClose, onDeleted}: DeleteOtpSh
 interface OtpFormProps {
   code: string;
   wrongCode: boolean;
+  failed: boolean;
   resending: boolean;
   onCode: (v: string) => void;
   onResend: () => void;
@@ -67,7 +71,7 @@ interface OtpFormProps {
   onClose: () => void;
 }
 
-function OtpForm({code, wrongCode, resending, onCode, onResend, onSubmit, onClose}: OtpFormProps) {
+function OtpForm({code, wrongCode, failed, resending, onCode, onResend, onSubmit, onClose}: OtpFormProps) {
   return (
     <div className="mt-2 flex w-full flex-col pb-4">
       <div className="flex w-full items-center justify-between">
@@ -80,6 +84,7 @@ function OtpForm({code, wrongCode, resending, onCode, onResend, onSubmit, onClos
       <div className="mt-6 flex w-full flex-col gap-4">
         <OtpInput value={code} error={wrongCode} onChange={onCode} />
         {wrongCode ? <span className="text-[14px] leading-[1.4] tracking-[0.14px] text-status-fail">{m["del.otp_err"]()}</span> : null}
+        {failed ? <span className="text-[14px] leading-[1.4] tracking-[0.14px] text-status-fail">{m["del.request_failed"]()}</span> : null}
         <span className="text-[14px] leading-[1.4] tracking-[0.14px]">
           <span className="text-grey-500">{m["del.otp_resend_q"]()} </span>
           <button type="button" disabled={resending} onClick={onResend} className="font-medium text-primary-500 disabled:opacity-70">

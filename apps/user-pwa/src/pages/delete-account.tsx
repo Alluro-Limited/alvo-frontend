@@ -29,6 +29,7 @@ export function DeleteAccountPage() {
       <DeleteForm
         password={password}
         badPassword={request.isError && wrongPassword(request.error)}
+        failed={request.isError && !wrongPassword(request.error)}
         consents={consents}
         pending={request.isPending}
         ready={ready}

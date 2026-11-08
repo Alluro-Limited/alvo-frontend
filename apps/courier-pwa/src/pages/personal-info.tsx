@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
 import {CircleCheck, Info, LogOut, Trash2} from "lucide-react";
 import {SignOutDialog} from "@/components/account/sign-out-dialog";
+import {PageError} from "@/components/page-error";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {m} from "@/paraglide/messages";
 import {useProfileQuery} from "@/queries/use-earnings-queries";
@@ -31,7 +32,9 @@ export function PersonalInfoPage() {
       <div className="mt-6 flex flex-col gap-6">
         <section className="flex flex-col gap-2">
           <h2 className="text-[14px] text-grey-500">{m["account.basic"]()}</h2>
-          {profile.isPending || !profile.data ? (
+          {profile.isError ? (
+            <PageError onRetry={() => void profile.refetch()} isRetrying={profile.isRefetching} />
+          ) : profile.isPending || !profile.data ? (
             <div className="h-[179px] animate-pulse rounded-[8px] bg-grey-100" />
           ) : (
             <div className="flex flex-col gap-4 rounded-[8px] bg-grey-100 p-3">

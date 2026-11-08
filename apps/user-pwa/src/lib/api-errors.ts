@@ -26,3 +26,9 @@ export function mapError(codes: Record<number, string>, fallback?: string) {
     throw err;
   };
 }
+
+/** True when the failure means the resource doesn't exist (HTTP 404 or a mapped "not_found" code). */
+export function isNotFoundError(err: Error) {
+  if (err instanceof HTTPError && err.response.status === API_ERROR_CODES.NOT_FOUND) return true;
+  return (err as {data?: {code?: string}}).data?.code === "not_found";
+}

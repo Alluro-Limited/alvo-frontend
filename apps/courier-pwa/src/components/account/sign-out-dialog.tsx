@@ -15,7 +15,7 @@ export function SignOutDialog({open, onClose}: SignOutDialogProps) {
   const signOut = useSignOutMutation();
 
   const confirm = () => {
-    signOut.mutate(undefined, {onSuccess: () => void navigate({to: "/sign-in"})});
+    signOut.mutate(undefined, {onSettled: () => void navigate({to: "/sign-in"})});
   };
 
   return (

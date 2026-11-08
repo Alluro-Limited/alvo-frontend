@@ -1,6 +1,8 @@
 import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
+import {AppToast} from "@/components/app-toast";
 import {FormField} from "@/components/form/form-field";
+import {PageError} from "@/components/page-error";
 import {SelectInput} from "@/components/form/select-input";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {CapacityCard} from "@/components/vehicle/capacity-card";
@@ -25,7 +27,9 @@ export function VehiclePage() {
       ) : (
         <>
           <h1 className="mt-9 text-[24px] leading-[30px] font-medium tracking-[-0.01em]">{m["veh.title"]()}</h1>
-          {profile.isPending || !profile.data ? (
+          {profile.isError ? (
+            <PageError onRetry={() => void profile.refetch()} isRetrying={profile.isRefetching} />
+          ) : profile.isPending || !profile.data ? (
             <div className="mt-6 h-[230px] animate-pulse rounded-[12px] bg-grey-100" />
           ) : (
             <VehiclePicker current={profile.data.vehicle} onSubmitted={setSubmitted} />
@@ -40,6 +44,7 @@ function VehiclePicker({current, onSubmitted}: {current: VehicleType; onSubmitte
   const change = useVehicleChangeMutation();
   const [choice, setChoice] = useState<VehicleType>(current);
   const [confirming, setConfirming] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const confirm = () =>
     change.mutate(choice, {
@@ -47,21 +52,15 @@ function VehiclePicker({current, onSubmitted}: {current: VehicleType; onSubmitte
         setConfirming(false);
         onSubmitted(choice);
       },
+      onError: () => {
+        setConfirming(false);
+        setFailed(true);
+      },
     });
 
   return (
     <div className="mt-6 flex flex-1 flex-col gap-5">
-      <FormField label={m["veh.type"]()}>
-        {(control) => (
-          <SelectInput {...control} value={choice} onChange={(e) => setChoice(e.target.value as VehicleType)}>
-            {VEHICLE_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {m[`veh.${type}`]()}
-              </option>
-            ))}
-          </SelectInput>
-        )}
-      </FormField>
+      <VehicleTypeSelect value={choice} onChange={setChoice} />
       <CapacityCard vehicle={choice} />
       <button
         type="button"
@@ -79,6 +78,23 @@ function VehiclePicker({current, onSubmitted}: {current: VehicleType; onSubmitte
         onConfirm={confirm}
         onClose={() => setConfirming(false)}
       />
+      {failed && <AppToast message={m["vehc.change_failed"]()} variant="destructive" onDismiss={() => setFailed(false)} />}
     </div>
+  );
+}
+
+function VehicleTypeSelect({value, onChange}: {value: VehicleType; onChange: (v: VehicleType) => void}) {
+  return (
+    <FormField label={m["veh.type"]()}>
+      {(control) => (
+        <SelectInput {...control} value={value} onChange={(e) => onChange(e.target.value as VehicleType)}>
+          {VEHICLE_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {m[`veh.${type}`]()}
+            </option>
+          ))}
+        </SelectInput>
+      )}
+    </FormField>
   );
 }

@@ -11,6 +11,7 @@ export function useJobs() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<JobsFilterValue>("all");
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const offers = (query.data ?? []).filter((o) => filter === "all" || o.kind === filter);
 
@@ -22,6 +23,10 @@ export function useJobs() {
         setConfirming(null);
         void navigate({to: "/deliveries/$jobId", params: {jobId}});
       },
+      onError: () => {
+        setConfirming(null);
+        setToast("accept");
+      },
     });
   };
 
@@ -30,11 +35,16 @@ export function useJobs() {
     filter,
     setFilter,
     loading: query.isPending,
+    error: query.isError,
+    retry: query.refetch,
+    retrying: query.isRefetching,
     confirming,
     mutating: accept.isPending,
     askAccept: setConfirming,
     confirmAccept,
     closeConfirm: () => setConfirming(null),
-    declineJob: (id: string) => decline.mutate(id),
+    declineJob: (id: string) => decline.mutate(id, {onError: () => setToast("decline")}),
+    toast,
+    dismissToast: () => setToast(null),
   };
 }

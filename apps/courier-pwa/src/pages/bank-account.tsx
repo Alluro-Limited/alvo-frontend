@@ -1,9 +1,11 @@
 import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
+import {AppToast} from "@/components/app-toast";
 import {BankSubmitted} from "@/components/bank/bank-submitted";
 import {CurrentAccountCard} from "@/components/bank/current-account-card";
 import {RegisteredAccountSheet} from "@/components/bank/registered-account-sheet";
 import {FormField} from "@/components/form/form-field";
+import {PageError} from "@/components/page-error";
 import {SelectInput} from "@/components/form/select-input";
 import {TextInput} from "@/components/form/text-input";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
@@ -25,7 +27,9 @@ export function BankAccountPage() {
       ) : (
         <>
           <h1 className="mt-9 text-[24px] leading-[30px] font-medium tracking-[-0.01em]">{m["bank.title"]()}</h1>
-          {bankAccount.isPending || !bankAccount.data ? (
+          {bankAccount.isError ? (
+            <PageError onRetry={() => void bankAccount.refetch()} isRetrying={bankAccount.isRefetching} />
+          ) : bankAccount.isPending || !bankAccount.data ? (
             <div className="mt-6 h-[400px] animate-pulse rounded-[12px] bg-grey-100" />
           ) : (
             <BankForm onSubmitted={() => setSubmitted(true)} />
@@ -44,6 +48,7 @@ function BankForm({onSubmitted}: {onSubmitted: () => void}) {
   const change = useBankChangeMutation();
   const [draft, setDraft] = useState<BankAccount>(EMPTY);
   const [confirming, setConfirming] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const valid = draft.bankName !== "" && /^\d{10}$/.test(draft.accountNumber) && draft.accountName.trim() !== "";
 
@@ -52,6 +57,10 @@ function BankForm({onSubmitted}: {onSubmitted: () => void}) {
       onSuccess: () => {
         setConfirming(false);
         onSubmitted();
+      },
+      onError: () => {
+        setConfirming(false);
+        setFailed(true);
       },
     });
 
@@ -74,6 +83,8 @@ function BankForm({onSubmitted}: {onSubmitted: () => void}) {
         onConfirm={confirm}
         onClose={() => setConfirming(false)}
       />
+      {banks.isError && <AppToast message={m["errors.action_failed"]()} variant="destructive" onDismiss={() => void banks.refetch()} />}
+      {failed && <AppToast message={m["bank.change_failed"]()} variant="destructive" onDismiss={() => setFailed(false)} />}
     </div>
   );
 }

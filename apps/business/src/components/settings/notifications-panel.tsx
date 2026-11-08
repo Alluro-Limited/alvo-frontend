@@ -1,6 +1,8 @@
+import {useState} from "react";
 import {Switch} from "@alvo/ui";
 import {m} from "@/paraglide/messages";
 import {useUpdateNotificationsMutation} from "@/queries/use-settings-queries";
+import {AppToast} from "@/components/app-toast";
 import type {EmailNotificationPrefs, NotificationPrefs, SmsNotificationPrefs} from "@/types/settings-types";
 import {SettingsCard} from "./settings-card";
 
@@ -48,13 +50,15 @@ interface NotificationsPanelProps {
 /** "Notifications" tab — email and SMS preference toggles, saved immediately. */
 export function NotificationsPanel({prefs}: NotificationsPanelProps) {
   const mutation = useUpdateNotificationsMutation();
+  const [failed, setFailed] = useState(false);
 
   const update = <K extends "email" | "sms", F extends keyof NotificationPrefs[K]>(channel: K, field: F, value: boolean) => {
-    mutation.mutate({...prefs, [channel]: {...prefs[channel], [field]: value}});
+    mutation.mutate({...prefs, [channel]: {...prefs[channel], [field]: value}}, {onError: () => setFailed(true)});
   };
 
   return (
     <SettingsCard title={m["settings.notifications_title"]()} subtitle={m["settings.notifications_sub"]()}>
+      {failed && <AppToast message={m["settings.notify_save_failed"]()} variant="destructive" onDismiss={() => setFailed(false)} />}
       <section className="flex flex-col">
         <h3 className="text-sm leading-[1.4] font-medium text-[#070d17]">{m["settings.email_notifications"]()}</h3>
         <div className="mt-2.5 flex flex-col divide-y divide-grey-200">

@@ -14,14 +14,25 @@ interface LocationSheetProps {
 /** "Change Location" sheet — area search with results, empty, and no-results states. */
 export function LocationSheet({open, onClose}: LocationSheetProps) {
   const [query, setQuery] = useState("");
+  const [failed, setFailed] = useState(false);
   const search = useAreaSearchQuery(query);
   const setArea = useSetAreaMutation();
   const searching = query.trim().length >= 2;
 
   const close = (area?: string) => {
-    if (area) setArea.mutate(area);
-    setQuery("");
-    onClose();
+    setFailed(false);
+    if (!area) {
+      setQuery("");
+      onClose();
+      return;
+    }
+    setArea.mutate(area, {
+      onSuccess: () => {
+        setQuery("");
+        onClose();
+      },
+      onError: () => setFailed(true),
+    });
   };
 
   return (
@@ -43,14 +54,28 @@ export function LocationSheet({open, onClose}: LocationSheetProps) {
             onPick={(area) => close(area.split(",")[0]?.trim() ?? area)}
           />
         </div>
-        <button
-          type="button"
-          onClick={() => close("Oshodi")}
-          className="mt-4 flex h-[50px] w-full items-center justify-center rounded-[8px] border-[0.75px] border-primary-500 px-5 py-3.5 text-[16px] font-medium leading-[1.4] tracking-[0.32px] text-primary-500"
-        >
-          {m["loc.current"]()}
-        </button>
+        <LocationFooter failed={failed} onCurrent={() => close("Oshodi")} />
       </div>
     </AuthSheet>
+  );
+}
+
+/** Failure line plus the "use current location" fallback button pinned below the results. */
+function LocationFooter({failed, onCurrent}: {failed: boolean; onCurrent: () => void}) {
+  return (
+    <>
+      {failed && (
+        <p role="alert" className="mt-2 text-center text-[12px] leading-[1.4] text-status-fail">
+          {m["loc.area_failed"]()}
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onCurrent}
+        className="mt-4 flex h-[50px] w-full items-center justify-center rounded-[8px] border-[0.75px] border-primary-500 px-5 py-3.5 text-[16px] font-medium leading-[1.4] tracking-[0.32px] text-primary-500"
+      >
+        {m["loc.current"]()}
+      </button>
+    </>
   );
 }

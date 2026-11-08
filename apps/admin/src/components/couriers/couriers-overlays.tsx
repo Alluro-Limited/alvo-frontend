@@ -1,4 +1,5 @@
 import {m} from "@/paraglide/messages";
+import {AppToast} from "@/components/app-toast";
 import {FlagForReviewDialog} from "@/components/workloads/flag-for-review-dialog";
 import type {CourierDeleteReason, CourierSuspendReason} from "@/types/couriers-types";
 import {CourierDocViewer} from "./courier-doc-viewer";
@@ -132,6 +133,7 @@ function CourierDialogs({
         onSubmit={flag.submit}
       />
       {toast && <CouriersToast message={toast.message} onDismiss={toast.dismiss} />}
+      {approve.failed && <AppToast message={m["couriers.approve_failed"]()} variant="destructive" onDismiss={approve.dismissFailed} />}
     </>
   );
 }

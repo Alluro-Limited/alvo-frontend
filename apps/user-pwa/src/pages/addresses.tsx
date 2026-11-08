@@ -4,6 +4,7 @@ import {AddressPickerSheet} from "@/components/account/address-picker-sheet";
 import {AddressToast} from "@/components/account/address-toast";
 import {DeleteAddressDialog} from "@/components/account/delete-address-dialog";
 import {PageHeader} from "@/components/account/page-header";
+import {PageError} from "@/components/page-error";
 import {useAddressesQuery} from "@/queries/use-account-queries";
 import type {SavedAddress} from "@/types/account-types";
 import {m} from "@/paraglide/messages";
@@ -26,7 +27,11 @@ export function AddressesPage() {
   return (
     <main className="relative flex h-dvh w-full flex-col gap-6 overflow-y-auto bg-white px-6 pb-[max(32px,env(safe-area-inset-bottom))] pt-[60px]">
       <PageHeader title={m["adr.title"]()} />
-      <AddressList addresses={query.data ?? []} loading={query.isLoading} onRemove={setRemoving} />
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : (
+        <AddressList addresses={query.data ?? []} loading={query.isLoading} onRemove={setRemoving} />
+      )}
       <div className="mt-auto pt-6">
         <button
           type="button"

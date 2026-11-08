@@ -4,6 +4,7 @@ import {ActivityFeed} from "@/components/activities/activity-feed";
 import {CancelDialog} from "@/components/activities/cancel-dialog";
 import {CancelledScreen} from "@/components/activities/cancelled-screen";
 import {UpgradeSheet} from "@/components/activities/upgrade-sheet";
+import {PageError} from "@/components/page-error";
 import type {ActivityFilter} from "@/types/activity-types";
 import {useActivitiesQuery} from "@/queries/use-activity-queries";
 import {m} from "@/paraglide/messages";
@@ -22,7 +23,9 @@ export function ActivitiesPage() {
     <main className="flex h-dvh w-full flex-col gap-6 overflow-hidden bg-white px-6 pt-[60px]">
       <h1 className="text-[32px] font-bold leading-[1.1] tracking-[-0.32px] text-foreground">{m["act.title"]()}</h1>
       <ActivityChips value={filter} onChange={setFilter} />
-      {query.isLoading ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isLoading ? (
         <div className="flex flex-1 flex-col gap-4" aria-busy="true">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-36 animate-pulse rounded-[12px] bg-grey-100" />

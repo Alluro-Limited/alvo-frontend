@@ -1,4 +1,5 @@
 import {PageHeader} from "@/components/account/page-header";
+import {PageError} from "@/components/page-error";
 import {TransactionGroups} from "@/components/wallet/transaction-groups";
 import {useWalletQuery} from "@/queries/use-account-queries";
 import {m} from "@/paraglide/messages";
@@ -10,7 +11,9 @@ export function TransactionsPage() {
   return (
     <main className="flex h-dvh w-full flex-col gap-6 overflow-y-auto bg-white px-6 pb-[max(32px,env(safe-area-inset-bottom))] pt-[60px]">
       <PageHeader title={m["tx.title"]()} />
-      {query.isLoading || !query.data ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isLoading || !query.data ? (
         <div className="flex flex-col gap-2">
           <div className="skeleton h-14 w-full rounded-[12px]" />
           <div className="skeleton h-14 w-full rounded-[12px]" />

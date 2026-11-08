@@ -142,6 +142,11 @@ function TopupDialogBody({account, onClose, onGenerate, onComplete}: Omit<TopupD
           <MethodTabs method={method} onChange={setMethod} />
           <MethodPane method={method} amount={amount} account={account} onGenerate={onGenerate} onPay={() => setGatewayOpen(true)} />
         </div>
+        {topUp.isError && (
+          <p role="alert" className="text-xs leading-[1.4] font-medium tracking-[0.12px] text-status-fail">
+            {m["wallet.topup_failed"]()}
+          </p>
+        )}
       </div>
       <GatewayDialog open={gatewayOpen} onComplete={onGatewayComplete} />
     </>

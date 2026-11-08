@@ -1,5 +1,6 @@
 import {useNavigate} from "@tanstack/react-router";
 import {JobChart} from "@/components/analytics/job-chart";
+import {PageError} from "@/components/page-error";
 import {StatCard} from "@/components/analytics/stat-card";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {useAnalyticsQuery} from "@/queries/use-deliveries-queries";
@@ -14,7 +15,9 @@ export function AnalyticsPage() {
     <main className="mx-auto min-h-dvh w-full max-w-[430px] bg-white px-6 pt-[max(24px,env(safe-area-inset-top))] pb-[max(24px,env(safe-area-inset-bottom))]">
       <WizardHeader step={0} onBack={() => void navigate({to: "/deliveries"})} />
       <h1 className="mt-9 text-[28px] leading-[34px] font-bold tracking-[-0.02em]">{m["analytics.title"]()}</h1>
-      {query.isPending || !query.data ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isPending || !query.data ? (
         <div className="mt-6 grid grid-cols-2 gap-3">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="h-[76px] animate-pulse rounded-[12px] bg-grey-100" />

@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useNavigate, useRouter} from "@tanstack/react-router";
 import {ArrowLeft, Wallet} from "lucide-react";
 import {GenerateAccountSheet} from "@/components/wallet/generate-account-sheet";
+import {PageError} from "@/components/page-error";
 import {TransactionGroups} from "@/components/wallet/transaction-groups";
 import {VirtualAccountCard} from "@/components/wallet/virtual-account-card";
 import {WalletBalanceCard} from "@/components/wallet/wallet-balance-card";
@@ -28,7 +29,9 @@ export function WalletPage() {
         </button>
         <h1 className="absolute inset-x-0 text-center text-[20px] font-medium leading-[1.2] text-foreground">{m["wal.title"]()}</h1>
       </div>
-      {query.isLoading || !wallet ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isLoading || !wallet ? (
         <div className="flex flex-col gap-4">
           <div className="skeleton h-24 w-full rounded-[16px]" />
           <div className="skeleton h-24 w-full rounded-[16px]" />

@@ -1,5 +1,6 @@
 import {m} from "@/paraglide/messages";
 import {useBatchesQuery} from "@/queries/use-batch-queries";
+import {PageError} from "@/components/page-error";
 import {useSetPageTitle} from "@/components/app-shell/page-title";
 import {BatchesEmpty} from "@/components/batches/batches-empty";
 import {BatchesStats} from "@/components/batches/batches-stats";
@@ -29,8 +30,9 @@ function StatsSkeleton() {
 }
 
 function BatchesContent() {
-  const {data} = useBatchesQuery();
+  const {data, isError, refetch, isRefetching} = useBatchesQuery();
   const list = useBatchList(data?.batches ?? []);
+  if (isError) return <PageError onRetry={() => void refetch()} isRetrying={isRefetching} />;
   if (!data) {
     return (
       <>

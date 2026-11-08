@@ -1,4 +1,5 @@
 import {m} from "@/paraglide/messages";
+import {AppToast} from "@/components/app-toast";
 import {DeleteUserDialog} from "@/components/users/delete-user-dialog";
 import {SuspendUserDialog} from "@/components/users/suspend-user-dialog";
 import {useUserDeleteFlow} from "@/components/users/use-user-delete-flow";
@@ -61,7 +62,7 @@ export function UsersPage() {
   const flag = useUserFlagFlow(clear);
   const suspend = useUserSuspendFlow(clear);
   const del = useUserDeleteFlow(overlays.closeDrawer);
-  const {exporting, exportUsers} = useUserExport(listParams);
+  const {exporting, failed, dismissFailed, exportUsers} = useUserExport(listParams);
 
   return (
     <div className="flex flex-col gap-4">
@@ -96,6 +97,7 @@ export function UsersPage() {
         exporting={exporting}
         onExportParcels={exportUsers}
       />
+      {failed && <AppToast message={m["export.failed"]()} variant="destructive" onDismiss={dismissFailed} />}
     </div>
   );
 }

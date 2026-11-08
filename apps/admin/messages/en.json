@@ -1486,5 +1486,8 @@
   "profile.signout_title": "Sign out of Alvo?",
   "profile.signout_description": "You will be logged out of the current session. Any unsaved changes will be lost.",
   "profile.signout_cancel": "Cancel",
-  "profile.signout_confirm": "Signout"
+  "profile.signout_confirm": "Signout",
+
+  "couriers.approve_failed": "Couldn't approve the verification. Please try again.",
+  "export.failed": "Export failed. Please try again."
 }

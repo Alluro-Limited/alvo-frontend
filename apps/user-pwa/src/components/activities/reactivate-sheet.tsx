@@ -39,7 +39,7 @@ export function ReactivateSheet({open, deliveryId, fee, onClose}: ReactivateShee
   const pay = () => {
     if (hours === null) return;
     if (channel === "online") setGatewayOpen(true);
-    reactivate.mutate({hours, channel}, {onSuccess: close});
+    reactivate.mutate({hours, channel}, {onSuccess: close, onError: () => setGatewayOpen(false)});
   };
 
   return (
@@ -58,6 +58,7 @@ export function ReactivateSheet({open, deliveryId, fee, onClose}: ReactivateShee
             fee={fee}
             preview={preview.data ?? null}
             channel={channel}
+            failed={reactivate.isError}
             onChannel={setChannel}
             onPay={pay}
             onClose={close}
@@ -75,12 +76,13 @@ interface ReactivateFormProps {
   fee: number;
   preview: ExtendPreview | null;
   channel: PaymentChannel;
+  failed: boolean;
   onChannel: (c: PaymentChannel) => void;
   onPay: () => void;
   onClose: () => void;
 }
 
-function ReactivateForm({hours, onHours, fee, preview, channel, onChannel, onPay, onClose}: ReactivateFormProps) {
+function ReactivateForm({hours, onHours, fee, preview, channel, failed, onChannel, onPay, onClose}: ReactivateFormProps) {
   return (
     <div className="mt-2 flex w-full flex-col pb-4">
       <div className="flex w-full items-center justify-between">
@@ -94,6 +96,11 @@ function ReactivateForm({hours, onHours, fee, preview, channel, onChannel, onPay
         <DurationSelect value={hours} fee={fee} onChange={onHours} />
         {preview ? <ScheduleCard preview={preview} /> : null}
         <PaymentPicker channel={channel} walletBalance={fee} onChange={onChannel} />
+        {failed && (
+          <p role="alert" className="text-[12px] leading-[1.4] tracking-[0.12px] text-status-fail">
+            {m["acc.reactivate_failed"]()}
+          </p>
+        )}
         <Button className="w-full text-[16px] font-medium" disabled={hours === null} onClick={onPay}>
           {m["acc.pay_reactivate"]({amount: naira(fee)})}
         </Button>

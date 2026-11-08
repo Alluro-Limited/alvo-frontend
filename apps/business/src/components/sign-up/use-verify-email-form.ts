@@ -46,6 +46,7 @@ export function useVerifyEmailForm() {
   let alert: AuthAlertState | null = null;
   if (verify.isSuccess) alert = {tone: "success", message: m["sign_up.verify_success"]()};
   else if (verify.error) banner = getVerificationError(verify.error);
+  else if (resend.isError) alert = {tone: "error", message: m["sign_up.resend_failed"]()};
 
   return {
     code,

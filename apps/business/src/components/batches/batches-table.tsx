@@ -1,7 +1,9 @@
+import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
 import {cn} from "cnfast";
 import {m} from "@/paraglide/messages";
 import {useDeleteBatchMutation} from "@/queries/use-batch-queries";
+import {AppToast} from "@/components/app-toast";
 import {formatNaira} from "@/lib/format-naira";
 import type {BatchSummary} from "@/types/batch-types";
 import {BatchRowMenu} from "./batch-row-menu";
@@ -22,16 +24,26 @@ const cellText = "text-sm leading-[1.4] tracking-[0.14px] whitespace-nowrap text
 
 function RowAction({batch}: {batch: BatchSummary}) {
   const deleteBatch = useDeleteBatchMutation();
+  const [toast, setToast] = useState<{message: string; variant: "success" | "destructive"} | null>(null);
   if (batch.status === "draft") {
     return (
-      <button
-        type="button"
-        data-row-action
-        onClick={() => deleteBatch.mutate(batch.id)}
-        className="text-sm leading-[1.4] font-medium tracking-[0.28px] text-status-fail underline"
-      >
-        {m["batches.delete"]()}
-      </button>
+      <>
+        <button
+          type="button"
+          data-row-action
+          disabled={deleteBatch.isPending}
+          onClick={() =>
+            deleteBatch.mutate(batch.id, {
+              onSuccess: () => setToast({message: m["batches.deleted"](), variant: "success"}),
+              onError: () => setToast({message: m["batches.delete_failed"](), variant: "destructive"}),
+            })
+          }
+          className="text-sm leading-[1.4] font-medium tracking-[0.28px] text-status-fail underline disabled:opacity-50"
+        >
+          {m["batches.delete"]()}
+        </button>
+        {toast && <AppToast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />}
+      </>
     );
   }
   return (

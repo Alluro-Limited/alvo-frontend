@@ -18,6 +18,7 @@ interface VerifySheetProps {
 export function VerifySheet({open, deliveryId, onClose}: VerifySheetProps) {
   const [code, setCode] = useState("");
   const [failed, setFailed] = useState(false);
+  const [sendFailed, setSendFailed] = useState(false);
   const send = useSendPickupVerification(deliveryId);
   const verify = useVerifyPickup(deliveryId);
 
@@ -49,11 +50,12 @@ export function VerifySheet({open, deliveryId, onClose}: VerifySheetProps) {
         <VerifyForm
           code={code}
           failed={failed}
+          sendFailed={send.isError || sendFailed}
           onCode={setCode}
           onResend={() => {
             setCode("");
             setFailed(false);
-            send.mutate();
+            send.mutate(undefined, {onError: () => setSendFailed(true)});
           }}
           onSubmit={submit}
           onClose={close}
@@ -67,12 +69,13 @@ interface VerifyFormProps {
   code: string;
   failed: boolean;
   onCode: (v: string) => void;
+  sendFailed: boolean;
   onResend: () => void;
   onSubmit: () => void;
   onClose: () => void;
 }
 
-function VerifyForm({code, failed, onCode, onResend, onSubmit, onClose}: VerifyFormProps) {
+function VerifyForm({code, failed, sendFailed, onCode, onResend, onSubmit, onClose}: VerifyFormProps) {
   return (
     <div className="mt-2 flex w-full flex-col pb-4">
       <div className="flex w-full items-center justify-between">
@@ -89,6 +92,11 @@ function VerifyForm({code, failed, onCode, onResend, onSubmit, onClose}: VerifyF
             <span className="text-[14px] font-medium leading-[1.4] tracking-[0.14px] text-foreground">{m["acc.verify_err_title"]()}</span>
             <span className="text-[14px] leading-[1.4] tracking-[0.14px] text-status-fail">{m["acc.verify_err"]()}</span>
           </div>
+        ) : null}
+        {sendFailed ? (
+          <span role="alert" className="text-[12px] leading-[1.4] text-status-fail">
+            {m["acc.code_send_failed"]()}
+          </span>
         ) : null}
         <span className="text-[14px] leading-[1.4] tracking-[0.14px]">
           <span className="text-grey-500">{m["acc.resend_q"]()} </span>

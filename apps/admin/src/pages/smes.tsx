@@ -84,7 +84,7 @@ export function SmesPage() {
     edit: useSmeEditFlow(),
     approve: useSmeApproveFlow(),
   };
-  const {exporting, exportSmes} = useSmeExport(filters.listParams);
+  const {exporting, failed, dismissFailed, exportSmes} = useSmeExport(filters.listParams);
 
   return (
     <div className="flex flex-col gap-4">
@@ -101,6 +101,7 @@ export function SmesPage() {
         exportSmes={exportSmes}
       />
       <SmesOverlays flows={flows} list={data} />
+      {failed && <AppToast message={m["export.failed"]()} variant="destructive" onDismiss={dismissFailed} />}
     </div>
   );
 }

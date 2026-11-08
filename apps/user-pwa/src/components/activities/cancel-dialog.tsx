@@ -37,6 +37,11 @@ export function CancelDialog({deliveryId, onClose, onCancelled}: CancelDialogPro
                 {cancel.isPending ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : null}
                 {m["cxl.confirm"]()}
               </button>
+              {cancel.isError && (
+                <p role="alert" className="text-center text-[12px] leading-[1.4] text-status-fail">
+                  {m["cxl.failed"]()}
+                </p>
+              )}
               <button
                 type="button"
                 onClick={onClose}

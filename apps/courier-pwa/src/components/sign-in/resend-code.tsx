@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {CircleCheck} from "lucide-react";
+import {CircleCheck, OctagonAlert} from "lucide-react";
 import {m} from "@/paraglide/messages";
 
 const RESEND_SECONDS = 60;
@@ -18,6 +18,7 @@ interface ResendCodeProps {
 export function ResendCode({onResend, pending}: ResendCodeProps) {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [toast, setToast] = useState(false);
+  const [failed, setFailed] = useState(false);
   const counting = secondsLeft > 0;
 
   useEffect(() => {
@@ -31,9 +32,11 @@ export function ResendCode({onResend, pending}: ResendCodeProps) {
       await onResend();
       setSecondsLeft(RESEND_SECONDS);
       setToast(true);
+      setFailed(false);
       setTimeout(() => setToast(false), TOAST_MS);
     } catch {
-      /* resend failures are rare and leave the button available to try again */
+      setFailed(true);
+      setTimeout(() => setFailed(false), TOAST_MS);
     }
   };
 
@@ -52,15 +55,23 @@ export function ResendCode({onResend, pending}: ResendCodeProps) {
           </button>
         )}
       </p>
-      {toast && (
-        <p
-          role="status"
-          className="fixed bottom-36 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-[10px] border border-grey-200 bg-white px-4 py-3 text-[14px] font-semibold text-foreground shadow-sm"
-        >
-          <CircleCheck className="size-5 text-primary-500" aria-hidden="true" />
-          {m["auth.code_resent"]()}
-        </p>
+      {toast && <StatusPill icon={<CircleCheck className="size-5 text-primary-500" aria-hidden="true" />} text={m["auth.code_resent"]()} />}
+      {failed && (
+        <StatusPill icon={<OctagonAlert className="size-5 text-status-fail" aria-hidden="true" />} text={m["auth.err_resend"]()} />
       )}
     </>
+  );
+}
+
+/** Bottom-pinned pill shown after a resend attempt — success (check) or failure (alert) icon. */
+function StatusPill({icon, text}: {icon: React.ReactNode; text: string}) {
+  return (
+    <p
+      role="status"
+      className="fixed bottom-36 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-[10px] border border-grey-200 bg-white px-4 py-3 text-[14px] font-semibold text-foreground shadow-sm"
+    >
+      {icon}
+      {text}
+    </p>
   );
 }

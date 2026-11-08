@@ -1,3 +1,5 @@
+import {m} from "@/paraglide/messages";
+import {AppToast} from "@/components/app-toast";
 import {useState} from "react";
 import type {ListMapView} from "@/components/view-tabs";
 import {useParcelSelection} from "@/components/workloads/use-parcel-selection";
@@ -59,6 +61,7 @@ export function CouriersPage() {
         exporting={exporter.exporting}
         onExportHistory={exporter.exportAssignments}
       />
+      {exporter.failed && <AppToast message={m["export.failed"]()} variant="destructive" onDismiss={exporter.dismissFailed} />}
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import {useNavigate} from "@tanstack/react-router";
+import {AppToast} from "@/components/app-toast";
 import {AcceptDialog} from "@/components/home/accept-dialog";
 import {JobOfferCard} from "@/components/jobs/job-offer-card";
 import {JobsEmpty} from "@/components/jobs/jobs-empty";
 import {JobsFilter} from "@/components/jobs/jobs-filter";
 import {JobsSkeleton} from "@/components/jobs/jobs-skeleton";
 import {useJobs} from "@/components/jobs/use-jobs";
+import {PageError} from "@/components/page-error";
 import {WizardHeader} from "@/components/sign-up/wizard-header";
 import {m} from "@/paraglide/messages";
 
@@ -25,6 +27,8 @@ export function JobsPage() {
       <JobsFilter value={jobs.filter} onChange={jobs.setFilter} />
       {jobs.loading ? (
         <JobsSkeleton />
+      ) : jobs.error ? (
+        <PageError onRetry={() => void jobs.retry()} isRetrying={jobs.retrying} />
       ) : jobs.offers.length === 0 ? (
         <JobsEmpty />
       ) : (
@@ -41,6 +45,13 @@ export function JobsPage() {
         </div>
       )}
       <AcceptDialog open={jobs.confirming !== null} pending={jobs.mutating} onConfirm={jobs.confirmAccept} onClose={jobs.closeConfirm} />
+      {jobs.toast && (
+        <AppToast
+          message={jobs.toast === "accept" ? m["job.accept_failed"]() : m["job.decline_failed"]()}
+          variant="destructive"
+          onDismiss={jobs.dismissToast}
+        />
+      )}
     </main>
   );
 }

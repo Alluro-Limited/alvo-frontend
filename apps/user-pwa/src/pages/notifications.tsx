@@ -5,6 +5,7 @@ import gearIconUrl from "@/assets/loading-gear.svg";
 import {NotifChips, type NotifFilter} from "@/components/notifications/notif-chips";
 import {NotifEmpty} from "@/components/notifications/notif-empty";
 import {NotifFeed} from "@/components/notifications/notif-feed";
+import {PageError} from "@/components/page-error";
 import type {NotificationGroup} from "@/types/notification-types";
 import {useNotificationsQuery} from "@/queries/use-home-queries";
 import {m} from "@/paraglide/messages";
@@ -43,7 +44,9 @@ export function NotificationsPage() {
       </div>
       <h1 className="text-[32px] font-bold leading-[1.1] tracking-[-0.64px] text-foreground">{m["nt.title"]()}</h1>
       <NotifChips value={filter} onChange={setFilter} />
-      {query.isLoading ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isLoading ? (
         <div className="flex flex-1 flex-col gap-4" aria-busy="true">
           {[0, 1, 2].map((i) => (
             <div key={i} className="h-16 animate-pulse rounded-[8px] bg-grey-100" />

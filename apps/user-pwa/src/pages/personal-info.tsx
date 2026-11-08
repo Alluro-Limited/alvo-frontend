@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useNavigate} from "@tanstack/react-router";
 import {CircleCheck, LogOut, Pencil, Trash2} from "lucide-react";
 import {PageHeader} from "@/components/account/page-header";
+import {PageError} from "@/components/page-error";
 import {SignOutDialog} from "@/components/account/sign-out-dialog";
 import {UpdateNameSheet} from "@/components/account/update-name-sheet";
 import {UpdatePhoneSheet} from "@/components/account/update-phone-sheet";
@@ -21,7 +22,9 @@ export function PersonalInfoPage() {
   return (
     <main className="flex h-dvh w-full flex-col gap-6 overflow-y-auto bg-white px-6 pb-[max(32px,env(safe-area-inset-bottom))] pt-[60px]">
       <PageHeader title={m["pi.title"]()} />
-      {query.isLoading || !profile ? (
+      {query.isError ? (
+        <PageError onRetry={() => void query.refetch()} isRetrying={query.isRefetching} />
+      ) : query.isLoading || !profile ? (
         <div className="flex flex-col gap-4">
           <div className="skeleton h-40 w-full rounded-2xl" />
           <div className="skeleton h-20 w-full rounded-2xl" />
