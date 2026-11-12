@@ -83,7 +83,7 @@ describe("DashboardPage", () => {
     getOverview.mockReturnValue(new Promise(() => {}));
     renderDashboard();
 
-    expect(await screen.findByRole("heading", {level: 1, name: "dashboard.greeting"})).toBeTruthy();
+    expect(await screen.findByRole("heading", {level: 1, name: "dashboard.greeting_fallback"})).toBeTruthy();
     expect(screen.getByRole("heading", {name: "dashboard.recent_shipments"})).toBeTruthy();
     expect(screen.queryByText("dashboard.stat_batches")).toBeNull();
   });

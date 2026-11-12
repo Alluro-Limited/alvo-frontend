@@ -21,15 +21,22 @@ const businessPhoneInput = () => screen.getByLabelText("sign_up.business_phone_l
 const businessEmailInput = () => screen.getByLabelText("sign_up.business_email_label");
 const continueButton = () => screen.getByRole("button", {name: "sign_up.continue"});
 
-function fillBusinessInfo() {
+async function selectBusinessType(label: string) {
+  fireEvent.click(typeSelect());
+  const option = await screen.findByRole("option", {name: label});
+  fireEvent.pointerDown(option);
+  fireEvent.click(option);
+}
+
+async function fillBusinessInfo() {
   fireEvent.change(nameInput(), {target: {value: "Loop Earls"}});
-  fireEvent.change(typeSelect(), {target: {value: "sme"}});
-  fireEvent.change(businessPhoneInput(), {target: {value: "+234 800 123 4567"}});
+  await selectBusinessType("sign_up.business_types.sme");
+  fireEvent.change(businessPhoneInput(), {target: {value: "800 123 4567"}});
   fireEvent.change(businessEmailInput(), {target: {value: "ops@loopearls.com"}});
 }
 
 async function advanceToPersonal() {
-  fillBusinessInfo();
+  await fillBusinessInfo();
   fireEvent.click(continueButton());
   await screen.findByRole("heading", {level: 1, name: "sign_up.personal_title"});
 }
@@ -96,7 +103,7 @@ describe("SignUpPage", () => {
   it("rejects a malformed business email and clears the error on edit", async () => {
     renderSignUp();
     await screen.findByRole("heading", {level: 1});
-    fillBusinessInfo();
+    await fillBusinessInfo();
     fireEvent.change(businessEmailInput(), {target: {value: "not-an-email"}});
 
     fireEvent.click(continueButton());
@@ -158,11 +165,11 @@ describe("SignUpPage", () => {
     expect(signUp.mock.calls[0]?.[0]).toEqual({
       businessName: "Loop Earls",
       businessType: "sme",
-      businessPhone: "+234 800 123 4567",
+      businessPhone: "+2348001234567",
       businessEmail: "ops@loopearls.com",
       firstName: "Ada",
       lastName: "Obi",
-      phone: "0800 123 4567",
+      phone: "+2348001234567",
       email: "ada@loopearls.com",
       password: "Password123!",
     });

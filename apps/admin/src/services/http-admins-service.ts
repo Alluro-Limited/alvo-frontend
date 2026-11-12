@@ -1,5 +1,8 @@
 import {apiClient} from "@/services/api-client";
+import {fetchPage} from "@/services/paged";
+import {getStepUpToken} from "@/services/step-up";
 import type {AdminDetail, AdminsService, AdminRole, AdminRow, AdminStatus, PermissionCatalog} from "@/types/admins-types";
+import type {AdminModuleIcon} from "@/types/admins-types";
 
 interface ApiAdmin {
   id: string;
@@ -8,7 +11,7 @@ interface ApiAdmin {
   email: string;
   role: string;
   status: string;
-  grants: string[];
+  grants?: string[];
   totpEnabled?: boolean;
   lastActiveAt?: string;
   invitedBy?: string;
@@ -16,27 +19,40 @@ interface ApiAdmin {
   createdAt: string;
 }
 
-interface ApiListAdminsResponse {
-  admins: ApiAdmin[];
-  nextPageToken: string;
-  total: string;
-}
-
 interface ApiRole {
-  id: string;
-  label: string;
+  code: string;
+  name: string;
+  description?: string;
+  system?: boolean;
   permissions?: string[];
 }
 
 interface ApiPermission {
-  key: string;
-  label?: string;
+  name: string;
+  module: string;
+  description?: string;
+  highRisk?: boolean;
 }
 
 const STATUS: Record<string, AdminStatus> = {
   ADMIN_STATUS_ACTIVE: "active",
   ADMIN_STATUS_SUSPENDED: "suspended",
   ADMIN_STATUS_INVITED: "invited",
+  ADMIN_STATUS_DELETED: "suspended",
+};
+
+const API_STATUS: Record<string, string> = {
+  active: "ADMIN_STATUS_ACTIVE",
+  suspended: "ADMIN_STATUS_SUSPENDED",
+  invited: "ADMIN_STATUS_INVITED",
+};
+
+const MODULE_ICONS: Record<string, AdminModuleIcon> = {
+  home: "home",
+  operations: "package",
+  accounts: "users",
+  finance: "revenue",
+  system: "settings",
 };
 
 const roleOf = (role: string): AdminRole => (role as AdminRole) || "viewer";
@@ -65,6 +81,10 @@ const toDetail = (a: ApiAdmin): AdminDetail => ({
   permissions: a.grants ?? [],
 });
 
+const moduleLabel = (key: string) => key.charAt(0).toUpperCase() + key.slice(1);
+
+const stepUp = () => getStepUpToken().then((token) => ({"X-Step-Up": token}));
+
 const EMPTY_CATALOG: PermissionCatalog = {modules: [], presets: {} as PermissionCatalog["presets"]};
 
 /**
@@ -74,20 +94,25 @@ const EMPTY_CATALOG: PermissionCatalog = {modules: [], presets: {} as Permission
  */
 export const httpAdminsService: AdminsService = {
   getAdmins: async (params) => {
-    const searchParams = new URLSearchParams({pageSize: "50"});
-    if (params.query) searchParams.set("query", params.query);
-    if (params.status) searchParams.set("status", params.status);
-    if (params.role) searchParams.set("role", params.role);
-    const res = await apiClient.get("v1/admin/admins", {searchParams}).json<ApiListAdminsResponse>();
-    const items = res.admins.map(toRow);
+    const filters: Record<string, string> = {page_size: "50"};
+    if (params.status && API_STATUS[params.status]) filters.status = API_STATUS[params.status];
+    if (params.role) filters.role = params.role;
+    const key = JSON.stringify(filters);
+    const res = await fetchPage<ApiAdmin>(`admins:${key}`, params.page, (pageToken) =>
+      apiClient
+        .get("v1/admin/admins", {searchParams: {...filters, ...(pageToken ? {page_token: pageToken} : {})}})
+        .json<{admins: ApiAdmin[]; nextPageToken?: string; total?: string}>()
+        .then((r) => ({items: r.admins ?? [], nextPageToken: r.nextPageToken, total: Number(r.total ?? 0)}))
+    );
+    const items = res.items.map(toRow);
     return {
       metrics: {
-        total: Number(res.total),
+        total: res.total,
         active: items.filter((a) => a.status === "active").length,
         suspended: items.filter((a) => a.status === "suspended").length,
         invited: items.filter((a) => a.status === "invited").length,
       },
-      admins: {items, page: params.page, pageSize: 50, total: Number(res.total)},
+      admins: {items, page: params.page, pageSize: 50, total: res.total},
       filters: {
         statuses: ["active", "suspended", "invited"],
         roles: ["super_admin", "operational_admin", "finance_admin", "support_admin", "viewer"],
@@ -106,47 +131,58 @@ export const httpAdminsService: AdminsService = {
         .json<{permissions: ApiPermission[]}>()
         .catch(() => ({permissions: [] as ApiPermission[]})),
     ]);
+    const modules = new Map<string, ApiPermission[]>();
+    for (const p of permissions.permissions) {
+      const list = modules.get(p.module) ?? [];
+      list.push(p);
+      modules.set(p.module, list);
+    }
     return {
-      modules: permissions.permissions.map((p) => ({
-        key: p.key,
-        label: p.label ?? p.key,
+      modules: [...modules.entries()].map(([key, items]) => ({
+        key,
+        label: moduleLabel(key),
         subtitle: "",
-        icon: "settings" as const,
-        permissions: [{key: p.key, label: p.label ?? p.key}],
+        icon: MODULE_ICONS[key] ?? ("settings" as const),
+        permissions: items.map((p) => ({key: p.name, label: p.description ?? p.name})),
       })),
-      presets: Object.fromEntries(roles.roles.map((r) => [r.id as AdminRole, r.permissions ?? []])) as PermissionCatalog["presets"],
+      presets: Object.fromEntries(roles.roles.map((r) => [r.code as AdminRole, r.permissions ?? []])) as PermissionCatalog["presets"],
     };
   },
   getAdminDetail: async (id) => {
-    const res = await apiClient.get(`v1/admin/admins/${id}`).json<{admin: ApiAdmin}>();
-    return toDetail(res.admin);
+    const res = await apiClient.get(`v1/admin/admins/${id}`).json<ApiAdmin>();
+    return toDetail(res);
   },
   inviteAdmin: async (input) => {
     const res = await apiClient
       .post("v1/admin/admins", {
         json: {email: input.email, firstName: input.firstName, lastName: input.lastName, role: input.role, grants: input.permissions},
+        headers: await stepUp(),
       })
-      .json<{admin: ApiAdmin}>();
-    return toDetail(res.admin);
+      .json<ApiAdmin>();
+    return toDetail(res);
   },
   updateAdmin: async (id, input) => {
+    // The wire update takes role + grants plus the optimistic-concurrency version —
+    // names and emails can't change after the invite is accepted.
+    const current = await apiClient.get(`v1/admin/admins/${id}`).json<ApiAdmin>();
     const res = await apiClient
       .put(`v1/admin/admins/${id}`, {
-        json: {email: input.email, firstName: input.firstName, lastName: input.lastName, role: input.role, grants: input.permissions},
+        json: {version: current.version, role: input.role, grants: input.permissions},
+        headers: await stepUp(),
       })
-      .json<{admin: ApiAdmin}>();
-    return toDetail(res.admin);
+      .json<ApiAdmin>();
+    return toDetail(res);
   },
   suspendAdmin: async (id) => {
-    await apiClient.post(`v1/admin/admins/${id}/suspend`, {json: {}});
+    await apiClient.post(`v1/admin/admins/${id}/suspend`, {json: {}, headers: await stepUp()});
     return {id, status: "suspended"};
   },
   reactivateAdmin: async (id) => {
-    await apiClient.post(`v1/admin/admins/${id}/reactivate`, {json: {}});
+    await apiClient.post(`v1/admin/admins/${id}/reactivate`, {json: {}, headers: await stepUp()});
     return {id, status: "active"};
   },
   deleteAdmin: async (id) => {
-    await apiClient.post(`v1/admin/admins/${id}/delete`, {json: {}});
+    await apiClient.post(`v1/admin/admins/${id}/delete`, {json: {}, headers: await stepUp()});
     return {id};
   },
   resendInvite: async (id) => {

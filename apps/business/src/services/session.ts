@@ -12,11 +12,19 @@ export interface SmeProfile {
   status: string;
 }
 
+export interface OwnerProfile {
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
+
 export interface SessionData {
   accessToken: string;
   refreshToken: string;
   /** The SME snapshot returned at sign-in — no `/v1/sme/me` endpoint exists yet. */
   sme?: SmeProfile;
+  /** The owner's details captured at sign-up — the wire API has no name/phone fields yet. */
+  owner?: OwnerProfile;
 }
 
 let session: SessionData | null = load();
@@ -43,12 +51,16 @@ export function getSme(): SmeProfile | null {
   return session?.sme ?? null;
 }
 
+export function getOwner(): OwnerProfile | null {
+  return session?.owner ?? null;
+}
+
 export function isSignedIn(): boolean {
   return session !== null;
 }
 
 export function setSession(next: SessionData): void {
-  session = {...next, sme: next.sme ?? session?.sme};
+  session = {...next, sme: next.sme ?? session?.sme, owner: next.owner ?? session?.owner};
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
 }
 

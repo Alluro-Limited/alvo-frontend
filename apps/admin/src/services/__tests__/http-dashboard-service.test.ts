@@ -15,8 +15,8 @@ const OVERVIEW = {
 
 const NODES = {
   nodes: [
-    {id: "n1", code: "LK-1", name: "Lekki", lat: 6.5, lng: 3.4, status: "NODE_STATUS_AVAILABLE"},
-    {id: "n2", code: "IK-2", name: "Ikeja", lat: 6.6, lng: 3.5, status: "NODE_STATUS_OFFLINE"},
+    {id: "n1", code: "LK-1", details: {name: "Lekki"}, lat: 6.5, lng: 3.4, status: "ADMIN_NODE_STATUS_AVAILABLE"},
+    {id: "n2", code: "IK-2", details: {name: "Ikeja"}, lat: 6.6, lng: 3.5, status: "ADMIN_NODE_STATUS_OFFLINE"},
   ],
 };
 
@@ -85,12 +85,12 @@ describe("httpDashboardService", () => {
           node: {
             id: "n1",
             code: "LK-1",
-            name: "Lekki",
+            details: {name: "Lekki"},
             lat: 6.5,
             lng: 3.4,
-            status: "NODE_STATUS_AVAILABLE",
+            status: "ADMIN_NODE_STATUS_AVAILABLE",
             capacity: {small: 4, medium: 4, large: 2},
-            available: {small: 1, medium: 2, large: 1},
+            liveParcels: "6",
           },
         })
       )

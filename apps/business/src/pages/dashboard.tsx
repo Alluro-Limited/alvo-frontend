@@ -27,7 +27,9 @@ export function DashboardPage() {
     <section className="mx-auto flex w-full max-w-[1100px] flex-col items-start gap-8">
       <div className="flex w-full items-center justify-between">
         <div className="flex w-[342px] flex-col items-center justify-center gap-0.5 text-black">
-          <h1 className="w-full text-xl leading-[1.2] font-medium">{m["dashboard.greeting"]({name: overview?.firstName ?? ""})}</h1>
+          <h1 className="w-full text-xl leading-[1.2] font-medium">
+            {overview?.firstName ? m["dashboard.greeting"]({name: overview.firstName}) : m["dashboard.greeting_fallback"]()}
+          </h1>
           <p className="w-full text-sm leading-[1.4] tracking-[0.14px] opacity-70">{m["dashboard.greeting_sub"]()}</p>
         </div>
         <div className="flex items-center justify-end">

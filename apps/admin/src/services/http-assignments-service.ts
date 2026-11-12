@@ -1,4 +1,5 @@
 import {apiClient} from "@/services/api-client";
+import {fetchPage} from "@/services/paged";
 import type {AssignmentRow, AssignmentsService, AssignmentStatus} from "@/types/assignment-types";
 
 const U = "not supported by the API yet";
@@ -13,7 +14,16 @@ interface ApiFlag {
   createdAt: string;
 }
 
-const FLAG_STATUS: Record<string, AssignmentStatus> = {FLAG_STATUS_OPEN: "flagged", FLAG_STATUS_RESOLVED: "completed"};
+const FLAG_STATUS: Record<string, AssignmentStatus> = {
+  FLAG_STATUS_OPEN: "flagged",
+  FLAG_STATUS_RESOLVED: "completed",
+  FLAG_STATUS_DISMISSED: "completed",
+};
+
+const API_STATUS: Record<string, string> = {
+  flagged: "FLAG_STATUS_OPEN",
+  completed: "FLAG_STATUS_RESOLVED",
+};
 
 const toRow = (f: ApiFlag): AssignmentRow => ({
   id: f.id,
@@ -28,24 +38,41 @@ const toRow = (f: ApiFlag): AssignmentRow => ({
   position: [0, 0],
 });
 
+const listFlags = (page: number, filters?: Record<string, string>) =>
+  fetchPage<ApiFlag>(`flags:${JSON.stringify(filters ?? {})}`, page, (pageToken) =>
+    apiClient
+      .get("v1/admin/flags", {searchParams: {page_size: "50", ...filters, ...(pageToken ? {page_token: pageToken} : {})}})
+      .json<{flags: ApiFlag[]; nextPageToken?: string; total?: string}>()
+      .then((r) => ({items: r.flags ?? [], nextPageToken: r.nextPageToken, total: Number(r.total ?? 0)}))
+  );
+
 /**
- * Review flags ride `v1/admin/flags` — getAssignments lists open flags as flagged
- * rows, flagAssignment creates one, resolveFlag closes it. Dispatch/map/auto-assign
+ * Review flags ride `v1/admin/flags` — getAssignments lists flags as rows,
+ * flagAssignment creates one, resolveFlag closes it. Dispatch/map/auto-assign
  * has no endpoints.
  */
 export const httpAssignmentsService: AssignmentsService = {
   getAssignments: async (params) => {
-    const res = await apiClient.get("v1/admin/flags", {searchParams: {pageSize: 50}}).json<{flags: ApiFlag[]; total: string}>();
-    const items = res.flags.map(toRow);
+    const filters: Record<string, string> = {};
+    if (params.status && API_STATUS[params.status]) filters.status = API_STATUS[params.status];
+    const res = await listFlags(params.page, filters);
+    const items = res.items.map(toRow);
     return {
-      metrics: {flagged: items.length, active: 0, pendingPickup: 0, completed: 0, publicPool: 0, failed: 0},
-      assignments: {items, page: params.page, pageSize: 50, total: Number(res.total)},
-      filters: {statuses: ["flagged"], types: []},
+      metrics: {
+        flagged: items.filter((a) => a.status === "flagged").length,
+        active: 0,
+        pendingPickup: 0,
+        completed: 0,
+        publicPool: 0,
+        failed: 0,
+      },
+      assignments: {items, page: params.page, pageSize: 50, total: res.total},
+      filters: {statuses: ["flagged", "completed"], types: []},
     };
   },
   getAssignmentMap: async () => {
-    const res = await apiClient.get("v1/admin/flags", {searchParams: {pageSize: 50}}).json<{flags: ApiFlag[]}>();
-    return res.flags.map(toRow);
+    const res = await listFlags(1);
+    return res.items.map(toRow);
   },
   getAssignmentDetail: async () => {
     throw new Error(`flag detail is ${U}`);
@@ -66,6 +93,6 @@ export const httpAssignmentsService: AssignmentsService = {
     return {id, status: "flagged"};
   },
   resolveFlag: async (flagId, resolution) => {
-    await apiClient.post(`v1/admin/flags/${flagId}/resolve`, {json: {resolution}});
+    await apiClient.post(`v1/admin/flags/${flagId}/resolve`, {json: {outcome: "FLAG_STATUS_RESOLVED", resolution}});
   },
 };

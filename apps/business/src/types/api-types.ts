@@ -86,8 +86,8 @@ export interface ApiShipment {
   recipientPhone: string;
   recipientName?: string;
   itemDescription?: string;
+  itemValueKobo?: string;
   sizeClass: string;
-  speedTier?: string;
   state: string;
   priceKobo: string;
 }
@@ -101,7 +101,6 @@ export interface ApiCreatedShipment {
 
 export interface ApiListBatchesResponse {
   batches: ApiBatch[];
-  nextCursor?: string;
 }
 
 export interface ApiGetBatchResponse {
@@ -115,8 +114,11 @@ export interface ApiCreateBatchResponse {
 }
 
 export interface ApiSmeWallet {
+  id: string;
   balanceKobo: string;
-  availableKobo?: string;
+  currency: string;
+  status: string;
+  availableKobo: string;
 }
 
 export interface ApiGetSmeWalletResponse {
@@ -124,16 +126,15 @@ export interface ApiGetSmeWalletResponse {
 }
 
 export interface ApiSmeTransaction {
-  id: string;
-  kind: string;
+  journalType: string;
   amountKobo: string;
-  batchId?: string;
+  /** Journal reference — the batch id for batch payments, a payment ref for top-ups. */
+  reference: string;
   createdAt: string;
 }
 
 export interface ApiListSmeTransactionsResponse {
   transactions: ApiSmeTransaction[];
-  nextCursor?: string;
 }
 
 export interface ApiNotification {
@@ -141,6 +142,7 @@ export interface ApiNotification {
   category: string;
   title: string;
   body: string;
+  parcelId?: string;
   readAt?: string;
   createdAt: string;
 }

@@ -1,8 +1,14 @@
 import * as v from "valibot";
+import {isValidPhoneNumber} from "libphonenumber-js";
 import {m} from "@/paraglide/messages";
 
-// Loose on purpose: accept digits with the usual separators, at least 7 digits total.
-const phoneRegex = /^\+?[0-9][0-9\s()-]{6,}$/;
+/** Real per-country validation on the combined E.164 value the phone field emits. */
+const phoneSchema = (message: () => string) =>
+  v.pipe(
+    v.string(),
+    v.nonEmpty(message),
+    v.check((value) => isValidPhoneNumber(value), message)
+  );
 
 export const businessInfoSchema = v.object({
   businessName: v.pipe(
@@ -14,12 +20,7 @@ export const businessInfoSchema = v.object({
     v.string(),
     v.nonEmpty(() => m["sign_up.errors.business_type_required"]())
   ),
-  businessPhone: v.pipe(
-    v.string(),
-    v.trim(),
-    v.nonEmpty(() => m["sign_up.errors.business_phone_invalid"]()),
-    v.regex(phoneRegex, () => m["sign_up.errors.business_phone_invalid"]())
-  ),
+  businessPhone: phoneSchema(() => m["sign_up.errors.business_phone_invalid"]()),
   businessEmail: v.pipe(
     v.string(),
     v.trim(),
@@ -39,12 +40,7 @@ export const personalDetailsSchema = v.object({
     v.trim(),
     v.nonEmpty(() => m["sign_up.errors.last_name_required"]())
   ),
-  phone: v.pipe(
-    v.string(),
-    v.trim(),
-    v.nonEmpty(() => m["sign_up.errors.phone_invalid"]()),
-    v.regex(phoneRegex, () => m["sign_up.errors.phone_invalid"]())
-  ),
+  phone: phoneSchema(() => m["sign_up.errors.phone_invalid"]()),
   email: v.pipe(
     v.string(),
     v.trim(),

@@ -1,14 +1,18 @@
-import {fireEvent, screen, waitFor} from "@testing-library/react";
-import {beforeEach, describe, expect, it, vi} from "vite-plus/test";
+import {act, fireEvent, screen, waitFor} from "@testing-library/react";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vite-plus/test";
 import {authService} from "@/services/auth-service";
+import {SIGN_IN_REDIRECT_DELAY_MS} from "@/components/sign-in/use-sign-in-form";
 import {createHttpError} from "@/test/http-error";
 import {renderRoute} from "@/test/render-route";
 import {AccountSetupPage} from "../account-setup";
 
-vi.mock("@/services/auth-service", () => ({authService: {getAccountSetup: vi.fn(), completeAccountSetup: vi.fn()}}));
+vi.mock("@/services/auth-service", () => ({
+  authService: {getAccountSetup: vi.fn(), completeAccountSetup: vi.fn(), verifySecondFactor: vi.fn()},
+}));
 
 const getAccountSetup = vi.mocked(authService.getAccountSetup);
 const completeAccountSetup = vi.mocked(authService.completeAccountSetup);
+const verifySecondFactor = vi.mocked(authService.verifySecondFactor);
 
 const invitation = {invitedBy: "Dayo Ogunseye", roleLabel: "Business analyst · Read-only finance"};
 
@@ -28,12 +32,21 @@ function fillForm() {
   fireEvent.change(passwordInput(), {target: {value: "Passw0rd!"}});
 }
 
+const codeInputs = () => screen.getAllByRole("textbox") as HTMLInputElement[];
+
+function fillCode(digits: string) {
+  for (const [index, digit] of [...digits].entries()) {
+    fireEvent.change(codeInputs()[index]!, {target: {value: digit}});
+  }
+}
+
 describe("AccountSetupPage", () => {
   beforeEach(() => {
     getAccountSetup.mockReset();
     completeAccountSetup.mockReset();
     getAccountSetup.mockResolvedValue(invitation);
   });
+  afterEach(() => vi.useRealTimers());
 
   it("shows a skeleton shaped like the form while the invitation loads", async () => {
     getAccountSetup.mockReturnValue(new Promise(() => {}));
@@ -75,7 +88,10 @@ describe("AccountSetupPage", () => {
     expect(screen.queryByText("account_setup.errors.first_name_required")).toBeNull();
   });
 
-  it("activates the account and lands on the dashboard", async () => {
+  it("activates the account, collects the authenticator code, and lands on the dashboard", async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    completeAccountSetup.mockResolvedValue({challengeId: "ch-2"});
+    verifySecondFactor.mockResolvedValue({accountStatus: "active"});
     const router = renderSetup();
     await waitForForm();
     fillForm();
@@ -85,6 +101,13 @@ describe("AccountSetupPage", () => {
     await waitFor(() =>
       expect(completeAccountSetup.mock.calls[0][0]).toEqual({firstName: "Ada", lastName: "Lovelace", password: "Passw0rd!"})
     );
+    await screen.findByRole("heading", {level: 2, name: "sign_in.totp.title"});
+
+    fillCode("123456");
+    fireEvent.click(screen.getByRole("button", {name: "sign_in.totp.submit"}));
+
+    await waitFor(() => expect(verifySecondFactor.mock.calls[0][0]).toEqual({challengeId: "ch-2", code: "123456", enrolling: false}));
+    await act(() => vi.advanceTimersByTimeAsync(SIGN_IN_REDIRECT_DELAY_MS));
     await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard"));
   });
 

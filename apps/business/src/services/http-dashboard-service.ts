@@ -1,7 +1,7 @@
 import {formatDateTime} from "@/lib/datetime";
 import {koboToNaira} from "@/lib/money";
 import {apiClient} from "@/services/api-client";
-import {getSme} from "@/services/session";
+import {getOwner, getSme} from "@/services/session";
 import type {
   ApiGetBatchResponse,
   ApiGetSmeWalletResponse,
@@ -94,7 +94,7 @@ export const httpDashboardService: DashboardService = {
           .catch(() => [])
       : [];
     return {
-      firstName: (getSme()?.businessName ?? "").split(" ")[0] ?? "",
+      firstName: getOwner()?.firstName ?? (getSme()?.businessName ?? "").split(" ")[0] ?? "",
       walletBalance: koboToNaira(walletRes?.wallet.balanceKobo),
       stats: {
         totalBatches: batches.length,
@@ -119,6 +119,6 @@ export const httpDashboardService: DashboardService = {
     return res.notifications.map(toNotification);
   },
   markAllNotificationsRead: async () => {
-    await apiClient.post("v1/notifications/read-all");
+    await apiClient.post("v1/notifications/read-all", {json: {}});
   },
 };

@@ -1,6 +1,7 @@
 import {Outlet} from "@tanstack/react-router";
 import {AppSidebar} from "./app-sidebar";
 import {AppTopbar} from "./app-topbar";
+import {StepUpDialog} from "./step-up-dialog";
 
 /**
  * Authenticated app frame: the 260px sidebar, the 64px top nav, and the page content.
@@ -17,6 +18,7 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      <StepUpDialog />
     </div>
   );
 }

@@ -31,7 +31,7 @@ function detail(overrides: Partial<BatchDetail> = {}): BatchDetail {
     totalValue: 336000,
     parcelCount: 840,
     delivered: 170,
-    metrics: {processing: 24, in_transit: 56, delivered: 170},
+    metrics: {ongoing: 24, inTransit: 56, delivered: 170},
     filters: {statuses: ["in_transit", "delivered"], locations: [{id: "ikeja", label: "Ikeja"}]},
     ...overrides,
   };
@@ -45,6 +45,7 @@ function parcels(overrides: Partial<Page<ParcelRow>> = {}): Page<ParcelRow> {
         sender: "Kuda Bank",
         recipient: "Dayo Ogunsanya",
         destination: "Lekki, Lagos (LK-015)",
+        destinationNodeId: "LK-015",
         courierId: "PRG-023",
         lastNodeId: "LK-022",
         status: "in_transit",

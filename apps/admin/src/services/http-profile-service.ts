@@ -9,17 +9,19 @@ interface ApiAdminProfile {
   email: string;
   role: string;
   status: string;
-  totpEnabled: boolean;
+  permissions?: string[];
+  totpEnabled?: boolean;
   lastActiveAt?: string;
   createdAt: string;
 }
 
 interface ApiSessionRow {
   id: string;
-  device: string;
-  location: string;
-  lastActiveAt: string;
-  current: boolean;
+  userAgent?: string;
+  ip?: string;
+  createdAt?: string;
+  lastUsedAt?: string;
+  current?: boolean;
 }
 
 const nameParts = (name: string) => {
@@ -34,16 +36,24 @@ const toProfile = (p: ApiAdminProfile, sessions: ApiSessionRow[]): AdminProfile 
   phone: "",
   role: (p.role as AdminRole) ?? "viewer",
   roleLabel: p.role,
-  status: p.status === "SUSPENDED" ? "suspended" : "active",
+  status: p.status === "ADMIN_STATUS_SUSPENDED" ? "suspended" : "active",
   memberSince: p.createdAt,
   lastLogin: p.lastActiveAt ?? "",
   passwordChangedDaysAgo: 0,
-  twoFactorEnabled: p.totpEnabled,
+  twoFactorEnabled: p.totpEnabled ?? false,
   timezone: "",
   dateFormat: "",
   notifications: {email: true, push: true, sms: false},
-  sessions: sessions.map((s) => ({id: s.id, device: s.device, location: s.location, lastActive: s.lastActiveAt, current: s.current})),
+  sessions: sessions.map((s) => ({
+    id: s.id,
+    device: s.userAgent ?? "",
+    location: s.ip ?? "",
+    lastActive: s.lastUsedAt ?? "",
+    current: s.current ?? false,
+  })),
 });
+
+const getMe = () => apiClient.get("v1/admin/me").json<ApiAdminProfile>();
 
 /**
  * Profile against `v1/admin/me` (+PUT name only), `me/password`, and `me/sessions`.
@@ -54,31 +64,30 @@ const toProfile = (p: ApiAdminProfile, sessions: ApiSessionRow[]): AdminProfile 
 export const httpProfileService: ProfileService = {
   getProfile: async () => {
     const [me, sessions] = await Promise.all([
-      apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>(),
+      getMe(),
       apiClient
         .get("v1/admin/me/sessions")
-        .json<{sessions: ApiSessionRow[]}>()
+        .json<{sessions?: ApiSessionRow[]}>()
         .catch(() => ({sessions: [] as ApiSessionRow[]})),
     ]);
-    return toProfile(me.admin, sessions.sessions);
+    return toProfile(me, sessions.sessions ?? []);
   },
   getProfileOptions: async () => ({timezones: [], dateFormats: []}),
   updateProfile: async (input) => {
-    await apiClient.put("v1/admin/me", {json: {firstName: input.firstName, lastName: input.lastName}});
-    const res = await apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>();
-    return toProfile(res.admin, []);
+    const res = await apiClient.put("v1/admin/me", {json: {firstName: input.firstName, lastName: input.lastName}}).json<ApiAdminProfile>();
+    return toProfile(res, []);
   },
   changePassword: async (input) => {
     await apiClient.post("v1/admin/me/password", {json: {currentPassword: input.currentPassword, newPassword: input.newPassword}});
     return {id: "password"};
   },
   updateNotificationPrefs: async () => {
-    const me = await apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>();
-    return toProfile(me.admin, []);
+    const me = await getMe();
+    return toProfile(me, []);
   },
   toggleTwoFactor: async () => {
-    const me = await apiClient.get("v1/admin/me").json<{admin: ApiAdminProfile}>();
-    return toProfile(me.admin, []);
+    const me = await getMe();
+    return toProfile(me, []);
   },
   revokeSession: async (sessionId) => {
     await apiClient.delete(`v1/admin/me/sessions/${sessionId}`);

@@ -57,7 +57,7 @@ async function doRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
   try {
     const next = await ky.post("v1/admin/auth/refresh", {prefix: API_BASE, json: {refreshToken}}).json<SessionTokens>();
-    setSession(next);
+    setSession({accessToken: next.accessToken, refreshToken: next.refreshToken});
     return true;
   } catch {
     clearSession();

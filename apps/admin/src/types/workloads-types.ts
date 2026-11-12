@@ -252,6 +252,6 @@ export interface WorkloadsService {
   flagParcels: (input: FlagParcelsInput) => Promise<{flagged: number}>;
   /** CSV export of the rows matching the current filters (or the given ids). */
   exportList: (params: WorkloadListParams & {ids?: string[]}) => Promise<string>;
-  /** Step-up (password) then reveal a parcel's sealed sender/recipient contacts. */
-  revealParcel: (id: string, password: string) => Promise<{sender?: string; recipient?: string}>;
+  /** Reveals a parcel's sealed sender/recipient contacts; `reasonCode` is recorded on the audit event. */
+  revealParcel: (id: string, reasonCode: string) => Promise<{sender?: string; recipient?: string}>;
 }

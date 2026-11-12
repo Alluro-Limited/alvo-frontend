@@ -1,4 +1,4 @@
-import {getSme} from "@/services/session";
+import {getOwner, getSme} from "@/services/session";
 import type {AccountSettings, NotificationPrefs, SettingsService} from "@/types/settings-types";
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -16,8 +16,9 @@ const UNSUPPORTED = "settings updates are not supported by the API yet";
 export const httpSettingsService: SettingsService = {
   getSettings: async (): Promise<AccountSettings> => {
     const sme = getSme();
+    const {firstName = "", lastName = "", phone = ""} = getOwner() ?? {};
     return {
-      user: {firstName: "", lastName: "", phone: "", email: sme?.workEmail ?? ""},
+      user: {firstName, lastName, phone, email: sme?.workEmail ?? ""},
       business: {
         businessName: sme?.businessName ?? "",
         businessType: "",

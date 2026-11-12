@@ -1,6 +1,7 @@
 import {Button} from "@alvo/ui";
 import {AuthAlert} from "@/components/auth/auth-alert";
 import {m} from "@/paraglide/messages";
+import {TwoFactorForm} from "@/components/sign-in/two-factor-form";
 import {AccountSetupFields} from "./account-setup-fields";
 import {useAccountSetupForm} from "./use-account-setup-form";
 
@@ -9,7 +10,9 @@ interface AccountSetupFormProps {
 }
 
 export function AccountSetupForm({roleLabel}: AccountSetupFormProps) {
-  const {values, fieldErrors, alert, setField, handleSubmit, isPending} = useAccountSetupForm();
+  const {values, fieldErrors, alert, challenge, setField, handleSubmit, isPending} = useAccountSetupForm();
+
+  if (challenge) return <TwoFactorForm challenge={challenge} />;
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex w-full flex-col gap-8">

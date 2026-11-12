@@ -5,10 +5,10 @@ import {businessInfoSchema, personalDetailsSchema} from "../sign-up-schema";
 const VALID_BUSINESS = {
   businessName: "Loop Earls",
   businessType: "sme",
-  businessPhone: "+234 800 123 4567",
+  businessPhone: "+2348001234567",
   businessEmail: "ops@loopearls.com",
 };
-const VALID_PERSONAL = {firstName: "Ada", lastName: "Obi", phone: "0800 123 4567", email: "ada@loopearls.com", password: "Password123!"};
+const VALID_PERSONAL = {firstName: "Ada", lastName: "Obi", phone: "+2348001234567", email: "ada@loopearls.com", password: "Password123!"};
 
 function businessIssues(input: typeof VALID_BUSINESS) {
   const result = v.safeParse(businessInfoSchema, input);

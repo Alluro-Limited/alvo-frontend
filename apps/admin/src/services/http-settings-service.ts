@@ -1,4 +1,5 @@
 import {apiClient} from "@/services/api-client";
+import {getStepUpToken} from "@/services/step-up";
 import type {PlatformSettings, SettingsService} from "@/types/settings-types";
 
 interface ApiSetting {
@@ -75,7 +76,7 @@ export const httpSettingsService: SettingsService = {
       change("security.password_expiry_days", settings.security.passwordExpiryDays),
       change("security.max_login_attempts", settings.security.maxLoginAttempts),
     ];
-    await apiClient.patch("v1/admin/settings", {json: {changes}});
+    await apiClient.patch("v1/admin/settings", {json: {changes}, headers: {"X-Step-Up": await getStepUpToken()}});
     return settings;
   },
 };

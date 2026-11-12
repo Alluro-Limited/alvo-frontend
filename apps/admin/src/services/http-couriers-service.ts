@@ -1,4 +1,5 @@
 import {apiClient} from "@/services/api-client";
+import {getStepUpToken} from "@/services/step-up";
 import type {CouriersService} from "@/types/couriers-types";
 
 const U = "not supported by the API yet";
@@ -42,7 +43,7 @@ export const httpCouriersService: CouriersService = {
     return {ids: input.ids, status: "flagged"};
   },
   deleteCourier: async (id) => {
-    await apiClient.post(`v1/admin/couriers/${id}/delete`, {json: {}});
+    await apiClient.post(`v1/admin/couriers/${id}/delete`, {json: {}, headers: {"X-Step-Up": await getStepUpToken()}});
     return {id};
   },
   exportCouriers: async () => {

@@ -1,4 +1,6 @@
 import {apiClient} from "@/services/api-client";
+import {fetchPage} from "@/services/paged";
+import {getStepUpToken} from "@/services/step-up";
 import type {Page} from "@/types/workloads-types";
 import type {UserDetail, UserParcel, UserRow, UserStatus, UsersService, UserVerification} from "@/types/users-types";
 
@@ -16,38 +18,51 @@ interface ApiUserSummary {
 
 interface ApiUserDetail {
   id: string;
+  code: string;
   name: string;
   preferredName?: string;
   email: string;
   phone: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
   status: string;
   verification: string;
   createdAt: string;
   walletBalanceKobo?: string;
   parcels?: {sent: string; delivered: string; live: string; spentKobo: string};
-  flagged?: boolean;
 }
 
 interface ApiUserParcel {
   id: string;
   trackingNo: string;
-  recipientName?: string;
-  destination?: {id: string; code: string; name?: string};
   state: string;
-  slaDueAt?: string;
+  sizeClass?: string;
+  speedTier?: string;
+  priceKobo?: string;
+  originNodeId?: string;
+  destNodeId?: string;
+  createdAt?: string;
 }
 
-interface ApiListUsersResponse {
-  users: ApiUserSummary[];
-  nextPageToken: string;
-  total: string;
-}
-
-const STATUS: Record<string, UserStatus> = {USER_ACCOUNT_STATUS_ACTIVE: "active", USER_ACCOUNT_STATUS_SUSPENDED: "suspended"};
+const STATUS: Record<string, UserStatus> = {
+  USER_ACCOUNT_STATUS_ACTIVE: "active",
+  USER_ACCOUNT_STATUS_PENDING: "active",
+  USER_ACCOUNT_STATUS_SUSPENDED: "suspended",
+  USER_ACCOUNT_STATUS_DELETED: "suspended",
+};
+const API_STATUS: Record<string, string> = {
+  active: "USER_ACCOUNT_STATUS_ACTIVE",
+  suspended: "USER_ACCOUNT_STATUS_SUSPENDED",
+};
 const VERIFICATION: Record<string, UserVerification> = {
   USER_VERIFICATION_VERIFIED: "verified",
   USER_VERIFICATION_PARTIAL: "partial",
   USER_VERIFICATION_UNVERIFIED: "unverified",
+};
+const API_VERIFICATION: Record<string, string> = {
+  verified: "USER_VERIFICATION_VERIFIED",
+  partial: "USER_VERIFICATION_PARTIAL",
+  unverified: "USER_VERIFICATION_UNVERIFIED",
 };
 
 const rowStatus = (u: ApiUserSummary): UserStatus => (u.flagged ? "flagged" : (STATUS[u.status] ?? "active"));
@@ -77,14 +92,12 @@ const PARCEL_STATUS: Record<string, UserParcel["status"]> = {
 
 const toParcel = (p: ApiUserParcel): UserParcel => ({
   id: p.trackingNo || p.id,
-  recipient: p.recipientName ?? "",
-  destination: p.destination ? `${p.destination.name ?? p.destination.code}` : "",
+  recipient: "",
+  destination: p.destNodeId ?? "",
   courier: "",
   status: PARCEL_STATUS[p.state] ?? "pending_pickup",
   sla: "",
 });
-
-const detailStatus = (u: ApiUserDetail): UserStatus => (u.flagged ? "flagged" : (STATUS[u.status] ?? "active"));
 
 const toDetail = (u: ApiUserDetail): UserDetail => ({
   id: u.id,
@@ -93,7 +106,7 @@ const toDetail = (u: ApiUserDetail): UserDetail => ({
   phone: u.phone,
   verification: VERIFICATION[u.verification] ?? "unverified",
   joinedAt: u.createdAt,
-  status: detailStatus(u),
+  status: STATUS[u.status] ?? "active",
   flag: null,
   suspension: null,
   walletBalanceKobo: Number(u.walletBalanceKobo ?? 0),
@@ -110,34 +123,44 @@ const toDetail = (u: ApiUserDetail): UserDetail => ({
  */
 export const httpUsersService: UsersService = {
   getUsers: async (params) => {
-    const searchParams = new URLSearchParams({pageSize: "50"});
-    if (params.query) searchParams.set("query", params.query);
-    if (params.status) searchParams.set("status", params.status);
-    if (params.verification) searchParams.set("verification", params.verification);
-    const res = await apiClient.get("v1/admin/users", {searchParams}).json<ApiListUsersResponse>();
-    const items = res.users.map(toRow);
+    const filters: Record<string, string> = {page_size: "50"};
+    if (params.query) filters.q = params.query;
+    if (params.status && API_STATUS[params.status]) filters.status = API_STATUS[params.status];
+    if (params.verification && API_VERIFICATION[params.verification]) filters.verification = API_VERIFICATION[params.verification];
+    const key = JSON.stringify(filters);
+    const res = await fetchPage<ApiUserSummary>(`users:${key}`, params.page, (pageToken) =>
+      apiClient
+        .get("v1/admin/users", {searchParams: {...filters, ...(pageToken ? {page_token: pageToken} : {})}})
+        .json<{users: ApiUserSummary[]; nextPageToken?: string; total?: string}>()
+        .then((r) => ({items: r.users ?? [], nextPageToken: r.nextPageToken, total: Number(r.total ?? 0)}))
+    );
+    const flaggedOnly = params.status === "flagged";
+    const items = res.items.map(toRow).filter((u) => !flaggedOnly || u.status === "flagged");
     return {
       metrics: {
-        total: Number(res.total),
+        total: res.total,
         verified: items.filter((u) => u.verification === "verified").length,
         suspended: items.filter((u) => u.status === "suspended").length,
         flagged: items.filter((u) => u.status === "flagged").length,
         newToday: 0,
       },
-      users: {items, page: params.page, pageSize: 50, total: Number(res.total)},
+      users: {items, page: params.page, pageSize: 50, total: res.total},
       filters: {statuses: ["active", "flagged", "suspended"], verifications: ["verified", "partial", "unverified"]},
       suspendReasons: ["suspicious_activity", "payment_fraud", "policy_violations", "abusive_behavior", "duplicate_account", "other"],
     };
   },
   getUserDetail: async (id) => {
-    const res = await apiClient.get(`v1/admin/users/${id}`).json<{user: ApiUserDetail}>();
-    return toDetail(res.user);
+    const res = await apiClient.get(`v1/admin/users/${id}`).json<ApiUserDetail>();
+    return toDetail(res);
   },
   getUserParcels: async (id, params): Promise<Page<UserParcel>> => {
-    const res = await apiClient
-      .get(`v1/admin/users/${id}/parcels`, {searchParams: {pageSize: 20}})
-      .json<{parcels: ApiUserParcel[]; nextPageToken: string}>();
-    const items = res.parcels.map(toParcel);
+    const res = await fetchPage<ApiUserParcel>(`user-parcels:${id}`, params.page, (pageToken) =>
+      apiClient
+        .get(`v1/admin/users/${id}/parcels`, {searchParams: {page_size: 20, ...(pageToken ? {page_token: pageToken} : {})}})
+        .json<{parcels: ApiUserParcel[]; nextPageToken?: string}>()
+        .then((r) => ({items: r.parcels ?? [], nextPageToken: r.nextPageToken, total: 0}))
+    );
+    const items = res.items.map(toParcel);
     return {items, page: params.page, pageSize: 20, total: items.length};
   },
   suspendUser: async (id, input) => {
@@ -159,7 +182,7 @@ export const httpUsersService: UsersService = {
     return {ids: input.ids, status: "flagged"};
   },
   deleteUser: async (id) => {
-    await apiClient.post(`v1/admin/users/${id}/delete`, {json: {}});
+    await apiClient.post(`v1/admin/users/${id}/delete`, {json: {}, headers: {"X-Step-Up": await getStepUpToken()}});
     return {id};
   },
   exportUsers: async () => {

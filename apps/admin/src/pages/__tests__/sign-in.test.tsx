@@ -7,9 +7,10 @@ import {renderRoute} from "@/test/render-route";
 import {SignInPage} from "../sign-in";
 
 vi.mock("@/lib/work-email-domains", () => ({workEmailDomains: ["alvo.com"]}));
-vi.mock("@/services/auth-service", () => ({authService: {signIn: vi.fn()}}));
+vi.mock("@/services/auth-service", () => ({authService: {signIn: vi.fn(), verifySecondFactor: vi.fn()}}));
 
 const signIn = vi.mocked(authService.signIn);
+const verifySecondFactor = vi.mocked(authService.verifySecondFactor);
 
 const renderSignIn = () => renderRoute(SignInPage, "/");
 
@@ -22,9 +23,18 @@ function fillCredentials(email = "olatunji@Alvo.com", password = "secret") {
   fireEvent.change(passwordInput(), {target: {value: password}});
 }
 
+const codeInputs = () => screen.getAllByRole("textbox") as HTMLInputElement[];
+
+function fillCode(digits: string) {
+  for (const [index, digit] of [...digits].entries()) {
+    fireEvent.change(codeInputs()[index]!, {target: {value: digit}});
+  }
+}
+
 describe("SignInPage", () => {
   beforeEach(() => {
     signIn.mockReset();
+    verifySecondFactor.mockReset();
   });
   afterEach(() => vi.useRealTimers());
 
@@ -81,33 +91,67 @@ describe("SignInPage", () => {
     expect(signIn.mock.calls[0][0]).toEqual({email: "olatunji@Alvo.com", password: "secret"});
   });
 
-  it("shows the success alert, then redirects to the dashboard", async () => {
-    vi.useFakeTimers({shouldAdvanceTime: true});
-    signIn.mockResolvedValue({accountStatus: "active"});
-    const router = renderSignIn();
+  it("swaps to the authenticator-code step once credentials pass", async () => {
+    signIn.mockResolvedValue({challengeId: "ch-1"});
+    renderSignIn();
     await screen.findByRole("heading", {level: 1});
     fillCredentials();
 
     submit();
 
+    expect((await screen.findByRole("heading", {level: 2})).textContent).toBe("sign_in.totp.title");
+    expect(codeInputs()).toHaveLength(6);
+    expect(signIn).toHaveBeenCalledOnce();
+    expect(verifySecondFactor).not.toHaveBeenCalled();
+  });
+
+  it("verifies the authenticator code, shows the success alert, then redirects to the dashboard", async () => {
+    vi.useFakeTimers({shouldAdvanceTime: true});
+    signIn.mockResolvedValue({challengeId: "ch-1"});
+    verifySecondFactor.mockResolvedValue({accountStatus: "active"});
+    const router = renderSignIn();
+    await screen.findByRole("heading", {level: 1});
+    fillCredentials();
+    submit();
+    await screen.findByRole("heading", {level: 2});
+
+    fillCode("123456");
+    fireEvent.click(screen.getByRole("button", {name: "sign_in.totp.submit"}));
+
     expect((await screen.findByRole("status")).textContent).toBe("sign_in.success");
-    expect((screen.getByRole("button", {name: "sign_in.submit"}) as HTMLButtonElement).disabled).toBe(true);
+    expect(verifySecondFactor.mock.calls[0][0]).toEqual({challengeId: "ch-1", code: "123456", enrolling: false});
     expect(router.state.location.pathname).toBe("/");
 
     await act(() => vi.advanceTimersByTimeAsync(SIGN_IN_REDIRECT_DELAY_MS));
     await waitFor(() => expect(router.state.location.pathname).toBe("/dashboard"));
   });
 
-  it("sends an invited admin straight to account setup, without the redirect notice", async () => {
-    signIn.mockResolvedValue({accountStatus: "setup_required"});
+  it("sends an invited admin straight to account setup after the code check, without the redirect notice", async () => {
+    signIn.mockResolvedValue({challengeId: "ch-1"});
+    verifySecondFactor.mockResolvedValue({accountStatus: "setup_required"});
     const router = renderSignIn();
+    await screen.findByRole("heading", {level: 1});
+    fillCredentials();
+    submit();
+    await screen.findByRole("heading", {level: 2});
+
+    fillCode("123456");
+    fireEvent.click(screen.getByRole("button", {name: "sign_in.totp.submit"}));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/account-setup"));
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("shows the enrollment secret when the challenge requires a fresh authenticator", async () => {
+    signIn.mockResolvedValue({challengeId: "ch-1", enrollment: {secret: "JBSWY3DPEHPK3PXP", otpauthUri: "otpauth://totp/x"}});
+    renderSignIn();
     await screen.findByRole("heading", {level: 1});
     fillCredentials();
 
     submit();
 
-    await waitFor(() => expect(router.state.location.pathname).toBe("/account-setup"));
-    expect(screen.queryByRole("status")).toBeNull();
+    expect((await screen.findByRole("heading", {level: 2})).textContent).toBe("sign_in.totp.enroll_title");
+    expect(screen.getByText("JBSWY3DPEHPK3PXP")).toBeTruthy();
   });
 
   it.each([

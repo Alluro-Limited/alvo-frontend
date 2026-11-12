@@ -1,4 +1,5 @@
 import {apiClient} from "@/services/api-client";
+import {fetchPage} from "@/services/paged";
 import type {AlertSeverity, DashboardService, NodeDetail, OverviewAlert, OverviewMapNode} from "@/types/dashboard-types";
 
 interface ApiOverview {
@@ -29,22 +30,35 @@ interface ApiActivity {
   createdAt: string;
 }
 
-interface ApiNode {
+interface ApiAuditEvent {
+  id: string;
+  actorRole: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  reasonCode?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+interface ApiAdminNode {
   id: string;
   code: string;
-  name: string;
   lat: number;
   lng: number;
   status: string;
+  liveParcels?: string;
   capacity?: {small: number; medium: number; large: number};
-  available?: {small: number; medium: number; large: number};
+  details?: {name?: string; partnerName?: string; region?: string; zone?: string; address?: string};
 }
 
 const cap = (c?: {small: number; medium: number; large: number}) => (c ? c.small + c.medium + c.large : 0);
 
 const ALERT_TONE: Record<string, AlertSeverity> = {
   ALERT_KIND_NODE_OFFLINE: "error",
-  ALERT_KIND_SLA_AT_RISK: "warning",
+  ALERT_KIND_NODE_FULL: "error",
+  ALERT_KIND_PARCEL_SLA_AT_RISK: "warning",
+  ALERT_KIND_FLAG_OPEN: "warning",
 };
 
 const toAlert = (a: ApiAlert): OverviewAlert => ({
@@ -53,6 +67,16 @@ const toAlert = (a: ApiAlert): OverviewAlert => ({
   title: a.targetRef,
   description: a.kind.replace("ALERT_KIND_", "").replaceAll("_", " ").toLowerCase(),
   at: a.raisedAt,
+});
+
+const nodeStatus = (status: string) => (status === "ADMIN_NODE_STATUS_AVAILABLE" ? "online" : "offline");
+
+const activityRow = (a: {id: string; actorRole: string; action: string; targetId: string; createdAt: string}) => ({
+  id: a.id,
+  tone: "success" as const,
+  title: a.action,
+  detail: `${a.actorRole || "system"} · ${a.targetId}`,
+  at: a.createdAt,
 });
 
 /**
@@ -64,15 +88,15 @@ export const httpDashboardService: DashboardService = {
   getOverview: async () => {
     const [overview, alerts, activity, nodes] = await Promise.all([
       apiClient.get("v1/admin/overview").json<ApiOverview>(),
-      apiClient.get("v1/admin/overview/alerts", {searchParams: {pageSize: 10}}).json<{alerts: ApiAlert[]}>(),
-      apiClient.get("v1/admin/overview/activity", {searchParams: {pageSize: 10}}).json<{activity: ApiActivity[]}>(),
-      apiClient.get("v1/admin/nodes").json<{nodes: ApiNode[]}>(),
+      apiClient.get("v1/admin/overview/alerts", {searchParams: {page_size: 10}}).json<{alerts: ApiAlert[]}>(),
+      apiClient.get("v1/admin/overview/activity", {searchParams: {page_size: 10}}).json<{activity: ApiActivity[]}>(),
+      apiClient.get("v1/admin/nodes").json<{nodes: ApiAdminNode[]}>(),
     ]);
     const nodesTotal = Number(overview.registeredNodes);
     const nodesOnline = Number(overview.activeNodes);
     const mapNodes: OverviewMapNode[] = nodes.nodes.map((n) => ({
       id: n.id,
-      status: n.status === "NODE_STATUS_AVAILABLE" ? "online" : "offline",
+      status: nodeStatus(n.status),
       position: [n.lng, n.lat],
     }));
     return {
@@ -94,26 +118,19 @@ export const httpDashboardService: DashboardService = {
       },
       map: {nodes: mapNodes, couriers: [], route: []},
       alerts: alerts.alerts.map(toAlert),
-      activity: activity.activity.map((a) => ({
-        id: a.id,
-        tone: "success" as const,
-        title: a.action,
-        detail: `${a.actorRole || "system"} · ${a.targetId}`,
-        at: a.createdAt,
-      })),
+      activity: activity.activity.map(activityRow),
     };
   },
   getNodeDetail: async (id): Promise<NodeDetail> => {
-    const res = await apiClient.get(`v1/admin/nodes/${id}`).json<{node: ApiNode}>();
+    const res = await apiClient.get(`v1/admin/nodes/${id}`).json<{node: ApiAdminNode}>();
     const {node} = res;
-    const total = cap(node.capacity);
     return {
       id: node.id,
-      status: node.status === "NODE_STATUS_AVAILABLE" ? "online" : "offline",
-      location: node.name,
-      capacityUsed: Math.max(total - cap(node.available), 0),
-      capacityTotal: total,
-      partnerHost: "",
+      status: nodeStatus(node.status),
+      location: node.details?.name ?? node.code,
+      capacityUsed: Number(node.liveParcels ?? 0),
+      capacityTotal: cap(node.capacity),
+      partnerHost: node.details?.partnerName ?? "",
       lastHeartbeatAt: "",
       uptimePct: 0,
       parcelsToday: 0,
@@ -124,13 +141,12 @@ export const httpDashboardService: DashboardService = {
     throw new Error("courier position detail is not supported by the API yet");
   },
   getAuditLog: async () => {
-    const res = await apiClient.get("v1/admin/audit-events", {searchParams: {pageSize: 50}}).json<{activity: ApiActivity[]}>();
-    return res.activity.map((a) => ({
-      id: a.id,
-      tone: "success" as const,
-      title: a.action,
-      detail: `${a.actorRole || "system"} · ${a.targetId}`,
-      at: a.createdAt,
-    }));
+    const page = await fetchPage<ApiAuditEvent>("audit-events", 1, (pageToken) =>
+      apiClient
+        .get("v1/admin/audit-events", {searchParams: {page_size: 50, ...(pageToken ? {page_token: pageToken} : {})}})
+        .json<{events?: ApiAuditEvent[]; nextPageToken?: string; total?: string}>()
+        .then((res) => ({items: res.events ?? [], nextPageToken: res.nextPageToken, total: Number(res.total ?? 0)}))
+    );
+    return page.items.map(activityRow);
   },
 };

@@ -1,10 +1,9 @@
 import {useState, type FormEvent} from "react";
-import {useNavigate} from "@tanstack/react-router";
 import * as v from "valibot";
 import {API_ERROR_CODES} from "@/lib/api-errors";
 import {getAuthErrorMessage} from "@/components/auth/auth-errors";
 import type {AuthAlertState} from "@/components/auth/auth-alert";
-import type {CompleteAccountSetupInput} from "@/types/auth-types";
+import type {CompleteAccountSetupInput, SignInChallenge} from "@/types/auth-types";
 import {useCompleteAccountSetupMutation} from "@/queries/use-complete-account-setup-mutation";
 import {m} from "@/paraglide/messages";
 import {accountSetupSchema} from "./account-setup-schema";
@@ -29,10 +28,10 @@ function validate(values: CompleteAccountSetupInput) {
 }
 
 export function useAccountSetupForm() {
-  const navigate = useNavigate();
   const mutation = useCompleteAccountSetupMutation();
   const [values, setValues] = useState<CompleteAccountSetupInput>({firstName: "", lastName: "", password: ""});
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [challenge, setChallenge] = useState<SignInChallenge | null>(null);
 
   function setField(field: SetupField, value: string) {
     setValues((current) => ({...current, [field]: value}));
@@ -46,10 +45,11 @@ export function useAccountSetupForm() {
     const {input, errors} = validate(values);
     setFieldErrors(errors);
     if (!input) return;
-    mutation.mutate(input, {onSuccess: () => void navigate({to: "/dashboard"})});
+    // Accepting the invitation returns the sign-in challenge — TOTP enrollment follows.
+    mutation.mutate(input, {onSuccess: setChallenge});
   }
 
   const alert: AuthAlertState | null = mutation.error ? {tone: "error", message: getAuthErrorMessage(mutation.error, errorContext)} : null;
 
-  return {values, fieldErrors, alert, setField, handleSubmit, isPending: mutation.isPending};
+  return {values, fieldErrors, alert, challenge, setField, handleSubmit, isPending: mutation.isPending};
 }

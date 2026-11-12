@@ -5,11 +5,14 @@ import {AuthAlert} from "@/components/auth/auth-alert";
 import {FormField} from "@/components/auth/form-field";
 import {PasswordInput} from "@/components/auth/password-input";
 import {SignInActions} from "./sign-in-actions";
+import {TwoFactorForm} from "./two-factor-form";
 import {authInputClassName} from "@/components/auth/auth-input-styles";
 import {useSignInForm} from "./use-sign-in-form";
 
 export function SignInForm() {
-  const {values, fieldErrors, alert, setField, handleSubmit, isPending, isLocked} = useSignInForm();
+  const {values, fieldErrors, alert, challenge, setField, handleSubmit, isPending, isLocked} = useSignInForm();
+
+  if (challenge) return <TwoFactorForm challenge={challenge} />;
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex w-full flex-col gap-8">

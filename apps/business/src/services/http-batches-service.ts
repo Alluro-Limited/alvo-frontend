@@ -3,14 +3,9 @@ import {koboToNaira} from "@/lib/money";
 import {apiClient} from "@/services/api-client";
 import type {ApiBatch, ApiGetBatchResponse, ApiListBatchesResponse, ApiShipment} from "@/types/api-types";
 import type {BatchDetail, BatchStatus, BatchSummary, BatchesService, ShipmentStage} from "@/types/batch-types";
-import type {ShipmentPriority, ShipmentSize} from "@/types/dashboard-types";
+import type {ShipmentSize} from "@/types/dashboard-types";
 
 const SIZE: Record<string, ShipmentSize> = {SIZE_CLASS_SMALL: "S", SIZE_CLASS_MEDIUM: "M", SIZE_CLASS_LARGE: "B"};
-const SPEED: Record<string, ShipmentPriority> = {
-  SPEED_TIER_STANDARD: "standard",
-  SPEED_TIER_EXPRESS: "express",
-  SPEED_TIER_SAME_DAY: "express",
-};
 
 const STAGE: Record<string, ShipmentStage> = {
   PARCEL_STATE_CREATED: "awaiting_dropoff",
@@ -48,7 +43,7 @@ const toRow = (s: ApiShipment): BatchDetail["shipments"][number] => ({
   phone: s.recipientPhone,
   destination: "",
   size: SIZE[s.sizeClass] ?? "S",
-  priority: SPEED[s.speedTier ?? ""] ?? "standard",
+  priority: "standard",
   stage: STAGE[s.state] ?? "awaiting_dropoff",
 });
 

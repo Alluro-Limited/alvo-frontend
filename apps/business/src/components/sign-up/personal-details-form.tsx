@@ -6,12 +6,13 @@ import {PasswordInput} from "@/components/auth/password-input";
 import {AuthTextField} from "@/components/auth/text-field";
 import {authInputClassName} from "@/components/auth/auth-input-styles";
 import type {BusinessInfoInput, PersonalDetailsInput} from "@/types/auth-types";
+import {PhoneField} from "./phone-field";
 import {StepHeader} from "./step-header";
 import {TermsNotice} from "./terms-notice";
 import {usePersonalDetailsForm} from "./use-personal-details-form";
 
 const textFields: {
-  name: "firstName" | "lastName" | "phone" | "email";
+  name: "firstName" | "lastName";
   type: "text" | "tel" | "email";
   autoComplete: string;
   label: () => string;
@@ -31,14 +32,45 @@ const textFields: {
     label: m["sign_up.last_name_label"],
     placeholder: m["sign_up.last_name_placeholder"],
   },
-  {name: "phone", type: "tel", autoComplete: "tel", label: m["sign_up.phone_label"], placeholder: m["sign_up.phone_placeholder"]},
-  {name: "email", type: "email", autoComplete: "email", label: m["sign_up.email_label"], placeholder: m["sign_up.email_placeholder"]},
 ];
 
 interface PersonalDetailsFormProps {
   businessInfo: BusinessInfoInput;
   initialValues: PersonalDetailsInput;
   onNext: (values: PersonalDetailsInput) => void;
+}
+
+function ContactFields({
+  values,
+  fieldErrors,
+  setField,
+}: {
+  values: PersonalDetailsInput;
+  fieldErrors: Partial<Record<keyof PersonalDetailsInput, string>>;
+  setField: (field: keyof PersonalDetailsInput, value: string) => void;
+}) {
+  return (
+    <>
+      <PhoneField
+        label={m["sign_up.phone_label"]()}
+        error={fieldErrors.phone}
+        name="phone"
+        placeholder={m["sign_up.phone_placeholder"]()}
+        value={values.phone}
+        onChange={(value) => setField("phone", value)}
+      />
+      <AuthTextField
+        label={m["sign_up.email_label"]()}
+        error={fieldErrors.email}
+        type="email"
+        name="email"
+        autoComplete="email"
+        placeholder={m["sign_up.email_placeholder"]()}
+        value={values.email}
+        onChange={(event) => setField("email", event.target.value)}
+      />
+    </>
+  );
 }
 
 export function PersonalDetailsForm({businessInfo, initialValues, onNext}: PersonalDetailsFormProps) {
@@ -66,6 +98,7 @@ export function PersonalDetailsForm({businessInfo, initialValues, onNext}: Perso
             onChange={(event) => setField(field.name, event.target.value)}
           />
         ))}
+        <ContactFields values={values} fieldErrors={fieldErrors} setField={setField} />
         <FormField label={m["sign_up.password_label"]()} error={fieldErrors.password} hint={m["sign_up.password_hint"]()}>
           {(control) => (
             <PasswordInput

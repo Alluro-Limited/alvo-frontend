@@ -1,11 +1,9 @@
 import {useState, type FormEvent} from "react";
-import {useNavigate} from "@tanstack/react-router";
 import * as v from "valibot";
 import {useSignInMutation} from "@/queries/use-sign-in-mutation";
 import {workEmailDomains} from "@/lib/work-email-domains";
-import type {SignInCredentials} from "@/types/auth-types";
+import type {SignInChallenge, SignInCredentials} from "@/types/auth-types";
 import type {AuthAlertState} from "@/components/auth/auth-alert";
-import {m} from "@/paraglide/messages";
 import {createSignInSchema} from "./sign-in-schema";
 import {getSignInErrorMessage} from "./sign-in-errors";
 
@@ -25,10 +23,10 @@ function validate(values: SignInCredentials) {
 }
 
 export function useSignInForm() {
-  const navigate = useNavigate();
   const mutation = useSignInMutation();
   const [values, setValues] = useState<SignInCredentials>({email: "", password: ""});
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [challenge, setChallenge] = useState<SignInChallenge | null>(null);
   const isLocked = mutation.isPending || mutation.isSuccess;
 
   function setField(field: SignInField, value: string) {
@@ -43,18 +41,11 @@ export function useSignInForm() {
     const {credentials, errors} = validate(values);
     setFieldErrors(errors);
     if (!credentials) return;
-    mutation.mutate(credentials, {
-      onSuccess: ({accountStatus}) => {
-        // First sign-in of an invited admin: setup comes before the dashboard, so skip the redirect notice.
-        if (accountStatus === "setup_required") return void navigate({to: "/account-setup"});
-        setTimeout(() => void navigate({to: "/dashboard"}), SIGN_IN_REDIRECT_DELAY_MS);
-      },
-    });
+    // Sign-in always answers with a TOTP challenge — the form swaps to the code step.
+    mutation.mutate(credentials, {onSuccess: setChallenge});
   }
 
-  let alert: AuthAlertState | null = null;
-  if (mutation.data?.accountStatus === "active") alert = {tone: "success", message: m["sign_in.success"]()};
-  else if (mutation.error) alert = {tone: "error", message: getSignInErrorMessage(mutation.error)};
+  const alert: AuthAlertState | null = mutation.error ? {tone: "error", message: getSignInErrorMessage(mutation.error)} : null;
 
-  return {values, fieldErrors, alert, setField, handleSubmit, isPending: mutation.isPending, isLocked};
+  return {values, fieldErrors, alert, challenge, setField, handleSubmit, isPending: mutation.isPending, isLocked};
 }

@@ -4,12 +4,14 @@ import {apiClient} from "@/services/api-client";
 import type {ApiGetSmeWalletResponse, ApiListSmeTransactionsResponse, ApiSmeTransaction} from "@/types/api-types";
 import type {WalletService, WalletTransaction} from "@/types/wallet-types";
 
+/** The wire has no transaction id — reference + timestamp is the stable key. */
 const toTxn = (t: ApiSmeTransaction): WalletTransaction => {
-  const topup = !t.kind.includes("BATCH") && !t.kind.includes("PAYMENT");
+  const isBatch = t.journalType.includes("BATCH");
   return {
-    id: t.id,
-    kind: topup ? "topup" : "batch_payment",
-    batchId: t.batchId,
+    id: `${t.reference}:${t.createdAt}`,
+    kind: isBatch ? "batch_payment" : "topup",
+    batchId: isBatch ? t.reference || undefined : undefined,
+    reference: isBatch ? undefined : t.reference || undefined,
     amount: koboToNaira(t.amountKobo),
     date: formatDateTime(t.createdAt),
   };
