@@ -5,37 +5,37 @@ import type {Page} from "@/types/workloads-types";
 import type {UserDetail, UserParcel, UserRow, UserStatus, UsersService, UserVerification} from "@/types/users-types";
 
 interface ApiUserSummary {
-  id: string;
-  code: string;
-  name: string;
-  maskedEmail: string;
-  maskedPhone: string;
-  status: string;
-  verification: string;
-  createdAt: string;
-  flagged: boolean;
+  id?: string;
+  code?: string;
+  name?: string;
+  maskedEmail?: string;
+  maskedPhone?: string;
+  status?: string;
+  verification?: string;
+  createdAt?: string;
+  flagged?: boolean;
 }
 
 interface ApiUserDetail {
-  id: string;
-  code: string;
-  name: string;
+  id?: string;
+  code?: string;
+  name?: string;
   preferredName?: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   emailVerified?: boolean;
   phoneVerified?: boolean;
-  status: string;
-  verification: string;
-  createdAt: string;
+  status?: string;
+  verification?: string;
+  createdAt?: string;
   walletBalanceKobo?: string;
-  parcels?: {sent: string; delivered: string; live: string; spentKobo: string};
+  parcels?: {sent?: string; delivered?: string; live?: string; spentKobo?: string};
 }
 
 interface ApiUserParcel {
-  id: string;
-  trackingNo: string;
-  state: string;
+  id?: string;
+  trackingNo?: string;
+  state?: string;
   sizeClass?: string;
   speedTier?: string;
   priceKobo?: string;
@@ -65,15 +65,15 @@ const API_VERIFICATION: Record<string, string> = {
   unverified: "USER_VERIFICATION_UNVERIFIED",
 };
 
-const rowStatus = (u: ApiUserSummary): UserStatus => (u.flagged ? "flagged" : (STATUS[u.status] ?? "active"));
+const rowStatus = (u: ApiUserSummary): UserStatus => (u.flagged ? "flagged" : (STATUS[u.status ?? ""] ?? "active"));
 
 const toRow = (u: ApiUserSummary): UserRow => ({
-  id: u.id,
-  name: u.name,
-  email: u.maskedEmail,
-  phone: u.maskedPhone,
-  verification: VERIFICATION[u.verification] ?? "unverified",
-  joinedAt: u.createdAt,
+  id: u.id ?? "",
+  name: u.name ?? "",
+  email: u.maskedEmail ?? "",
+  phone: u.maskedPhone ?? "",
+  verification: VERIFICATION[u.verification ?? ""] ?? "unverified",
+  joinedAt: u.createdAt ?? "",
   status: rowStatus(u),
 });
 
@@ -91,28 +91,31 @@ const PARCEL_STATUS: Record<string, UserParcel["status"]> = {
 };
 
 const toParcel = (p: ApiUserParcel): UserParcel => ({
-  id: p.trackingNo || p.id,
+  id: p.trackingNo || p.id || "",
   recipient: "",
   destination: p.destNodeId ?? "",
   courier: "",
-  status: PARCEL_STATUS[p.state] ?? "pending_pickup",
+  status: PARCEL_STATUS[p.state ?? ""] ?? "pending_pickup",
   sla: "",
 });
 
+const str = (v?: string) => v ?? "";
+const num = (v?: string) => Number(v ?? 0);
+
 const toDetail = (u: ApiUserDetail): UserDetail => ({
-  id: u.id,
-  name: u.name,
-  email: u.email,
-  phone: u.phone,
-  verification: VERIFICATION[u.verification] ?? "unverified",
-  joinedAt: u.createdAt,
-  status: STATUS[u.status] ?? "active",
+  id: str(u.id),
+  name: str(u.name),
+  email: str(u.email),
+  phone: str(u.phone),
+  verification: VERIFICATION[str(u.verification)] ?? "unverified",
+  joinedAt: str(u.createdAt),
+  status: STATUS[str(u.status)] ?? "active",
   flag: null,
   suspension: null,
-  walletBalanceKobo: Number(u.walletBalanceKobo ?? 0),
-  totalSpentKobo: Number(u.parcels?.spentKobo ?? 0),
-  parcelsSent: Number(u.parcels?.sent ?? 0),
-  parcelsDelivered: Number(u.parcels?.delivered ?? 0),
+  walletBalanceKobo: num(u.walletBalanceKobo),
+  totalSpentKobo: num(u.parcels?.spentKobo),
+  parcelsSent: num(u.parcels?.sent),
+  parcelsDelivered: num(u.parcels?.delivered),
   recentActivity: [],
 });
 

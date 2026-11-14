@@ -57,7 +57,7 @@ export const httpWorkloadsService: WorkloadsService = {
       })
       .json<{flags?: ApiFlag[]}>()
       .then((res) => res.flags?.[0])
-      .then((f): ParcelFlagRecord | null => (f ? {reason: f.reasonCode, notes: f.notes, at: f.createdAt} : null))
+      .then((f): ParcelFlagRecord | null => (f ? {reason: f.reasonCode ?? "", notes: f.notes, at: f.createdAt ?? ""} : null))
       .catch(() => null);
     const res = await apiClient.get(`v1/admin/parcels/${id}`).json<ApiParcelDetail>();
     return toDetail(res, flag);

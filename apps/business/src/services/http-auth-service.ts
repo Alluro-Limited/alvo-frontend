@@ -37,6 +37,7 @@ export const httpAuthService: AuthService = {
   signIn: async ({email, password}) => {
     const body: ApiSignInSmeRequest = {workEmail: email, password};
     const res = await apiClient.post("v1/sme/sign-in", {json: body}).json<ApiSmeAuthResponse>();
+    if (!res.accessToken || !res.refreshToken) throw new Error("sign-in did not return a session");
     setSession({accessToken: res.accessToken, refreshToken: res.refreshToken, sme: res.sme});
   },
   signUp: async (input) => {
@@ -48,7 +49,8 @@ export const httpAuthService: AuthService = {
   verifyEmail: async (code) => {
     const body: ApiVerifyOtpRequest = {identifier: pendingEmail(), code};
     const res = await apiClient.post("v1/auth/verify", {json: body}).json<AuthTokensResponse>();
-    setSession({...res, owner: pendingOwner()});
+    if (!res.accessToken || !res.refreshToken) throw new Error("verify did not return a session");
+    setSession({accessToken: res.accessToken, refreshToken: res.refreshToken, owner: pendingOwner()});
   },
   resendVerificationCode: async () => {
     const body: ApiRequestOtpRequest = {identifier: pendingEmail(), channel: "OTP_CHANNEL_EMAIL"};

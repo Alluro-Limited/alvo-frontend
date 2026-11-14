@@ -3,20 +3,20 @@ import type {AdminProfile, ProfileService} from "@/types/profile-types";
 import type {AdminRole} from "@/types/admins-types";
 
 interface ApiAdminProfile {
-  id: string;
-  code: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
+  id?: string;
+  code?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  status?: string;
   permissions?: string[];
   totpEnabled?: boolean;
   lastActiveAt?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 interface ApiSessionRow {
-  id: string;
+  id?: string;
   userAgent?: string;
   ip?: string;
   createdAt?: string;
@@ -24,20 +24,20 @@ interface ApiSessionRow {
   current?: boolean;
 }
 
-const nameParts = (name: string) => {
-  const [first = "", ...rest] = name.split(" ");
+const nameParts = (name?: string) => {
+  const [first = "", ...rest] = (name ?? "").split(" ");
   return {firstName: first, lastName: rest.join(" ")};
 };
 
 const toProfile = (p: ApiAdminProfile, sessions: ApiSessionRow[]): AdminProfile => ({
-  id: p.id,
+  id: p.id ?? "",
   ...nameParts(p.name),
-  email: p.email,
+  email: p.email ?? "",
   phone: "",
-  role: (p.role as AdminRole) ?? "viewer",
-  roleLabel: p.role,
+  role: (p.role as AdminRole) || "viewer",
+  roleLabel: p.role ?? "",
   status: p.status === "ADMIN_STATUS_SUSPENDED" ? "suspended" : "active",
-  memberSince: p.createdAt,
+  memberSince: p.createdAt ?? "",
   lastLogin: p.lastActiveAt ?? "",
   passwordChangedDaysAgo: 0,
   twoFactorEnabled: p.totpEnabled ?? false,
@@ -45,7 +45,7 @@ const toProfile = (p: ApiAdminProfile, sessions: ApiSessionRow[]): AdminProfile 
   dateFormat: "",
   notifications: {email: true, push: true, sms: false},
   sessions: sessions.map((s) => ({
-    id: s.id,
+    id: s.id ?? "",
     device: s.userAgent ?? "",
     location: s.ip ?? "",
     lastActive: s.lastUsedAt ?? "",

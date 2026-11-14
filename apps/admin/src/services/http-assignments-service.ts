@@ -5,13 +5,13 @@ import type {AssignmentRow, AssignmentsService, AssignmentStatus} from "@/types/
 const U = "not supported by the API yet";
 
 interface ApiFlag {
-  id: string;
-  targetType: string;
-  targetId: string;
-  reasonCode: string;
-  status: string;
+  id?: string;
+  targetType?: string;
+  targetId?: string;
+  reasonCode?: string;
+  status?: string;
   raisedBy?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 const FLAG_STATUS: Record<string, AssignmentStatus> = {
@@ -26,13 +26,13 @@ const API_STATUS: Record<string, string> = {
 };
 
 const toRow = (f: ApiFlag): AssignmentRow => ({
-  id: f.id,
+  id: f.id ?? "",
   type: "node",
   courier: null,
-  pickup: f.targetType.replace("FLAG_TARGET_TYPE_", "").toLowerCase(),
-  dropoff: f.targetId,
+  pickup: (f.targetType ?? "").replace("FLAG_TARGET_TYPE_", "").toLowerCase(),
+  dropoff: f.targetId ?? "",
   items: 0,
-  status: FLAG_STATUS[f.status] ?? "flagged",
+  status: FLAG_STATUS[f.status ?? ""] ?? "flagged",
   etaMin: null,
   distanceKm: null,
   position: [0, 0],

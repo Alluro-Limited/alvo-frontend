@@ -3,6 +3,7 @@ import {koboToNaira} from "@/lib/money";
 import {apiClient} from "@/services/api-client";
 import {getOwner, getSme} from "@/services/session";
 import type {
+  ApiBatch,
   ApiGetBatchResponse,
   ApiGetSmeWalletResponse,
   ApiListBatchesResponse,
@@ -49,23 +50,43 @@ const dayGroup = (iso: string, now = new Date()): NotificationDayGroup => {
 };
 
 const toNotification = (n: ApiNotification): AppNotification => ({
-  id: n.id,
-  icon: ICON[n.category] ?? "package",
-  title: n.title,
-  body: n.body,
+  id: n.id ?? "",
+  icon: ICON[n.category ?? ""] ?? "package",
+  title: n.title ?? "",
+  body: n.body ?? "",
   time: formatDateTime(n.createdAt),
-  day: dayGroup(n.createdAt),
+  day: dayGroup(n.createdAt ?? ""),
   read: Boolean(n.readAt),
 });
 
 const toRecent = (s: ApiShipment): RecentShipment => ({
-  id: s.trackingNo,
-  recipient: s.recipientName ?? s.recipientPhone,
-  phone: s.recipientPhone,
+  id: s.trackingNo ?? "",
+  recipient: s.recipientName ?? s.recipientPhone ?? "",
+  phone: s.recipientPhone ?? "",
   destination: "",
   size: "S",
   priority: "standard",
-  status: SHIPMENT_STATUS[s.state] ?? "in_transit",
+  status: SHIPMENT_STATUS[s.state ?? ""] ?? "in_transit",
+});
+
+const ownerFirstName = () => getOwner()?.firstName ?? (getSme()?.businessName ?? "").split(" ")[0] ?? "";
+
+const isStatus = (b: {status?: string}, token: string) => (b.status ?? "").includes(token);
+
+const toStats = (batches: ApiBatch[], shipments: number, spend: number): DashboardOverview["stats"] => ({
+  totalBatches: batches.length,
+  activeBatches: batches.filter((b) => !isStatus(b, "COMPLETE") && !isStatus(b, "DRAFT")).length,
+  completeBatches: batches.filter((b) => isStatus(b, "COMPLETE")).length,
+  draftBatches: batches.filter((b) => isStatus(b, "DRAFT")).length,
+  totalShipments: shipments,
+  topLocker: null,
+  totalSpend: spend,
+  avgPerShipment: shipments ? Math.round(spend / shipments) : 0,
+  activeShipments: 0,
+  activeShipmentBatches: 0,
+  deliveredLast30Days: 0,
+  pending: 0,
+  failed: 0,
 });
 
 /**
@@ -82,41 +103,27 @@ export const httpDashboardService: DashboardService = {
         .json<ApiGetSmeWalletResponse>()
         .catch(() => null),
     ]);
-    const batches = batchesRes.batches;
-    const shipments = batches.reduce((sum, b) => sum + b.totalParcels, 0);
+    const batches = batchesRes.batches ?? [];
+    const shipments = batches.reduce((sum, b) => sum + (b.totalParcels ?? 0), 0);
     const spend = batches.reduce((sum, b) => sum + koboToNaira(b.totalPriceKobo), 0);
     const newest = batches[0];
     const recent = newest
       ? await apiClient
           .get(`v1/sme/batches/${newest.id}`)
           .json<ApiGetBatchResponse>()
-          .then((r) => r.shipments.slice(0, 5).map(toRecent))
+          .then((r) => (r.shipments ?? []).slice(0, 5).map(toRecent))
           .catch(() => [])
       : [];
     return {
-      firstName: getOwner()?.firstName ?? (getSme()?.businessName ?? "").split(" ")[0] ?? "",
-      walletBalance: koboToNaira(walletRes?.wallet.balanceKobo),
-      stats: {
-        totalBatches: batches.length,
-        activeBatches: batches.filter((b) => !b.status.includes("COMPLETE") && !b.status.includes("DRAFT")).length,
-        completeBatches: batches.filter((b) => b.status.includes("COMPLETE")).length,
-        draftBatches: batches.filter((b) => b.status.includes("DRAFT")).length,
-        totalShipments: shipments,
-        topLocker: null,
-        totalSpend: spend,
-        avgPerShipment: shipments ? Math.round(spend / shipments) : 0,
-        activeShipments: 0,
-        activeShipmentBatches: 0,
-        deliveredLast30Days: 0,
-        pending: 0,
-        failed: 0,
-      },
+      firstName: ownerFirstName(),
+      walletBalance: koboToNaira(walletRes?.wallet?.balanceKobo),
+      stats: toStats(batches, shipments, spend),
       recentShipments: recent,
     };
   },
   getNotifications: async () => {
     const res = await apiClient.get("v1/notifications", {searchParams: {limit: 50}}).json<ApiListNotificationsResponse>();
-    return res.notifications.map(toNotification);
+    return (res.notifications ?? []).map(toNotification);
   },
   markAllNotificationsRead: async () => {
     await apiClient.post("v1/notifications/read-all", {json: {}});

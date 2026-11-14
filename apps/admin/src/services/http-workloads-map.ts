@@ -4,31 +4,31 @@ import {koboToNaira} from "@/lib/money";
 import type {BatchRow, ParcelDetail, ParcelFlagRecord, ParcelRow, ParcelStatus, ParcelTimelineStep} from "@/types/workloads-types";
 
 interface ApiNodeRef {
-  id: string;
-  code: string;
+  id?: string;
+  code?: string;
   name?: string;
 }
 
 export interface ApiAdminParcel {
-  id: string;
-  trackingNo: string;
+  id?: string;
+  trackingNo?: string;
   label?: string;
-  state: string;
+  state?: string;
   speedTier?: string;
   sizeClass?: string;
-  priceKobo: string;
+  priceKobo?: string;
   sender?: {kind?: string; id?: string; name?: string; code?: string; email?: string; phone?: string};
   origin?: ApiNodeRef;
   destination?: ApiNodeRef;
   batchId?: string;
-  createdAt: string;
+  createdAt?: string;
   slaDueAt?: string;
   slaAtRisk?: boolean;
 }
 
 interface ApiLabelCount {
-  label: string;
-  parcels: string;
+  label?: string;
+  parcels?: string;
 }
 
 export interface ApiParcelStats {
@@ -37,21 +37,21 @@ export interface ApiParcelStats {
 }
 
 export interface ApiAdminBatch {
-  id: string;
-  code: string;
+  id?: string;
+  code?: string;
   smeId?: string;
   smeName?: string;
   fileName?: string;
   origin?: ApiNodeRef;
-  totalParcels: number;
-  totalPriceKobo: string;
-  status: string;
-  createdAt: string;
+  totalParcels?: number;
+  totalPriceKobo?: string;
+  status?: string;
+  createdAt?: string;
   progress?: {labels?: ApiLabelCount[]; slaAtRisk?: string; delivered?: string; inTransit?: string};
 }
 
 interface ApiParcelEvent {
-  id: string;
+  id?: string;
   fromState?: string;
   toState?: string;
   actorType?: string;
@@ -60,7 +60,7 @@ interface ApiParcelEvent {
 }
 
 export interface ApiParcelDetail {
-  parcel: ApiAdminParcel;
+  parcel?: ApiAdminParcel;
   fragile?: boolean;
   weightGrams?: number;
   batchCode?: string;
@@ -69,10 +69,10 @@ export interface ApiParcelDetail {
 }
 
 export interface ApiFlag {
-  id: string;
-  reasonCode: string;
+  id?: string;
+  reasonCode?: string;
   notes?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 const STATUS: Record<string, ParcelStatus> = {
@@ -107,37 +107,37 @@ const STEP: Record<string, ParcelTimelineStep["key"]> = {
 
 const slaMin = (due?: string) => (due ? Math.max(0, Math.round((Date.parse(due) - Date.now()) / 60000)) : null);
 
-const nodeLabel = (n?: ApiNodeRef) => (n ? `${n.name ?? n.code} (${n.code})` : "");
+const nodeLabel = (n?: ApiNodeRef) => (n ? `${n.name ?? n.code ?? ""} (${n.code ?? ""})` : "");
 
 export const toRow = (p: ApiAdminParcel): ParcelRow => ({
-  id: p.id,
-  sender: p.sender?.name ?? p.trackingNo,
+  id: p.id ?? "",
+  sender: p.sender?.name ?? p.trackingNo ?? "",
   destination: nodeLabel(p.destination),
   courierId: null,
   destinationNodeId: p.destination?.id ?? "",
-  status: STATUS[p.state] ?? "pending_pickup",
+  status: STATUS[p.state ?? ""] ?? "pending_pickup",
   slaRemainingMin: slaMin(p.slaDueAt),
   flagged: p.slaAtRisk ?? false,
 });
 
-const batchTag = (status: string): BatchRow["tags"] =>
+const batchTag = (status?: string): BatchRow["tags"] =>
   status === "completed" ? ["completed"] : status === "failed" ? ["stalled"] : ["active"];
 
 const progressAt = (b: ApiAdminBatch, key: "delivered" | "inTransit") => Number(b.progress?.[key] ?? 0);
 
 const labelCount = (labels: ApiLabelCount[] | undefined, wanted: string[]) =>
-  (labels ?? []).filter((l) => wanted.includes(l.label)).reduce((sum, l) => sum + Number(l.parcels), 0);
+  (labels ?? []).filter((l) => wanted.includes(l.label ?? "")).reduce((sum, l) => sum + Number(l.parcels ?? 0), 0);
 
 export const toBatch = (b: ApiAdminBatch): BatchRow => {
   const delayed = labelCount(b.progress?.labels, ["ADMIN_PARCEL_LABEL_EXPIRED_OR_FAILED", "ADMIN_PARCEL_LABEL_CANCELLED"]);
   return {
-    id: b.id,
+    id: b.id ?? "",
     tags: batchTag(b.status),
     sme: b.smeName ?? "",
-    createdAt: b.createdAt,
+    createdAt: b.createdAt ?? "",
     city: b.origin?.name ?? "",
     totalValue: koboToNaira(b.totalPriceKobo),
-    parcelCount: b.totalParcels,
+    parcelCount: b.totalParcels ?? 0,
     delivered: progressAt(b, "delivered"),
     breakdown: [
       {key: "delivered", count: progressAt(b, "delivered")},
@@ -158,23 +158,30 @@ const toSteps = (parcel: ApiAdminParcel, timeline?: ApiParcelEvent[]): ParcelTim
   }),
 ];
 
-export const toDetail = (res: ApiParcelDetail, flag: ParcelFlagRecord | null): ParcelDetail => ({
-  id: res.parcel.id,
-  serviceType: serviceTier(res.parcel.speedTier),
-  status: STATUS[res.parcel.state] ?? "pending_pickup",
-  flag,
-  sender: res.parcel.sender?.name ?? "",
-  recipient: res.recipient?.name ?? "",
-  courier: null,
-  route: {from: nodeLabel(res.parcel.origin), to: nodeLabel(res.parcel.destination)},
-  size: res.parcel.sizeClass?.replace("SIZE_CLASS_", "").toLowerCase() ?? "",
-  charged: koboToNaira(res.parcel.priceKobo),
-  slaRemainingMin: slaMin(res.parcel.slaDueAt),
-  routes: [{steps: toSteps(res.parcel, res.timeline)}],
-});
+const str = (v?: string) => v ?? "";
+const parcelStatus = (p: ApiAdminParcel) => STATUS[p.state ?? ""] ?? "pending_pickup";
+const sizeClass = (p: ApiAdminParcel) => p.sizeClass?.replace("SIZE_CLASS_", "").toLowerCase() ?? "";
+
+export const toDetail = (res: ApiParcelDetail, flag: ParcelFlagRecord | null): ParcelDetail => {
+  const parcel = res.parcel ?? {};
+  return {
+    id: str(parcel.id),
+    serviceType: serviceTier(parcel.speedTier),
+    status: parcelStatus(parcel),
+    flag,
+    sender: str(parcel.sender?.name),
+    recipient: str(res.recipient?.name),
+    courier: null,
+    route: {from: nodeLabel(parcel.origin), to: nodeLabel(parcel.destination)},
+    size: sizeClass(parcel),
+    charged: koboToNaira(parcel.priceKobo),
+    slaRemainingMin: slaMin(parcel.slaDueAt),
+    routes: [{steps: toSteps(parcel, res.timeline)}],
+  };
+};
 
 export const metrics = (stats?: ApiParcelStats) => ({
-  total: (stats?.labels ?? []).reduce((sum, l) => sum + Number(l.parcels), 0),
+  total: (stats?.labels ?? []).reduce((sum, l) => sum + Number(l.parcels ?? 0), 0),
   inTransit: labelCount(stats?.labels, ["ADMIN_PARCEL_LABEL_IN_TRANSIT"]),
   pendingPickup: labelCount(stats?.labels, ["ADMIN_PARCEL_LABEL_AWAITING_DROPOFF", "ADMIN_PARCEL_LABEL_PENDING_PICKUP"]),
   delivered: labelCount(stats?.labels, ["ADMIN_PARCEL_LABEL_DELIVERED", "ADMIN_PARCEL_LABEL_COLLECTED"]),

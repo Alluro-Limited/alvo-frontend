@@ -1,15 +1,18 @@
 /**
  * Wire DTOs for the Alvo API (`/v1/**`). The gateway speaks proto3 JSON: lowerCamelCase
  * fields in and out, int64 money as decimal strings, `google.rpc.Status` errors.
+ *
+ * proto3 JSON omits unset fields (and emits `null` for some), so every response field is
+ * optional — mappers must default, never assume presence. Request bodies stay strict.
  */
 
 export interface ApiSme {
-  id: string;
-  businessName: string;
-  workEmail: string;
-  tier: string;
-  status: string;
-  createdAt: string;
+  id?: string;
+  businessName?: string;
+  workEmail?: string;
+  tier?: string;
+  status?: string;
+  createdAt?: string;
 }
 
 export interface ApiRegisterSmeRequest {
@@ -24,14 +27,14 @@ export interface ApiSignInSmeRequest {
 }
 
 export interface ApiSmeAuthResponse {
-  sme: ApiSme;
-  accessToken: string;
-  refreshToken: string;
+  sme?: ApiSme;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface AuthTokensResponse {
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface ApiRequestOtpRequest {
@@ -45,14 +48,14 @@ export interface ApiVerifyOtpRequest {
 }
 
 export interface ApiNode {
-  id: string;
-  code: string;
-  name: string;
-  status: string;
+  id?: string;
+  code?: string;
+  name?: string;
+  status?: string;
 }
 
 export interface ApiListNodesResponse {
-  nodes: ApiNode[];
+  nodes?: ApiNode[];
 }
 
 export interface ApiShipmentRow {
@@ -73,81 +76,81 @@ export interface ApiCreateBatchRequest {
 }
 
 export interface ApiBatch {
-  id: string;
-  fileName: string;
-  totalParcels: number;
-  totalPriceKobo: string;
-  status: string;
-  createdAt: string;
+  id?: string;
+  fileName?: string;
+  totalParcels?: number;
+  totalPriceKobo?: string;
+  status?: string;
+  createdAt?: string;
 }
 
 export interface ApiShipment {
-  trackingNo: string;
-  recipientPhone: string;
+  trackingNo?: string;
+  recipientPhone?: string;
   recipientName?: string;
   itemDescription?: string;
   itemValueKobo?: string;
-  sizeClass: string;
-  state: string;
-  priceKobo: string;
+  sizeClass?: string;
+  state?: string;
+  priceKobo?: string;
 }
 
 export interface ApiCreatedShipment {
-  parcelId: string;
-  trackingNo: string;
-  dropoffCode: string;
-  priceKobo: string;
+  parcelId?: string;
+  trackingNo?: string;
+  dropoffCode?: string;
+  priceKobo?: string;
 }
 
 export interface ApiListBatchesResponse {
-  batches: ApiBatch[];
+  batches?: ApiBatch[];
 }
 
 export interface ApiGetBatchResponse {
-  batch: ApiBatch;
-  shipments: ApiShipment[];
+  batch?: ApiBatch;
+  shipments?: ApiShipment[];
 }
 
 export interface ApiCreateBatchResponse {
-  batch: ApiBatch;
-  shipments: ApiCreatedShipment[];
+  batch?: ApiBatch;
+  shipments?: ApiCreatedShipment[];
 }
 
 export interface ApiSmeWallet {
-  id: string;
-  balanceKobo: string;
-  currency: string;
-  status: string;
-  availableKobo: string;
+  id?: string;
+  balanceKobo?: string;
+  currency?: string;
+  status?: string;
+  availableKobo?: string;
 }
 
 export interface ApiGetSmeWalletResponse {
-  wallet: ApiSmeWallet;
+  wallet?: ApiSmeWallet;
 }
 
 export interface ApiSmeTransaction {
-  journalType: string;
-  amountKobo: string;
+  journalType?: string;
+  amountKobo?: string;
   /** Journal reference — the batch id for batch payments, a payment ref for top-ups. */
-  reference: string;
-  createdAt: string;
+  reference?: string;
+  createdAt?: string;
 }
 
 export interface ApiListSmeTransactionsResponse {
-  transactions: ApiSmeTransaction[];
+  transactions?: ApiSmeTransaction[];
 }
 
 export interface ApiNotification {
-  id: string;
-  category: string;
-  title: string;
-  body: string;
+  id?: string;
+  category?: string;
+  title?: string;
+  body?: string;
   parcelId?: string;
   readAt?: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface ApiListNotificationsResponse {
-  notifications: ApiNotification[];
-  nextCursor: string;
+  notifications?: ApiNotification[];
+  nextCursor?: string;
 }

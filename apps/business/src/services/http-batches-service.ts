@@ -21,7 +21,8 @@ const STAGE: Record<string, ShipmentStage> = {
   PARCEL_STATE_RETURNED: "failed",
 };
 
-const batchStatus = (status: string): BatchStatus => {
+const batchStatus = (status?: string): BatchStatus => {
+  if (!status) return "active";
   if (status.includes("DRAFT")) return "draft";
   if (status.includes("COMPLETE")) return "completed";
   if (status.includes("ISSUE") || status.includes("FAIL")) return "issue";
@@ -29,61 +30,75 @@ const batchStatus = (status: string): BatchStatus => {
 };
 
 const toSummary = (b: ApiBatch): BatchSummary => ({
-  id: b.id,
+  id: b.id ?? "",
   name: b.fileName || "Untitled batch",
-  shipmentCount: b.totalParcels,
+  shipmentCount: b.totalParcels ?? 0,
   status: batchStatus(b.status),
   createdAt: formatDate(b.createdAt),
   totalCost: koboToNaira(b.totalPriceKobo),
 });
 
 const toRow = (s: ApiShipment): BatchDetail["shipments"][number] => ({
-  id: s.trackingNo,
-  recipient: s.recipientName ?? s.recipientPhone,
-  phone: s.recipientPhone,
+  id: s.trackingNo ?? "",
+  recipient: s.recipientName ?? s.recipientPhone ?? "",
+  phone: s.recipientPhone ?? "",
   destination: "",
-  size: SIZE[s.sizeClass] ?? "S",
+  size: SIZE[s.sizeClass ?? ""] ?? "S",
   priority: "standard",
-  stage: STAGE[s.state] ?? "awaiting_dropoff",
+  stage: STAGE[s.state ?? ""] ?? "awaiting_dropoff",
 });
+
+type ShipmentRow = BatchDetail["shipments"][number];
+
+const byStage = (shipments: ShipmentRow[], stage: ShipmentStage) => shipments.filter((s) => s.stage === stage).length;
+
+const batchId = (b?: ApiBatch) => b?.id ?? "";
+const batchName = (b?: ApiBatch) => b?.fileName || "Untitled batch";
+
+const toCost = (b: ApiBatch | undefined, shipments: ShipmentRow[], express: ShipmentRow[]): BatchDetail["cost"] => ({
+  standardCount: shipments.length - express.length,
+  standardCost: 0,
+  expressCount: express.length,
+  expressCost: 0,
+  platformFee: 0,
+  total: koboToNaira(b?.totalPriceKobo),
+});
+
+const toBreakdown = (shipments: ShipmentRow[], delivered: number, failed: number): BatchDetail["breakdown"] => ({
+  collected: delivered,
+  readyForCollection: byStage(shipments, "ready_for_collection"),
+  inTransit: byStage(shipments, "in_transit"),
+  courierAssigned: byStage(shipments, "courier_assigned"),
+  awaitingDropoff: byStage(shipments, "awaiting_dropoff"),
+  failed,
+});
+
+const priorities = (shipments: ShipmentRow[]) =>
+  [...new Set(shipments.map((s) => (s.priority === "express" ? "Express" : "Standard")))].join(" · ");
 
 /** Breakdown, progress, and priorities are computed client-side — no stats endpoint exists. */
 const toDetail = (res: ApiGetBatchResponse): BatchDetail => {
-  const shipments = res.shipments.map(toRow);
-  const count = res.batch.totalParcels || shipments.length;
-  const delivered = shipments.filter((s) => s.stage === "delivered").length;
-  const failed = shipments.filter((s) => s.stage === "failed").length;
+  const shipments = (res.shipments ?? []).map(toRow);
+  const b = res.batch;
+  const count = b?.totalParcels || shipments.length;
+  const delivered = byStage(shipments, "delivered");
+  const failed = byStage(shipments, "failed");
   const express = shipments.filter((s) => s.priority === "express");
-  const priorityLabels = [...new Set(shipments.map((s) => (s.priority === "express" ? "Express" : "Standard")))];
   return {
-    id: res.batch.id,
-    name: res.batch.fileName || "Untitled batch",
-    createdAt: `Created ${formatDate(res.batch.createdAt)}`,
+    id: batchId(b),
+    name: batchName(b),
+    createdAt: `Created ${formatDate(b?.createdAt)}`,
     totalShipments: count,
     delivered,
     inProgress: count - delivered - failed,
     failed,
     originLocker: "",
-    totalCost: koboToNaira(res.batch.totalPriceKobo),
-    priorities: priorityLabels.join(" · "),
+    totalCost: koboToNaira(b?.totalPriceKobo),
+    priorities: priorities(shipments),
     progress: count ? delivered / count : 0,
     allDelivered: count > 0 && delivered === count,
-    breakdown: {
-      collected: delivered,
-      readyForCollection: shipments.filter((s) => s.stage === "ready_for_collection").length,
-      inTransit: shipments.filter((s) => s.stage === "in_transit").length,
-      courierAssigned: shipments.filter((s) => s.stage === "courier_assigned").length,
-      awaitingDropoff: shipments.filter((s) => s.stage === "awaiting_dropoff").length,
-      failed,
-    },
-    cost: {
-      standardCount: shipments.length - express.length,
-      standardCost: 0,
-      expressCount: express.length,
-      expressCost: 0,
-      platformFee: 0,
-      total: koboToNaira(res.batch.totalPriceKobo),
-    },
+    breakdown: toBreakdown(shipments, delivered, failed),
+    cost: toCost(b, shipments, express),
     shipments,
   };
 };
@@ -96,7 +111,7 @@ const toDetail = (res: ApiGetBatchResponse): BatchDetail => {
 export const httpBatchesService: BatchesService = {
   getBatches: async () => {
     const res = await apiClient.get("v1/sme/batches", {searchParams: {limit: 100}}).json<ApiListBatchesResponse>();
-    const batches = res.batches.map(toSummary);
+    const batches = (res.batches ?? []).map(toSummary);
     const spend = batches.reduce((sum, b) => sum + (b.totalCost ?? 0), 0);
     const shipments = batches.reduce((sum, b) => sum + (b.shipmentCount ?? 0), 0);
     return {

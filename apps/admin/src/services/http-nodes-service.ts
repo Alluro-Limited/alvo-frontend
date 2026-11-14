@@ -15,16 +15,16 @@ interface ApiNodeDetails {
 }
 
 interface ApiAdminNode {
-  id: string;
-  code: string;
-  lat: number;
-  lng: number;
+  id?: string;
+  code?: string;
+  lat?: number;
+  lng?: number;
   details?: ApiNodeDetails;
-  status: string;
+  status?: string;
   statusReason?: string;
   statusNotes?: string;
   statusChangedAt?: string;
-  capacity?: {small: number; medium: number; large: number};
+  capacity?: {small?: number; medium?: number; large?: number};
   adapterType?: string;
   liveParcels?: string;
   activatedAt?: string;
@@ -32,7 +32,7 @@ interface ApiAdminNode {
 }
 
 interface ApiMaintenance {
-  id: string;
+  id?: string;
   nodeId?: string;
   startsAt?: string;
   endsAt?: string;
@@ -45,9 +45,9 @@ interface ApiMaintenance {
 }
 
 interface ApiNodeDetail {
-  node: ApiAdminNode;
-  operators?: {userId: string; assignedAt?: string}[];
-  contents?: {state: string; parcels: string}[];
+  node?: ApiAdminNode;
+  operators?: {userId?: string; assignedAt?: string}[];
+  contents?: {state?: string; parcels?: string}[];
   maintenance?: ApiMaintenance[];
 }
 
@@ -65,19 +65,24 @@ const API_STATUS: Record<string, string> = {
   decommissioned: "ADMIN_NODE_STATUS_DECOMMISSIONED",
 };
 
-const cap = (c?: {small: number; medium: number; large: number}) => (c ? c.small + c.medium + c.large : 0);
+const cap = (c?: {small?: number; medium?: number; large?: number}) => (c ? (c.small ?? 0) + (c.medium ?? 0) + (c.large ?? 0) : 0);
 
 const used = (n: ApiAdminNode) => Number(n.liveParcels ?? 0);
 
+const str = (v?: string) => v ?? "";
+const num = (v?: number) => v ?? 0;
+const nodeName = (n: ApiAdminNode) => n.details?.name || n.code || "";
+const nodeStatus = (n: ApiAdminNode) => STATUS[n.status ?? ""] ?? "offline";
+
 const toRow = (n: ApiAdminNode): NodeRow => ({
-  id: n.id,
-  name: n.details?.name ?? n.code,
+  id: str(n.id),
+  name: nodeName(n),
   partner: n.details?.partnerName ?? "",
   zone: n.details?.zone ?? "",
   capacity: {used: used(n), total: cap(n.capacity)},
   connectivity: "4g_lte",
-  status: STATUS[n.status] ?? "offline",
-  position: [n.lng, n.lat],
+  status: nodeStatus(n),
+  position: [num(n.lng), num(n.lat)],
 });
 
 const field = (d: ApiNodeDetails | undefined, key: keyof ApiNodeDetails) => String(d?.[key] ?? "");
@@ -98,13 +103,13 @@ const reasonLabel = (code?: string) =>
     : "";
 
 const toDetail = (res: ApiNodeDetail): NodeDetail => {
-  const {node} = res;
+  const node = res.node ?? {};
   const d = node.details;
   return {
-    id: node.id,
-    code: node.code,
-    name: d?.name || node.code,
-    status: STATUS[node.status] ?? "offline",
+    id: str(node.id),
+    code: str(node.code),
+    name: nodeName(node),
+    status: nodeStatus(node),
     partner: field(d, "partnerName"),
     zone: field(d, "zone"),
     region: field(d, "region"),
@@ -118,7 +123,7 @@ const toDetail = (res: ApiNodeDetail): NodeDetail => {
     sensors: [],
     contents: [],
     maintenance: (res.maintenance ?? []).map((m) => ({
-      id: m.id,
+      id: m.id ?? "",
       title: reasonLabel(m.reasonCode) || (m.notes ?? ""),
       at: m.startsAt ?? "",
       vendor: m.scheduledBy ?? "",
@@ -130,7 +135,7 @@ const toDetail = (res: ApiNodeDetail): NodeDetail => {
       {status: "maintenance", reasons: ["scheduled_service", "compartment_repair", "hardware_upgrade", "partner_request"]},
       {status: "decommissioned", reasons: ["partner_contract_ended", "location_closed", "replaced_by_new_node"]},
     ],
-    position: [node.lng, node.lat],
+    position: [num(node.lng), num(node.lat)],
   };
 };
 

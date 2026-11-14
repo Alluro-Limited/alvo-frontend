@@ -6,9 +6,9 @@ import type {WalletService, WalletTransaction} from "@/types/wallet-types";
 
 /** The wire has no transaction id — reference + timestamp is the stable key. */
 const toTxn = (t: ApiSmeTransaction): WalletTransaction => {
-  const isBatch = t.journalType.includes("BATCH");
+  const isBatch = (t.journalType ?? "").includes("BATCH");
   return {
-    id: `${t.reference}:${t.createdAt}`,
+    id: `${t.reference ?? ""}:${t.createdAt ?? ""}`,
     kind: isBatch ? "batch_payment" : "topup",
     batchId: isBatch ? t.reference || undefined : undefined,
     reference: isBatch ? undefined : t.reference || undefined,
@@ -33,7 +33,7 @@ export const httpWalletService: WalletService = {
     ]);
     const transactions = (txns?.transactions ?? []).map(toTxn);
     return {
-      balance: koboToNaira(walletRes.wallet.balanceKobo),
+      balance: koboToNaira(walletRes.wallet?.balanceKobo),
       lastTopUpDate: transactions.find((t) => t.kind === "topup")?.date ?? null,
       bankAccount: null,
       transactions,

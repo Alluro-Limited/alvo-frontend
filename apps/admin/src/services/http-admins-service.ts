@@ -5,31 +5,31 @@ import type {AdminDetail, AdminsService, AdminRole, AdminRow, AdminStatus, Permi
 import type {AdminModuleIcon} from "@/types/admins-types";
 
 interface ApiAdmin {
-  id: string;
-  code: string;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
+  id?: string;
+  code?: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  status?: string;
   grants?: string[];
   totpEnabled?: boolean;
   lastActiveAt?: string;
   invitedBy?: string;
-  version: number;
-  createdAt: string;
+  version?: number;
+  createdAt?: string;
 }
 
 interface ApiRole {
-  code: string;
-  name: string;
+  code?: string;
+  name?: string;
   description?: string;
   system?: boolean;
   permissions?: string[];
 }
 
 interface ApiPermission {
-  name: string;
-  module: string;
+  name?: string;
+  module?: string;
   description?: string;
   highRisk?: boolean;
 }
@@ -55,20 +55,20 @@ const MODULE_ICONS: Record<string, AdminModuleIcon> = {
   system: "settings",
 };
 
-const roleOf = (role: string): AdminRole => (role as AdminRole) || "viewer";
+const roleOf = (role?: string): AdminRole => (role as AdminRole) || "viewer";
 
 const toRow = (a: ApiAdmin): AdminRow => ({
-  id: a.id,
-  name: a.name,
-  email: a.email,
+  id: a.id ?? "",
+  name: a.name ?? "",
+  email: a.email ?? "",
   role: roleOf(a.role),
   lastActive: a.lastActiveAt ?? "",
-  addedAt: a.createdAt,
-  status: STATUS[a.status] ?? "invited",
+  addedAt: a.createdAt ?? "",
+  status: STATUS[a.status ?? ""] ?? "invited",
 });
 
-const nameParts = (name: string) => {
-  const [first = "", ...rest] = name.split(" ");
+const nameParts = (name?: string) => {
+  const [first = "", ...rest] = (name ?? "").split(" ");
   return {firstName: first, lastName: rest.join(" ")};
 };
 
@@ -132,10 +132,11 @@ export const httpAdminsService: AdminsService = {
         .catch(() => ({permissions: [] as ApiPermission[]})),
     ]);
     const modules = new Map<string, ApiPermission[]>();
-    for (const p of permissions.permissions) {
-      const list = modules.get(p.module) ?? [];
+    for (const p of permissions.permissions ?? []) {
+      const module = p.module ?? "";
+      const list = modules.get(module) ?? [];
       list.push(p);
-      modules.set(p.module, list);
+      modules.set(module, list);
     }
     return {
       modules: [...modules.entries()].map(([key, items]) => ({
@@ -143,9 +144,11 @@ export const httpAdminsService: AdminsService = {
         label: moduleLabel(key),
         subtitle: "",
         icon: MODULE_ICONS[key] ?? ("settings" as const),
-        permissions: items.map((p) => ({key: p.name, label: p.description ?? p.name})),
+        permissions: items.map((p) => ({key: p.name ?? "", label: p.description ?? p.name ?? ""})),
       })),
-      presets: Object.fromEntries(roles.roles.map((r) => [r.code as AdminRole, r.permissions ?? []])) as PermissionCatalog["presets"],
+      presets: Object.fromEntries(
+        (roles.roles ?? []).map((r) => [(r.code ?? "") as AdminRole, r.permissions ?? []])
+      ) as PermissionCatalog["presets"],
     };
   },
   getAdminDetail: async (id) => {
@@ -167,7 +170,7 @@ export const httpAdminsService: AdminsService = {
     const current = await apiClient.get(`v1/admin/admins/${id}`).json<ApiAdmin>();
     const res = await apiClient
       .put(`v1/admin/admins/${id}`, {
-        json: {version: current.version, role: input.role, grants: input.permissions},
+        json: {version: current.version ?? 0, role: input.role, grants: input.permissions},
         headers: await stepUp(),
       })
       .json<ApiAdmin>();

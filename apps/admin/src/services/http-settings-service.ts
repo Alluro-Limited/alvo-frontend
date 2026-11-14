@@ -3,13 +3,13 @@ import {getStepUpToken} from "@/services/step-up";
 import type {PlatformSettings, SettingsService} from "@/types/settings-types";
 
 interface ApiSetting {
-  key: string;
-  value: string | number | boolean;
-  version: number;
+  key?: string;
+  value?: string | number | boolean;
+  version?: number;
 }
 
 interface ApiSettingsResponse {
-  settings: ApiSetting[];
+  settings?: ApiSetting[];
 }
 
 type SettingValue = string | number | boolean | undefined;
@@ -27,7 +27,7 @@ const str = (v: SettingValue) => (typeof v === "string" ? v : "");
 export const httpSettingsService: SettingsService = {
   getSettings: async () => {
     const res = await apiClient.get("v1/admin/settings").json<ApiSettingsResponse>();
-    const map = new Map(res.settings.map((s) => [s.key, s]));
+    const map = new Map((res.settings ?? []).map((s) => [s.key ?? "", s]));
     const get = (key: string): SettingValue => map.get(key)?.value;
     const settings: PlatformSettings = {
       general: {
@@ -58,7 +58,7 @@ export const httpSettingsService: SettingsService = {
   },
   updateSettings: async (settings) => {
     const current = await apiClient.get("v1/admin/settings").json<ApiSettingsResponse>();
-    const version = new Map(current.settings.map((s) => [s.key, s.version]));
+    const version = new Map((current.settings ?? []).map((s) => [s.key ?? "", s.version ?? 0]));
     const change = (key: string, value: string | number | boolean) => ({key, value, version: version.get(key) ?? 0});
     const changes = [
       change("general.platform_name", settings.general.platformName),

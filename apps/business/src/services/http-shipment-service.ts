@@ -16,11 +16,11 @@ const SPEED_TIER: Record<string, string> = {standard: "SPEED_TIER_STANDARD", exp
 export const httpShipmentService: ShipmentService = {
   getLockers: async () => {
     const res = await apiClient.get("v1/nodes").json<ApiListNodesResponse>();
-    return res.nodes.map((n) => ({id: n.id, name: n.name}));
+    return (res.nodes ?? []).map((n) => ({id: n.id ?? "", name: n.name ?? n.code ?? ""}));
   },
   createBatch: async (input) => {
     const {nodes} = await apiClient.get("v1/nodes").json<ApiListNodesResponse>();
-    const codeOf = (id: string) => nodes.find((n) => n.id === id)?.code ?? id;
+    const codeOf = (id: string) => (nodes ?? []).find((n) => n.id === id)?.code ?? id;
     const rows: ApiShipmentRow[] = input.recipients.map((r) => ({
       recipientPhone: toE164(r.phone),
       destNodeCode: codeOf(r.lockerId),
@@ -35,9 +35,9 @@ export const httpShipmentService: ShipmentService = {
     };
     const res = await apiClient.post("v1/sme/batches", {json: body}).json<ApiCreateBatchResponse>();
     return {
-      batchId: res.batch.id,
-      shipmentCount: res.shipments.length,
-      totalPaid: koboToNaira(res.batch.totalPriceKobo),
+      batchId: res.batch?.id ?? "",
+      shipmentCount: res.shipments?.length ?? 0,
+      totalPaid: koboToNaira(res.batch?.totalPriceKobo),
       estimatedDelivery: "",
       receiptEmail: getSme()?.workEmail ?? "",
     };
