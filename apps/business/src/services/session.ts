@@ -2,7 +2,7 @@ import ky from "ky";
 
 const STORAGE_KEY = "alvo.business.session";
 
-export const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/?$/, "/");
+export const API_BASE = (import.meta.env.VITE_API_URL ?? "").trim().replace(/\/?$/, "/");
 
 export interface SmeProfile {
   id: string;
